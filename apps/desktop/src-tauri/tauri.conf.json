@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "How to Talk",
+  "version": "0.1.0",
+  "identifier": "dev.nagaseibuki.context-cue",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../ dev",
+    "beforeBuildCommand": "pnpm --dir ../ build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "How to Talk",
+        "label": "main",
+        "width": 1280,
+        "height": 860
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": []
+  }
+}
+

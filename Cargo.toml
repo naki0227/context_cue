@@ -1,0 +1,14 @@
+[workspace]
+members = [
+  "apps/desktop/src-tauri",
+  "crates/context-cue-core",
+  "crates/context-cue-contracts",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["Nagase Ibuki"]
+
