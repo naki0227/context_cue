@@ -128,6 +128,14 @@ function readFileText(file: File) {
   });
 }
 
+function isOverlayWindowView() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return new URLSearchParams(window.location.search).get('view') === 'overlay';
+}
+
 export function App() {
   const {
     appState,
@@ -147,6 +155,16 @@ export function App() {
 
     return attachAppEvents(useAppStore.getState());
   }, [setAppState]);
+
+  const overlayWindow = isOverlayWindowView();
+
+  useEffect(() => {
+    document.body.dataset.view = overlayWindow ? 'overlay' : 'dashboard';
+
+    return () => {
+      delete document.body.dataset.view;
+    };
+  }, [overlayWindow]);
 
   const canStart =
     consent.participantConsent &&
@@ -204,6 +222,91 @@ export function App() {
     { time: '16:00', title: '研究室ミーティング' },
     { time: '18:00', title: 'GD 練習（模擬）' },
   ];
+
+  if (overlayWindow) {
+    const latestTranscript = transcriptPreview.at(-1);
+
+    return (
+      <main className="overlay-window-shell">
+        <div className="overlay-window-toolbar">
+          <span className="record-pill">
+            <span className="record-dot" />
+            {appState.session.status === 'running' ? '録音中' : '待機中'}
+          </span>
+          <span className="overlay-window-badge">オーバーレイ表示中</span>
+          <span className="overlay-window-copy">
+            ダッシュボードは別ウィンドウで管理
+          </span>
+        </div>
+
+        <section className="overlay-window-card">
+          <div className="overlay-strip overlay-strip-standalone">
+            <article className="overlay-panel blue">
+              <p className="overlay-label">現在の話題</p>
+              <p className="overlay-body">{overlayTopic}</p>
+            </article>
+            <article className="overlay-panel green">
+              <p className="overlay-label">要点</p>
+              <ul>
+                {flowPoints.slice(0, 4).map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
+            <article className="overlay-panel gold">
+              <p className="overlay-label">次に話す候補</p>
+              <ul>
+                {nextTalkCandidates.slice(0, 3).map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
+            <article className="overlay-panel orange">
+              <p className="overlay-label">確認したいこと</p>
+              <ul>
+                {confirmItems.slice(0, 3).map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
+            <article className="overlay-panel sand">
+              <p className="overlay-label">メモ</p>
+              <ul>
+                {memoItems.slice(0, 2).map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
+          </div>
+
+          <div className="overlay-window-footer">
+            <div className="overlay-window-meta">
+              <span>
+                STT: {appState.connections.sttReady ? '接続済み' : '未接続'}
+              </span>
+              <span>推論: {formatMode(appState.adaptiveInference.mode)}</span>
+              <span>
+                質問スコア:{' '}
+                {appState.adaptiveInference.questionScore.toFixed(2)}
+              </span>
+            </div>
+
+            <div className="overlay-window-transcript">
+              <strong>
+                {latestTranscript?.source === 'モック音声'
+                  ? '相手'
+                  : '最新の会話'}
+              </strong>
+              <p>
+                {latestTranscript?.text ??
+                  'セッションを開始すると、ここに直近の発話が表示されます。'}
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="workspace-shell">

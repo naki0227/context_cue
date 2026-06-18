@@ -1,7 +1,31 @@
 mod commands;
 mod state;
 
-use tauri::Manager;
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+
+fn build_overlay_window(app: &tauri::AppHandle) -> tauri::Result<()> {
+    if app.get_webview_window("overlay").is_some() {
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(
+        app,
+        "overlay",
+        WebviewUrl::App("index.html?view=overlay".into()),
+    )
+    .title("How to Talk Overlay")
+    .inner_size(1320.0, 320.0)
+    .min_inner_size(900.0, 220.0)
+    .position(80.0, 36.0)
+    .decorations(false)
+    .always_on_top(true)
+    .skip_taskbar(true)
+    .shadow(false)
+    .resizable(true)
+    .build()?;
+
+    Ok(())
+}
 
 pub fn run() {
     tauri::Builder::default()
@@ -11,6 +35,7 @@ pub fn run() {
         .setup(|app| {
             let shared = app.state::<state::SharedState>().inner().clone();
             shared.bootstrap_profiles();
+            build_overlay_window(&app.handle())?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

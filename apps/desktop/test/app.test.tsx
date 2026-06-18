@@ -6,6 +6,7 @@ import { resetMockAppState } from '@/lib/tauri/commands';
 describe('App', () => {
   beforeEach(() => {
     resetMockAppState();
+    window.history.replaceState({}, '', '/');
   });
 
   it('keeps start disabled until all consent items are checked', async () => {
@@ -63,5 +64,16 @@ describe('App', () => {
     expect(
       screen.getByText(/candidate-notes \(ローカルファイル\)/i),
     ).toBeInTheDocument();
+  });
+
+  it('renders overlay window content on overlay view', async () => {
+    window.history.replaceState({}, '', '/?view=overlay');
+    render(<App />);
+
+    expect(await screen.findByText(/オーバーレイ表示中/i)).toBeInTheDocument();
+    expect(screen.getByText(/現在の話題/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Conversation Workspace/i),
+    ).not.toBeInTheDocument();
   });
 });
