@@ -1,7 +1,11 @@
 use context_cue_contracts::{AppState, ConsentInput};
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
-use crate::state::{MockEventRunner, ProfileImportDraft, SharedState};
+use crate::{
+    app::SharedState,
+    domain::profile_document::ProfileImportDraft,
+    infrastructure::{mock_event_runner::MockEventRunner, window_manager},
+};
 
 #[tauri::command]
 pub fn get_app_state(state: State<'_, SharedState>) -> AppState {
@@ -72,22 +76,6 @@ pub fn set_overlay_visibility(
     overlay: String,
     visible: bool,
 ) -> Result<(), String> {
-    let label = match overlay.as_str() {
-        "top" => "overlay_top",
-        "side" => "overlay_side",
-        other => return Err(format!("unknown overlay target: {other}")),
-    };
-
-    let window = app
-        .get_webview_window(label)
-        .ok_or_else(|| format!("overlay window not found: {label}"))?;
-
-    if visible {
-        window.show().map_err(|error| error.to_string())?;
-        window.set_focus().map_err(|error| error.to_string())?;
-    } else {
-        window.hide().map_err(|error| error.to_string())?;
-    }
-
-    Ok(())
+    window_manager::set_overlay_visibility(&app, &overlay, visible)
+        .map_err(|error| error.to_string())
 }
