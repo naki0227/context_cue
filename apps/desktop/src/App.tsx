@@ -130,6 +130,62 @@ export function App() {
         </article>
 
         <article className="panel">
+          <h2>個人ナレッジ管理</h2>
+          <p>アプリに明示的に追加したファイルだけを参照対象にします。</p>
+          <div className="actions">
+            <button
+              onClick={async () => {
+                const state = await invokeCommand('import_profile_documents');
+                setAppState(state);
+              }}
+              type="button"
+            >
+              サンプル個人ナレッジを追加
+            </button>
+            <button
+              disabled={appState.importedDocuments.length === 0}
+              onClick={async () => {
+                const state = await invokeCommand('clear_profile_documents');
+                setAppState(state);
+              }}
+              type="button"
+            >
+              すべて削除
+            </button>
+          </div>
+          <p>追加済みファイル数: {appState.importedDocuments.length}</p>
+          <ul className="transcript-list">
+            {appState.importedDocuments.length === 0 ? (
+              <li>まだ追加された個人ナレッジはありません。</li>
+            ) : (
+              appState.importedDocuments.map((document) => (
+                <li key={document.id}>
+                  <span>
+                    {document.title} ({document.sourceType})
+                  </span>
+                  <div className="actions">
+                    <button
+                      onClick={async () => {
+                        const state = await invokeCommand(
+                          'remove_profile_document',
+                          {
+                            documentId: document.id,
+                          },
+                        );
+                        setAppState(state);
+                      }}
+                      type="button"
+                    >
+                      削除
+                    </button>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+        </article>
+
+        <article className="panel">
           <h2>現在の提示内容</h2>
           <div className="cue-block">
             <p className="rec-banner">録音中 / AI 補助有効 / 同意確認済み</p>

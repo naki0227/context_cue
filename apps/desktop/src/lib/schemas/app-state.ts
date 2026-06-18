@@ -21,6 +21,12 @@ export const contextCueSchema = z.object({
   caution: z.string(),
 });
 
+export const importedDocumentSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  sourceType: z.string(),
+});
+
 export const appStateSchema = z.object({
   session: z.object({
     status: z.enum(['idle', 'running', 'stopped']),
@@ -37,6 +43,7 @@ export const appStateSchema = z.object({
   rollingSummary: rollingSummarySchema,
   contextCue: contextCueSchema,
   transcript: z.array(transcriptChunkSchema),
+  importedDocuments: z.array(importedDocumentSchema),
 });
 
 export type AppState = z.infer<typeof appStateSchema>;

@@ -5,8 +5,8 @@ use std::{
 };
 
 use context_cue_contracts::{
-    AdaptiveInferenceState, AppState, ConnectionState, ConsentInput, ContextCue, RollingSummary,
-    SessionState, TranscriptChunk,
+    AdaptiveInferenceState, AppState, ConnectionState, ConsentInput, ContextCue,
+    ImportedDocument, RollingSummary, SessionState, TranscriptChunk,
 };
 use context_cue_core::{
     cues::shorten_list,
@@ -153,7 +153,36 @@ impl SharedState {
 
     pub fn bootstrap_profiles(&self) {
         let mut state = self.inner.lock().expect("shared state poisoned");
-        state.documents = load_profile_documents();
+        state.seed_documents = load_profile_documents();
+    }
+
+    pub fn import_profile_documents(&self) -> AppState {
+        let mut state = self.inner.lock().expect("shared state poisoned");
+        state.documents = state.seed_documents.clone();
+        state.app_state.imported_documents = state
+            .documents
+            .iter()
+            .map(|document| document.to_imported_document())
+            .collect();
+        state.snapshot()
+    }
+
+    pub fn remove_profile_document(&self, document_id: &str) -> AppState {
+        let mut state = self.inner.lock().expect("shared state poisoned");
+        state.documents.retain(|document| document.id != document_id);
+        state.app_state.imported_documents = state
+            .documents
+            .iter()
+            .map(|document| document.to_imported_document())
+            .collect();
+        state.snapshot()
+    }
+
+    pub fn clear_profile_documents(&self) -> AppState {
+        let mut state = self.inner.lock().expect("shared state poisoned");
+        state.documents.clear();
+        state.app_state.imported_documents.clear();
+        state.snapshot()
     }
 
     pub fn current_status(&self) -> String {
@@ -198,6 +227,7 @@ impl MockEventRunner {
 struct InnerState {
     app_state: AppState,
     documents: Vec<OwnedProfileDocument>,
+    seed_documents: Vec<OwnedProfileDocument>,
 }
 
 impl Default for InnerState {
@@ -205,6 +235,7 @@ impl Default for InnerState {
         Self {
             app_state: default_app_state(),
             documents: Vec::new(),
+            seed_documents: Vec::new(),
         }
     }
 }
@@ -239,8 +270,19 @@ impl InnerState {
 
 #[derive(Clone)]
 struct OwnedProfileDocument {
+    id: String,
     title: String,
     content: String,
+}
+
+impl OwnedProfileDocument {
+    fn to_imported_document(&self) -> ImportedDocument {
+        ImportedDocument {
+            id: self.id.clone(),
+            title: self.title.clone(),
+            source_type: "imported".to_owned(),
+        }
+    }
 }
 
 fn default_app_state() -> AppState {
@@ -271,6 +313,7 @@ fn default_app_state() -> AppState {
             caution: "文字起こしを始める前に参加者の同意が必要です。".to_owned(),
         },
         transcript: vec![],
+        imported_documents: vec![],
     }
 }
 
@@ -292,6 +335,7 @@ fn load_profile_documents() -> Vec<OwnedProfileDocument> {
                 continue;
             };
             documents.push(OwnedProfileDocument {
+                id: stem.to_owned(),
                 title: stem.to_owned(),
                 content,
             });
@@ -302,7 +346,10 @@ fn load_profile_documents() -> Vec<OwnedProfileDocument> {
 }
 
 fn profile_seed_dir() -> PathBuf {
-    let mut path = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path.push("..");
+    path.push("..");
+    path.push("..");
     path.push("profiles");
     path.push("sample");
     path
@@ -331,5 +378,20 @@ mod tests {
         let (_, _, _, adaptive) = state.push_mock_chunk("この変更は今回のリリース対象ですか？");
         assert_eq!(adaptive.mode, "deep");
         assert!(adaptive.question_score >= 0.36);
+    }
+
+    #[test]
+    fn imported_documents_can_be_added_and_removed() {
+        let state = SharedState::default();
+        state.bootstrap_profiles();
+
+        let imported = state.import_profile_documents();
+        assert_eq!(imported.imported_documents.len(), 5);
+
+        let removed = state.remove_profile_document("values");
+        assert_eq!(removed.imported_documents.len(), 4);
+
+        let cleared = state.clear_profile_documents();
+        assert!(cleared.imported_documents.is_empty());
     }
 }

@@ -20,4 +20,24 @@ describe('App', () => {
 
     expect(startButton).toBeEnabled();
   });
+
+  it('adds imported knowledge entries', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    expect(
+      await screen.findByText((content) =>
+        content.includes('追加済みファイル数: 0'),
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /サンプル個人ナレッジを追加/i,
+      }),
+    );
+
+    expect(screen.getByText(/追加済みファイル数: 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/values \(imported\)/i)).toBeInTheDocument();
+  });
 });

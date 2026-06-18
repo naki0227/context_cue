@@ -9,6 +9,24 @@ pub fn get_app_state(state: State<'_, SharedState>) -> AppState {
 }
 
 #[tauri::command]
+pub fn import_profile_documents(state: State<'_, SharedState>) -> AppState {
+    state.import_profile_documents()
+}
+
+#[tauri::command]
+pub fn remove_profile_document(
+    state: State<'_, SharedState>,
+    document_id: String,
+) -> AppState {
+    state.remove_profile_document(&document_id)
+}
+
+#[tauri::command]
+pub fn clear_profile_documents(state: State<'_, SharedState>) -> AppState {
+    state.clear_profile_documents()
+}
+
+#[tauri::command]
 pub async fn start_session(
     app: AppHandle,
     state: State<'_, SharedState>,

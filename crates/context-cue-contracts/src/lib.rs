@@ -58,6 +58,14 @@ pub struct AdaptiveInferenceState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ImportedDocument {
+    pub id: String,
+    pub title: String,
+    pub source_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AppState {
     pub session: SessionState,
     pub connections: ConnectionState,
@@ -65,4 +73,5 @@ pub struct AppState {
     pub rolling_summary: RollingSummary,
     pub context_cue: ContextCue,
     pub transcript: Vec<TranscriptChunk>,
+    pub imported_documents: Vec<ImportedDocument>,
 }

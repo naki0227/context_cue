@@ -28,6 +28,7 @@ const defaultState: AppState = {
     caution: '文字起こしを始める前に参加者の同意が必要です。',
   },
   transcript: [],
+  importedDocuments: [],
 };
 
 const defaultConsent: ConsentState = {
