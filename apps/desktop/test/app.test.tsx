@@ -11,6 +11,13 @@ describe('App', () => {
 
   it('keeps start disabled until all consent items are checked', async () => {
     render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Overlay Settings/i,
+      }),
+    );
 
     const startButton = await screen.findByRole('button', {
       name: /セッション開始/i,
@@ -18,7 +25,6 @@ describe('App', () => {
     expect(startButton).toBeDisabled();
 
     const checkboxes = screen.getAllByRole('checkbox');
-    const user = userEvent.setup();
 
     for (const checkbox of checkboxes) {
       await user.click(checkbox);
@@ -30,6 +36,12 @@ describe('App', () => {
   it('adds imported knowledge entries', async () => {
     render(<App />);
     const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /My Knowledge/i,
+      }),
+    );
 
     expect(
       await screen.findByText((content) =>
@@ -50,6 +62,12 @@ describe('App', () => {
   it('imports selected local knowledge files', async () => {
     render(<App />);
     const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /My Knowledge/i,
+      }),
+    );
 
     const fileInput = screen.getByTestId('profile-file-input');
     const file = new File(['候補者情報のメモ'], 'candidate-notes.md', {
