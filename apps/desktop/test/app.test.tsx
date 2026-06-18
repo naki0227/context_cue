@@ -66,12 +66,25 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders overlay window content on overlay view', async () => {
-    window.history.replaceState({}, '', '/?view=overlay');
+  it('renders top overlay window content on top overlay view', async () => {
+    window.history.replaceState({}, '', '/?view=overlay-top');
     render(<App />);
 
-    expect(await screen.findByText(/オーバーレイ表示中/i)).toBeInTheDocument();
-    expect(screen.getByText(/現在の話題/i)).toBeInTheDocument();
+    expect(await screen.findByText(/AI Assistant/i)).toBeInTheDocument();
+    expect(screen.getByText(/^質問$/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Conversation Workspace/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders side overlay window content on side overlay view', async () => {
+    window.history.replaceState({}, '', '/?view=overlay-side');
+    render(<App />);
+
+    expect(
+      await screen.findByRole('button', { name: /^文字起こし$/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/要約メモ/i)).toBeInTheDocument();
     expect(
       screen.queryByText(/Conversation Workspace/i),
     ).not.toBeInTheDocument();

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/lib/state/app-store';
-import { invokeCommand } from '@/lib/tauri/commands';
+import { invokeCommand, setOverlayVisibility } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
 
 const MAX_IMPORT_FILE_SIZE = 512 * 1024;
@@ -128,12 +128,17 @@ function readFileText(file: File) {
   });
 }
 
-function isOverlayWindowView() {
+function getWindowView() {
   if (typeof window === 'undefined') {
-    return false;
+    return 'dashboard';
   }
 
-  return new URLSearchParams(window.location.search).get('view') === 'overlay';
+  const view = new URLSearchParams(window.location.search).get('view');
+  if (view === 'overlay-top' || view === 'overlay-side') {
+    return view;
+  }
+
+  return 'dashboard';
 }
 
 export function App() {
@@ -147,6 +152,8 @@ export function App() {
   } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [knowledgeImportNotice, setKnowledgeImportNotice] = useState('');
+  const [topOverlayVisible, setTopOverlayVisible] = useState(true);
+  const [sideOverlayVisible, setSideOverlayVisible] = useState(true);
 
   useEffect(() => {
     invokeCommand('get_app_state')
@@ -156,15 +163,20 @@ export function App() {
     return attachAppEvents(useAppStore.getState());
   }, [setAppState]);
 
-  const overlayWindow = isOverlayWindowView();
+  const windowView = getWindowView();
+  const topOverlayWindow = windowView === 'overlay-top';
+  const sideOverlayWindow = windowView === 'overlay-side';
 
   useEffect(() => {
-    document.body.dataset.view = overlayWindow ? 'overlay' : 'dashboard';
+    document.body.dataset.view =
+      windowView === 'dashboard' ? 'dashboard' : 'overlay';
+    document.body.dataset.overlayKind = windowView;
 
     return () => {
       delete document.body.dataset.view;
+      delete document.body.dataset.overlayKind;
     };
-  }, [overlayWindow]);
+  }, [windowView]);
 
   const canStart =
     consent.participantConsent &&
@@ -223,84 +235,126 @@ export function App() {
     { time: '18:00', title: 'GD 練習（模擬）' },
   ];
 
-  if (overlayWindow) {
-    const latestTranscript = transcriptPreview.at(-1);
-
+  if (topOverlayWindow) {
     return (
-      <main className="overlay-window-shell">
-        <div className="overlay-window-toolbar">
-          <span className="record-pill">
-            <span className="record-dot" />
-            {appState.session.status === 'running' ? '録音中' : '待機中'}
-          </span>
-          <span className="overlay-window-badge">オーバーレイ表示中</span>
-          <span className="overlay-window-copy">
-            ダッシュボードは別ウィンドウで管理
-          </span>
-        </div>
+      <main className="top-overlay-shell">
+        <section className="top-overlay-card" data-tauri-drag-region>
+          <header className="top-overlay-header">
+            <div className="top-overlay-title">
+              <span className="top-overlay-status-dot" />
+              <span>AI Assistant</span>
+            </div>
+            <div className="top-overlay-listening">
+              <div className="mini-listening-bars" aria-hidden="true">
+                {listeningBarIds.slice(0, 6).map((barId) => (
+                  <span key={barId} />
+                ))}
+              </div>
+              <span>
+                {appState.session.status === 'running'
+                  ? 'Listening...'
+                  : 'Standby'}
+              </span>
+            </div>
+          </header>
 
-        <section className="overlay-window-card">
-          <div className="overlay-strip overlay-strip-standalone">
-            <article className="overlay-panel blue">
-              <p className="overlay-label">現在の話題</p>
+          <div className="top-overlay-grid">
+            <article className="overlay-panel blue compact">
+              <p className="overlay-label">質問</p>
               <p className="overlay-body">{overlayTopic}</p>
             </article>
-            <article className="overlay-panel green">
-              <p className="overlay-label">要点</p>
+            <article className="overlay-panel violet compact">
+              <p className="overlay-label">回答の要点</p>
               <ul>
                 {flowPoints.slice(0, 4).map((point) => (
                   <li key={point}>{point}</li>
                 ))}
               </ul>
             </article>
-            <article className="overlay-panel gold">
-              <p className="overlay-label">次に話す候補</p>
+            <article className="overlay-panel gold compact">
+              <p className="overlay-label">話す際のヒント</p>
               <ul>
                 {nextTalkCandidates.slice(0, 3).map((point) => (
                   <li key={point}>{point}</li>
                 ))}
               </ul>
             </article>
-            <article className="overlay-panel orange">
-              <p className="overlay-label">確認したいこと</p>
+            <article className="overlay-panel green compact">
+              <p className="overlay-label">想定追加質問</p>
               <ul>
                 {confirmItems.slice(0, 3).map((point) => (
                   <li key={point}>{point}</li>
                 ))}
               </ul>
             </article>
-            <article className="overlay-panel sand">
-              <p className="overlay-label">メモ</p>
-              <ul>
-                {memoItems.slice(0, 2).map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
-            </article>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (sideOverlayWindow) {
+    const latestTranscript = transcriptPreview.at(-1);
+
+    return (
+      <main className="side-overlay-shell">
+        <section className="side-overlay-card" data-tauri-drag-region>
+          <div className="dock-tabs">
+            <button className="dock-tab active" type="button">
+              文字起こし
+            </button>
+            <button className="dock-tab" type="button">
+              要約
+            </button>
           </div>
 
-          <div className="overlay-window-footer">
-            <div className="overlay-window-meta">
-              <span>
-                STT: {appState.connections.sttReady ? '接続済み' : '未接続'}
-              </span>
-              <span>推論: {formatMode(appState.adaptiveInference.mode)}</span>
-              <span>
-                質問スコア:{' '}
-                {appState.adaptiveInference.questionScore.toFixed(2)}
-              </span>
-            </div>
+          <div className="dock-feed">
+            {transcriptPreview.length === 0 ? (
+              <>
+                <p className="speaker-line">
+                  <span className="speaker-name other">相手</span>
+                  セッションを開始すると文字起こしがここに流れます。
+                </p>
+                <p className="speaker-line">
+                  <span className="speaker-name you">あなた</span>
+                  ローカルのナレッジを追加すると候補の精度が上がります。
+                </p>
+              </>
+            ) : (
+              transcriptPreview.map((chunk, index) => (
+                <p className="speaker-line" key={chunk.id}>
+                  <span
+                    className={`speaker-name ${
+                      index % 2 === 0 ? 'other' : 'you'
+                    }`}
+                  >
+                    {index % 2 === 0 ? '相手' : 'あなた'}
+                  </span>
+                  {chunk.text}
+                </p>
+              ))
+            )}
+          </div>
 
-            <div className="overlay-window-transcript">
-              <strong>
-                {latestTranscript?.source === 'モック音声'
-                  ? '相手'
-                  : '最新の会話'}
-              </strong>
-              <p>
-                {latestTranscript?.text ??
-                  'セッションを開始すると、ここに直近の発話が表示されます。'}
-              </p>
+          <div className="side-overlay-summary">
+            <p className="side-overlay-note-label">要約メモ</p>
+            <ul>
+              {memoItems.slice(0, 2).map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="dock-footer">
+            <span>
+              {latestTranscript?.text
+                ? 'AIが聞いています...'
+                : 'AIが待機しています...'}
+            </span>
+            <div className="listening-bars" aria-hidden="true">
+              {listeningBarIds.map((barId) => (
+                <span key={barId} />
+              ))}
             </div>
           </div>
         </section>
@@ -457,6 +511,15 @@ export function App() {
                     </div>
                   </div>
                 </aside>
+
+                <div className="overlay-visibility-pills">
+                  <span className={topOverlayVisible ? 'visible' : 'hidden'}>
+                    上部: {topOverlayVisible ? '表示中' : '非表示'}
+                  </span>
+                  <span className={sideOverlayVisible ? 'visible' : 'hidden'}>
+                    右側: {sideOverlayVisible ? '表示中' : '非表示'}
+                  </span>
+                </div>
 
                 <div className="meeting-footer">
                   <div className="meeting-meta">
@@ -747,6 +810,32 @@ export function App() {
               </label>
 
               <div className="knowledge-actions">
+                <button
+                  className={topOverlayVisible ? '' : 'secondary-button'}
+                  onClick={async () => {
+                    const nextVisible = !topOverlayVisible;
+                    await setOverlayVisibility('top', nextVisible);
+                    setTopOverlayVisible(nextVisible);
+                  }}
+                  type="button"
+                >
+                  {topOverlayVisible
+                    ? '上部オーバーレイを隠す'
+                    : '上部オーバーレイを表示'}
+                </button>
+                <button
+                  className={sideOverlayVisible ? '' : 'secondary-button'}
+                  onClick={async () => {
+                    const nextVisible = !sideOverlayVisible;
+                    await setOverlayVisibility('side', nextVisible);
+                    setSideOverlayVisible(nextVisible);
+                  }}
+                  type="button"
+                >
+                  {sideOverlayVisible
+                    ? '右オーバーレイを隠す'
+                    : '右オーバーレイを表示'}
+                </button>
                 <button
                   disabled={!canStart}
                   onClick={async () => {

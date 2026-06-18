@@ -13,7 +13,10 @@ type CommandName =
   | 'import_profile_documents'
   | 'import_profile_documents_from_files'
   | 'remove_profile_document'
-  | 'clear_profile_documents';
+  | 'clear_profile_documents'
+  | 'set_overlay_visibility';
+
+type OverlayTarget = 'top' | 'side';
 
 type ImportedProfileDocumentDraft = {
   title: string;
@@ -24,6 +27,8 @@ type CommandPayload = {
   consent?: ConsentState;
   documentId?: string;
   documents?: ImportedProfileDocumentDraft[];
+  overlay?: OverlayTarget;
+  visible?: boolean;
 };
 
 const mockDocuments = [
@@ -64,7 +69,14 @@ let mockAppState = createMockAppState();
 
 export function resetMockAppState() {
   mockAppState = createMockAppState();
+  mockOverlayVisibility.top = true;
+  mockOverlayVisibility.side = true;
 }
+
+const mockOverlayVisibility: Record<OverlayTarget, boolean> = {
+  top: true,
+  side: true,
+};
 
 function invokeMockCommand(
   command: CommandName,
@@ -163,6 +175,23 @@ function invokeMockCommand(
   }
 
   return appStateSchema.parse(mockAppState);
+}
+
+export async function setOverlayVisibility(
+  overlay: OverlayTarget,
+  visible: boolean,
+): Promise<void> {
+  if (
+    !(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+  ) {
+    mockOverlayVisibility[overlay] = visible;
+    return;
+  }
+
+  await invoke('set_overlay_visibility', {
+    overlay,
+    visible,
+  });
 }
 
 export async function invokeCommand(

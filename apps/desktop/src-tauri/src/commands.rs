@@ -1,5 +1,5 @@
 use context_cue_contracts::{AppState, ConsentInput};
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::state::{MockEventRunner, ProfileImportDraft, SharedState};
 
@@ -64,4 +64,30 @@ pub fn toggle_share_safe_mode(
     app.emit("share-safe-mode-changed", snapshot.session.clone())
         .map_err(|error| error.to_string())?;
     Ok(snapshot)
+}
+
+#[tauri::command]
+pub fn set_overlay_visibility(
+    app: AppHandle,
+    overlay: String,
+    visible: bool,
+) -> Result<(), String> {
+    let label = match overlay.as_str() {
+        "top" => "overlay_top",
+        "side" => "overlay_side",
+        other => return Err(format!("unknown overlay target: {other}")),
+    };
+
+    let window = app
+        .get_webview_window(label)
+        .ok_or_else(|| format!("overlay window not found: {label}"))?;
+
+    if visible {
+        window.show().map_err(|error| error.to_string())?;
+        window.set_focus().map_err(|error| error.to_string())?;
+    } else {
+        window.hide().map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
 }
