@@ -74,7 +74,7 @@ impl SharedState {
 
         let chunk = TranscriptChunk {
             id: Uuid::new_v4().to_string(),
-            source: "mock-stt".to_owned(),
+            source: "モック音声".to_owned(),
             text: text.to_owned(),
         };
 
@@ -98,8 +98,8 @@ impl SharedState {
                 "会話中の論点整理".to_owned()
             },
             important_points: vec![
-                "Adaptive Inference Mode enabled".to_owned(),
-                "Question-triggered deep mode".to_owned(),
+                "適応的推論モードが有効".to_owned(),
+                "質問を検出したときだけ深い推論を実行".to_owned(),
             ],
             open_questions: if question >= 0.36 {
                 vec![text.to_owned()]
@@ -258,17 +258,17 @@ fn default_app_state() -> AppState {
             question_score: 0.0,
         },
         rolling_summary: RollingSummary {
-            current_topic: "Waiting for a session".to_owned(),
+            current_topic: "セッション開始を待っています".to_owned(),
             important_points: vec![],
             open_questions: vec![],
         },
         context_cue: ContextCue {
-            topic: "No active conversation".to_owned(),
-            intent: "Start a session to preview cues".to_owned(),
+            topic: "まだ会話は始まっていません".to_owned(),
+            intent: "セッションを開始すると提示内容を表示します".to_owned(),
             related_notes: vec![],
             suggested_points: vec![],
             questions_to_ask: vec![],
-            caution: "Consent is required before transcription starts.".to_owned(),
+            caution: "文字起こしを始める前に参加者の同意が必要です。".to_owned(),
         },
         transcript: vec![],
     }

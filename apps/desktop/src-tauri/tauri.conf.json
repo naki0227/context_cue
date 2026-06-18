@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "dev.nagaseibuki.context-cue",
   "build": {
-    "beforeDevCommand": "pnpm --dir ../ dev",
-    "beforeBuildCommand": "pnpm --dir ../ build",
+    "beforeDevCommand": "corepack pnpm dev",
+    "beforeBuildCommand": "corepack pnpm build",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
@@ -24,8 +24,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["dmg", "app", "nsis", "msi", "appimage", "deb", "rpm"],
     "icon": []
   }
 }
-

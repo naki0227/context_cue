@@ -8,13 +8,12 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter desktop dev",
-    "build": "pnpm --filter desktop build",
-    "test": "pnpm --filter desktop test",
-    "lint": "pnpm --filter desktop lint",
-    "typecheck": "pnpm --filter desktop typecheck",
-    "tauri:dev": "pnpm --filter desktop tauri dev",
-    "tauri:build": "pnpm --filter desktop tauri build"
+    "dev": "corepack pnpm --filter desktop dev",
+    "build": "corepack pnpm --filter desktop build",
+    "test": "corepack pnpm --filter desktop test",
+    "lint": "corepack pnpm --filter desktop lint",
+    "typecheck": "corepack pnpm --filter desktop typecheck",
+    "tauri:dev": "corepack pnpm --filter desktop tauri dev",
+    "tauri:build": "corepack pnpm --filter desktop tauri build"
   }
 }
-

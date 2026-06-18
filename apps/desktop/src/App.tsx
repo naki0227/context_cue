@@ -4,7 +4,11 @@ import { invokeCommand } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
 
 function formatConnectionStatus(isReady: boolean, label: string) {
-  return `${label}: ${isReady ? 'ready' : 'offline'}`;
+  return `${label}: ${isReady ? '接続済み' : '未接続'}`;
+}
+
+function formatMode(mode: 'light' | 'deep') {
+  return mode === 'deep' ? '深い推論' : '軽量モード';
 }
 
 export function App() {
@@ -36,10 +40,10 @@ export function App() {
       <section className="hero">
         <div>
           <p className="eyebrow">Context Cue / How to Talk</p>
-          <h1>Consent-based conversation recall, locally.</h1>
+          <h1>同意にもとづく会話支援を、ローカルで。</h1>
           <p className="lede">
-            Mock transcript, adaptive inference, and a lightweight overlay
-            scaffold are wired in so we can iterate on the real UX quickly.
+            モック文字起こし、適応的な推論制御、軽量オーバーレイを組み合わせて、
+            会話中の想起支援体験をすばやく検証できるようにしています。
           </p>
         </div>
         <aside className="status-card">
@@ -47,17 +51,16 @@ export function App() {
             {formatConnectionStatus(appState.connections.ollamaReady, 'LLM')}
           </p>
           <p>{formatConnectionStatus(appState.connections.sttReady, 'STT')}</p>
-          <p>Mode: {appState.adaptiveInference.mode}</p>
+          <p>推論モード: {formatMode(appState.adaptiveInference.mode)}</p>
           <p>
-            Question score:{' '}
-            {appState.adaptiveInference.questionScore.toFixed(2)}
+            質問スコア: {appState.adaptiveInference.questionScore.toFixed(2)}
           </p>
         </aside>
       </section>
 
       <section className="grid">
         <article className="panel">
-          <h2>Consent Gate</h2>
+          <h2>同意確認</h2>
           <label>
             <input
               checked={consent.participantConsent}
@@ -66,7 +69,7 @@ export function App() {
               }
               type="checkbox"
             />
-            All participants agreed to transcription and AI assistance.
+            参加者全員が文字起こしと AI 補助の利用に同意しています。
           </label>
           <label>
             <input
@@ -76,8 +79,7 @@ export function App() {
               }
               type="checkbox"
             />
-            I will not use this tool for covert assistance or answer
-            outsourcing.
+            このツールを隠れた補助や回答代行のためには使用しません。
           </label>
           <label>
             <input
@@ -87,7 +89,7 @@ export function App() {
               }
               type="checkbox"
             />
-            I understand Share Safe Mode is not stealth mode.
+            Share Safe Mode がステルス用途ではないことを理解しています。
           </label>
 
           <div className="actions">
@@ -102,7 +104,7 @@ export function App() {
               }}
               type="button"
             >
-              Start Session
+              セッション開始
             </button>
             <button
               disabled={appState.session.status !== 'running'}
@@ -113,7 +115,7 @@ export function App() {
               }}
               type="button"
             >
-              Stop Session
+              セッション停止
             </button>
             <button
               onClick={async () => {
@@ -122,43 +124,41 @@ export function App() {
               }}
               type="button"
             >
-              Toggle Share Safe Mode
+              Share Safe Mode 切り替え
             </button>
           </div>
         </article>
 
         <article className="panel">
-          <h2>Current Cue</h2>
+          <h2>現在の提示内容</h2>
           <div className="cue-block">
-            <p className="rec-banner">
-              REC / AI Assist Active / Consent Confirmed
+            <p className="rec-banner">録音中 / AI 補助有効 / 同意確認済み</p>
+            <p>
+              <strong>話題:</strong> {appState.contextCue.topic}
             </p>
             <p>
-              <strong>Topic:</strong> {appState.contextCue.topic}
+              <strong>意図:</strong> {appState.contextCue.intent}
             </p>
             <p>
-              <strong>Intent:</strong> {appState.contextCue.intent}
+              <strong>関連メモ:</strong>{' '}
+              {appState.contextCue.relatedNotes.join(' / ') || 'なし'}
             </p>
             <p>
-              <strong>Notes:</strong>{' '}
-              {appState.contextCue.relatedNotes.join(' / ') || 'None'}
+              <strong>話すとよい要点:</strong>{' '}
+              {appState.contextCue.suggestedPoints.join(' / ') || 'なし'}
             </p>
             <p>
-              <strong>Points:</strong>{' '}
-              {appState.contextCue.suggestedPoints.join(' / ') || 'None'}
+              <strong>確認したいこと:</strong>{' '}
+              {appState.contextCue.questionsToAsk.join(' / ') || 'なし'}
             </p>
             <p>
-              <strong>Ask:</strong>{' '}
-              {appState.contextCue.questionsToAsk.join(' / ') || 'None'}
-            </p>
-            <p>
-              <strong>Caution:</strong> {appState.contextCue.caution}
+              <strong>注意:</strong> {appState.contextCue.caution}
             </p>
           </div>
         </article>
 
         <article className="panel">
-          <h2>Rolling Summary</h2>
+          <h2>直近サマリー</h2>
           <p>{appState.rollingSummary.currentTopic}</p>
           <ul>
             {appState.rollingSummary.importantPoints.map((point) => (
@@ -166,13 +166,13 @@ export function App() {
             ))}
           </ul>
           <p>
-            Open questions:{' '}
-            {appState.rollingSummary.openQuestions.join(' / ') || 'None'}
+            未解決の問い:{' '}
+            {appState.rollingSummary.openQuestions.join(' / ') || 'なし'}
           </p>
         </article>
 
         <article className="panel">
-          <h2>Transcript</h2>
+          <h2>文字起こし</h2>
           <ul className="transcript-list">
             {appState.transcript.map((chunk) => (
               <li key={chunk.id}>

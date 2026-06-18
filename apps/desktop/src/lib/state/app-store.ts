@@ -15,17 +15,17 @@ const defaultState: AppState = {
     questionScore: 0,
   },
   rollingSummary: {
-    currentTopic: 'Waiting for a session',
+    currentTopic: 'セッション開始を待っています',
     importantPoints: [],
     openQuestions: [],
   },
   contextCue: {
-    topic: 'No active conversation',
-    intent: 'Start a session to preview cues',
+    topic: 'まだ会話は始まっていません',
+    intent: 'セッションを開始すると提示内容を表示します',
     relatedNotes: [],
     suggestedPoints: [],
     questionsToAsk: [],
-    caution: 'Consent is required before transcription starts.',
+    caution: '文字起こしを始める前に参加者の同意が必要です。',
   },
   transcript: [],
 };

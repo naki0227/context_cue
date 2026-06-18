@@ -6,7 +6,9 @@ describe('App', () => {
   it('keeps start disabled until all consent items are checked', async () => {
     render(<App />);
 
-    const startButton = screen.getByRole('button', { name: /start session/i });
+    const startButton = await screen.findByRole('button', {
+      name: /セッション開始/i,
+    });
     expect(startButton).toBeDisabled();
 
     const checkboxes = screen.getAllByRole('checkbox');

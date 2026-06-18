@@ -1,40 +1,55 @@
 # How to Talk
 
-How to Talk is the current product-facing name for **Context Cue**.
+How to Talk は、現在 **Context Cue** の表示名として使っている名称です。
 
-It is a local-first assistive overlay for consent-based conversations. The app helps users recall relevant notes, prior decisions, and personal context during meetings, interviews, mentoring, and 1on1s where all participants have agreed to transcription and AI assistance.
+このプロジェクトは、参加者の同意を得た会話に対して、ローカル環境で動作する支援オーバーレイを提供します。会議、面接、メンタリング、1on1 などの場面で、過去メモ、関連資料、決定事項、自分の文脈情報を会話中に思い出しやすくすることを目的としています。
 
-The project is not designed for covert recording, hidden transcription, or answer outsourcing.
+無断録音、隠れた文字起こし、回答代行を目的としたツールではありません。
 
-## Status
+## 現在の状態
 
-This repository currently contains a Phase 0 MVP scaffold:
+このリポジトリには、Phase 0 の MVP 雛形が入っています。
 
-- Tauri v2 desktop app skeleton
-- React + TypeScript frontend
-- Rust backend state and command layer
-- Mock transcript pipeline
-- Adaptive inference concept with question detection
-- Sample profile loading and keyword search
+- Tauri v2 デスクトップアプリの骨格
+- React + TypeScript のフロントエンド
+- Rust 製の状態管理とコマンド層
+- モック文字起こしパイプライン
+- 質問判定つき Adaptive Inference の概念実装
+- サンプルプロフィール読み込みとキーワード検索
 
-## Quick Start
+## 起動方法
 
-1. Install `pnpm` via Corepack: `corepack enable && corepack prepare pnpm@10.15.1 --activate`
-2. Install frontend dependencies: `pnpm install`
-3. Run frontend tests: `pnpm test`
-4. Run Rust tests: `cargo test`
-5. Start the desktop app: `pnpm tauri:dev`
+1. Corepack で `pnpm` を有効化する  
+   `corepack enable && corepack prepare pnpm@10.15.1 --activate`
+2. 依存をインストールする  
+   `corepack pnpm install`
+3. フロントエンドのテストを実行する  
+   `corepack pnpm test`
+4. Rust のテストを実行する  
+   `cargo test`
+5. デスクトップアプリを起動する  
+   `corepack pnpm --filter desktop tauri dev`
 
-## Naming
+## 一般ユーザー向け配布
 
-- Repository / technical codename: `context-cue`
-- Current display name: `How to Talk`
+非エンジニア向けには、GitHub から clone して起動する形ではなく、GitHub Releases からインストーラや配布ファイルをダウンロードして使う想定です。
 
-This split keeps package identifiers stable while the public-facing name is still easy to change.
+- macOS: `.dmg`
+- Windows: `.msi` または `.exe`
+- Linux: `.AppImage` / `.deb` / `.rpm`
 
-## Docs
+配布フローの詳細は [配布手順](./docs/release.md) にまとめています。
 
-- [Requirements](./docs/requirements.md)
-- [Architecture](./docs/architecture.md)
-- [Implementation Plan](./docs/implementation-plan.md)
+## 命名方針
 
+- リポジトリ名 / 技術上の識別子: `context-cue`
+- 現在の表示名: `How to Talk`
+
+内部識別子は安定させつつ、ユーザー向け名称は後から調整しやすいように分けています。
+
+## ドキュメント
+
+- [要件定義書](./docs/requirements.md)
+- [アーキテクチャ設計](./docs/architecture.md)
+- [実装計画](./docs/implementation-plan.md)
+- [配布手順](./docs/release.md)
