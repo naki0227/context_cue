@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/lib/state/app-store';
 import { invokeCommand } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
@@ -11,6 +11,30 @@ function formatMode(mode: 'light' | 'deep') {
   return mode === 'deep' ? '深い推論' : '軽量モード';
 }
 
+const MAX_IMPORT_FILE_SIZE = 512 * 1024;
+
+function isImportableKnowledgeFile(file: File) {
+  const normalizedName = file.name.toLowerCase();
+  return normalizedName.endsWith('.md') || normalizedName.endsWith('.txt');
+}
+
+function stripExtension(fileName: string) {
+  return fileName.replace(/\.[^/.]+$/, '');
+}
+
+function readFileText(file: File) {
+  if (typeof file.text === 'function') {
+    return file.text();
+  }
+
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(file);
+  });
+}
+
 export function App() {
   const {
     appState,
@@ -20,6 +44,8 @@ export function App() {
     startSessionLocally,
     stopSessionLocally,
   } = useAppStore();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [knowledgeImportNotice, setKnowledgeImportNotice] = useState('');
 
   useEffect(() => {
     invokeCommand('get_app_state')
@@ -131,12 +157,87 @@ export function App() {
 
         <article className="panel">
           <h2>個人ナレッジ管理</h2>
-          <p>アプリに明示的に追加したファイルだけを参照対象にします。</p>
+          <p>
+            アプリに明示的に追加したファイルだけを参照対象にします。`.md` /
+            `.txt` のみ対応し、内容はこの端末内で処理します。
+          </p>
+          <input
+            accept=".md,.txt,text/plain,text/markdown"
+            data-testid="profile-file-input"
+            multiple
+            onChange={async (event) => {
+              const files = Array.from(event.target.files ?? []);
+              const importableFiles = files.filter(isImportableKnowledgeFile);
+              const oversizedFiles = importableFiles.filter(
+                (file) => file.size > MAX_IMPORT_FILE_SIZE,
+              );
+
+              if (files.length === 0) {
+                return;
+              }
+
+              if (importableFiles.length === 0) {
+                setKnowledgeImportNotice(
+                  '.md または .txt ファイルを選択してください。',
+                );
+                event.target.value = '';
+                return;
+              }
+
+              if (oversizedFiles.length > 0) {
+                setKnowledgeImportNotice(
+                  '1ファイル 512KB 以内で追加してください。',
+                );
+                event.target.value = '';
+                return;
+              }
+
+              const documents = await Promise.all(
+                importableFiles.map(async (file) => ({
+                  title: stripExtension(file.name),
+                  content: await readFileText(file),
+                })),
+              );
+
+              try {
+                const previousCount = appState.importedDocuments.length;
+                const state = await invokeCommand(
+                  'import_profile_documents_from_files',
+                  {
+                    documents,
+                  },
+                );
+                setAppState(state);
+                setKnowledgeImportNotice(
+                  `${state.importedDocuments.length - previousCount}件のファイルを追加しました。`,
+                );
+              } catch {
+                setKnowledgeImportNotice(
+                  'ファイルの読込に失敗しました。もう一度お試しください。',
+                );
+              }
+              event.target.value = '';
+            }}
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            type="file"
+          />
           <div className="actions">
+            <button
+              onClick={() => {
+                fileInputRef.current?.click();
+              }}
+              type="button"
+            >
+              ファイルを選んで追加
+            </button>
             <button
               onClick={async () => {
                 const state = await invokeCommand('import_profile_documents');
                 setAppState(state);
+                setKnowledgeImportNotice(
+                  'サンプル個人ナレッジを読み込みました。',
+                );
               }}
               type="button"
             >
@@ -147,12 +248,16 @@ export function App() {
               onClick={async () => {
                 const state = await invokeCommand('clear_profile_documents');
                 setAppState(state);
+                setKnowledgeImportNotice(
+                  '追加済みの個人ナレッジを削除しました。',
+                );
               }}
               type="button"
             >
               すべて削除
             </button>
           </div>
+          <p>{knowledgeImportNotice || '未追加の状態です。'}</p>
           <p>追加済みファイル数: {appState.importedDocuments.length}</p>
           <ul className="transcript-list">
             {appState.importedDocuments.length === 0 ? (

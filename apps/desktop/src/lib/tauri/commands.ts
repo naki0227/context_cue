@@ -11,45 +11,60 @@ type CommandName =
   | 'stop_session'
   | 'toggle_share_safe_mode'
   | 'import_profile_documents'
+  | 'import_profile_documents_from_files'
   | 'remove_profile_document'
   | 'clear_profile_documents';
+
+type ImportedProfileDocumentDraft = {
+  title: string;
+  content: string;
+};
 
 type CommandPayload = {
   consent?: ConsentState;
   documentId?: string;
+  documents?: ImportedProfileDocumentDraft[];
 };
 
 const mockDocuments = [
-  { id: 'values', title: 'values', sourceType: 'imported' },
-  { id: 'projects', title: 'projects', sourceType: 'imported' },
-  { id: 'meetings', title: 'meetings', sourceType: 'imported' },
-  { id: 'todos', title: 'todos', sourceType: 'imported' },
-  { id: 'experiences', title: 'experiences', sourceType: 'imported' },
+  { id: 'values', title: 'values', sourceType: 'サンプル' },
+  { id: 'projects', title: 'projects', sourceType: 'サンプル' },
+  { id: 'meetings', title: 'meetings', sourceType: 'サンプル' },
+  { id: 'todos', title: 'todos', sourceType: 'サンプル' },
+  { id: 'experiences', title: 'experiences', sourceType: 'サンプル' },
 ];
 
-let mockAppState = appStateSchema.parse({
-  session: {
-    status: 'idle',
-    shareSafeMode: false,
-  },
-  connections: { ollamaReady: true, sttReady: true },
-  adaptiveInference: { mode: 'light', questionScore: 0 },
-  rollingSummary: {
-    currentTopic: 'セッション開始を待っています',
-    importantPoints: [],
-    openQuestions: [],
-  },
-  contextCue: {
-    topic: 'まだ会話は始まっていません',
-    intent: 'セッションを開始すると提示内容を表示します',
-    relatedNotes: [],
-    suggestedPoints: [],
-    questionsToAsk: [],
-    caution: '文字起こしを始める前に参加者の同意が必要です。',
-  },
-  transcript: [],
-  importedDocuments: [],
-});
+function createMockAppState() {
+  return appStateSchema.parse({
+    session: {
+      status: 'idle',
+      shareSafeMode: false,
+    },
+    connections: { ollamaReady: true, sttReady: true },
+    adaptiveInference: { mode: 'light', questionScore: 0 },
+    rollingSummary: {
+      currentTopic: 'セッション開始を待っています',
+      importantPoints: [],
+      openQuestions: [],
+    },
+    contextCue: {
+      topic: 'まだ会話は始まっていません',
+      intent: 'セッションを開始すると提示内容を表示します',
+      relatedNotes: [],
+      suggestedPoints: [],
+      questionsToAsk: [],
+      caution: '文字起こしを始める前に参加者の同意が必要です。',
+    },
+    transcript: [],
+    importedDocuments: [],
+  });
+}
+
+let mockAppState = createMockAppState();
+
+export function resetMockAppState() {
+  mockAppState = createMockAppState();
+}
 
 function invokeMockCommand(
   command: CommandName,
@@ -86,6 +101,34 @@ function invokeMockCommand(
       contextCue: {
         ...mockAppState.contextCue,
         relatedNotes: mockDocuments
+          .slice(0, 3)
+          .map((document) => document.title),
+      },
+    };
+  }
+
+  if (command === 'import_profile_documents_from_files') {
+    const documents =
+      payload?.documents?.map((document) => ({
+        id: document.title,
+        title: document.title,
+        sourceType: 'ローカルファイル',
+      })) ?? [];
+
+    const importedDocuments = [
+      ...mockAppState.importedDocuments.filter(
+        (existing) =>
+          !documents.some((document) => document.id === existing.id),
+      ),
+      ...documents,
+    ];
+
+    mockAppState = {
+      ...mockAppState,
+      importedDocuments,
+      contextCue: {
+        ...mockAppState.contextCue,
+        relatedNotes: importedDocuments
           .slice(0, 3)
           .map((document) => document.title),
       },

@@ -5,8 +5,8 @@ use std::{
 };
 
 use context_cue_contracts::{
-    AdaptiveInferenceState, AppState, ConnectionState, ConsentInput, ContextCue,
-    ImportedDocument, RollingSummary, SessionState, TranscriptChunk,
+    AdaptiveInferenceState, AppState, ConnectionState, ConsentInput, ContextCue, ImportedDocument,
+    RollingSummary, SessionState, TranscriptChunk,
 };
 use context_cue_core::{
     cues::shorten_list,
@@ -16,6 +16,13 @@ use context_cue_core::{
 use tauri::{AppHandle, Emitter};
 use tokio::time::{Duration, sleep};
 use uuid::Uuid;
+
+#[derive(Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileImportDraft {
+    pub title: String,
+    pub content: String,
+}
 
 #[derive(Clone)]
 pub struct SharedState {
@@ -167,21 +174,42 @@ impl SharedState {
         state.snapshot()
     }
 
+    pub fn import_profile_documents_from_files(&self, drafts: Vec<ProfileImportDraft>) -> AppState {
+        let mut state = self.inner.lock().expect("shared state poisoned");
+
+        for draft in drafts {
+            let title = draft.title.trim();
+            let content = draft.content.trim();
+
+            if title.is_empty() || content.is_empty() {
+                continue;
+            }
+
+            state.upsert_document(OwnedProfileDocument {
+                id: slugify_title(title),
+                title: title.to_owned(),
+                content: content.to_owned(),
+                source_type: "ローカルファイル".to_owned(),
+            });
+        }
+
+        state.refresh_imported_documents();
+        state.snapshot()
+    }
+
     pub fn remove_profile_document(&self, document_id: &str) -> AppState {
         let mut state = self.inner.lock().expect("shared state poisoned");
-        state.documents.retain(|document| document.id != document_id);
-        state.app_state.imported_documents = state
+        state
             .documents
-            .iter()
-            .map(|document| document.to_imported_document())
-            .collect();
+            .retain(|document| document.id != document_id);
+        state.refresh_imported_documents();
         state.snapshot()
     }
 
     pub fn clear_profile_documents(&self) -> AppState {
         let mut state = self.inner.lock().expect("shared state poisoned");
         state.documents.clear();
-        state.app_state.imported_documents.clear();
+        state.refresh_imported_documents();
         state.snapshot()
     }
 
@@ -245,6 +273,20 @@ impl InnerState {
         self.app_state.clone()
     }
 
+    fn upsert_document(&mut self, candidate: OwnedProfileDocument) {
+        self.documents
+            .retain(|document| document.id != candidate.id && document.title != candidate.title);
+        self.documents.push(candidate);
+    }
+
+    fn refresh_imported_documents(&mut self) {
+        self.app_state.imported_documents = self
+            .documents
+            .iter()
+            .map(|document| document.to_imported_document())
+            .collect();
+    }
+
     fn rank_notes(&self, query: &str) -> Vec<String> {
         let mut ranked = self
             .documents
@@ -273,6 +315,7 @@ struct OwnedProfileDocument {
     id: String,
     title: String,
     content: String,
+    source_type: String,
 }
 
 impl OwnedProfileDocument {
@@ -280,7 +323,7 @@ impl OwnedProfileDocument {
         ImportedDocument {
             id: self.id.clone(),
             title: self.title.clone(),
-            source_type: "imported".to_owned(),
+            source_type: self.source_type.clone(),
         }
     }
 }
@@ -338,11 +381,33 @@ fn load_profile_documents() -> Vec<OwnedProfileDocument> {
                 id: stem.to_owned(),
                 title: stem.to_owned(),
                 content,
+                source_type: "サンプル".to_owned(),
             });
         }
     }
 
     documents
+}
+
+fn slugify_title(title: &str) -> String {
+    let mut slug = String::new();
+
+    for character in title.chars() {
+        if character.is_ascii_alphanumeric() {
+            slug.push(character.to_ascii_lowercase());
+        } else if (character.is_whitespace() || character == '-' || character == '_')
+            && !slug.ends_with('-')
+        {
+            slug.push('-');
+        }
+    }
+
+    let slug = slug.trim_matches('-').to_owned();
+    if slug.is_empty() {
+        Uuid::new_v4().to_string()
+    } else {
+        slug
+    }
 }
 
 fn profile_seed_dir() -> PathBuf {
@@ -393,5 +458,28 @@ mod tests {
 
         let cleared = state.clear_profile_documents();
         assert!(cleared.imported_documents.is_empty());
+    }
+
+    #[test]
+    fn imported_files_replace_same_title_and_keep_local_source_type() {
+        let state = SharedState::default();
+
+        let imported = state.import_profile_documents_from_files(vec![
+            super::ProfileImportDraft {
+                title: "自己紹介".to_owned(),
+                content: "最初の内容".to_owned(),
+            },
+            super::ProfileImportDraft {
+                title: "自己紹介".to_owned(),
+                content: "更新後の内容".to_owned(),
+            },
+        ]);
+
+        assert_eq!(imported.imported_documents.len(), 1);
+        assert_eq!(imported.imported_documents[0].title, "自己紹介");
+        assert_eq!(
+            imported.imported_documents[0].source_type,
+            "ローカルファイル"
+        );
     }
 }

@@ -16,6 +16,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_app_state,
             commands::import_profile_documents,
+            commands::import_profile_documents_from_files,
             commands::remove_profile_document,
             commands::clear_profile_documents,
             commands::start_session,

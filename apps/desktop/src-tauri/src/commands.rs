@@ -1,7 +1,7 @@
 use context_cue_contracts::{AppState, ConsentInput};
 use tauri::{AppHandle, Emitter, State};
 
-use crate::state::{MockEventRunner, SharedState};
+use crate::state::{MockEventRunner, ProfileImportDraft, SharedState};
 
 #[tauri::command]
 pub fn get_app_state(state: State<'_, SharedState>) -> AppState {
@@ -14,10 +14,15 @@ pub fn import_profile_documents(state: State<'_, SharedState>) -> AppState {
 }
 
 #[tauri::command]
-pub fn remove_profile_document(
+pub fn import_profile_documents_from_files(
     state: State<'_, SharedState>,
-    document_id: String,
+    documents: Vec<ProfileImportDraft>,
 ) -> AppState {
+    state.import_profile_documents_from_files(documents)
+}
+
+#[tauri::command]
+pub fn remove_profile_document(state: State<'_, SharedState>, document_id: String) -> AppState {
     state.remove_profile_document(&document_id)
 }
 
