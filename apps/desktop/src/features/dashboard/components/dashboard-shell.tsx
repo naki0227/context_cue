@@ -60,9 +60,7 @@ function renderPage(controller: DashboardController, activePage: PageId) {
 
 export function DashboardShell({ controller }: DashboardShellProps) {
   const title = getPageTitle(controller.activePage);
-  const showPageHeader = !['home', 'sessions', 'people'].includes(
-    controller.activePage,
-  );
+  const showPageHeader = controller.activePage === 'knowledge';
 
   return (
     <main className="workspace-shell">
