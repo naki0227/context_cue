@@ -1889,6 +1889,10 @@ button:disabled {
   gap: 14px;
   align-items: center;
   padding: 10px 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 .settings-check-indicator {
@@ -2802,6 +2806,7 @@ button:disabled {
   color: rgba(255, 255, 255, 0.96);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(26px) saturate(1.12);
+  overflow: hidden;
 }
 
 .side-overlay-card {
@@ -2939,6 +2944,50 @@ button:disabled {
   padding: 8px 18px 16px;
   color: rgba(255, 255, 255, 0.68);
   font-size: 0.88rem;
+}
+
+.top-overlay-card.light,
+.side-overlay-card.light {
+  border-color: rgba(149, 167, 205, 0.32);
+}
+
+.top-overlay-card.light .overlay-body,
+.top-overlay-card.light .overlay-panel ul,
+.top-overlay-card.light .top-overlay-title,
+.top-overlay-card.light .top-overlay-listening,
+.side-overlay-card.light .speaker-line,
+.side-overlay-card.light .dock-footer,
+.side-overlay-card.light .side-overlay-note-label,
+.side-overlay-card.light .dock-tab {
+  color: #152038;
+}
+
+.top-overlay-card.light .overlay-panel + .overlay-panel {
+  border-left-color: rgba(97, 116, 156, 0.16);
+}
+
+.top-overlay-card.light .overlay-panel.blue .overlay-label {
+  color: #2d5bff;
+}
+
+.top-overlay-card.light .overlay-panel.violet .overlay-label {
+  color: #7a4ef1;
+}
+
+.top-overlay-card.light .overlay-panel.gold .overlay-label {
+  color: #d08b00;
+}
+
+.top-overlay-card.light .overlay-panel.green .overlay-label {
+  color: #18a46b;
+}
+
+.side-overlay-card.light .speaker-name.other {
+  color: #1476f2;
+}
+
+.side-overlay-card.light .speaker-name.you {
+  color: #f0a308;
 }
 
 .listening-bars {

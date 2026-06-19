@@ -46,10 +46,13 @@ function renderPage(controller: DashboardController, activePage: PageId) {
           canStart={controller.canStart}
           clearProfileDocuments={controller.clearProfileDocuments}
           consent={controller.consent}
+          overlayPreferences={controller.overlayPreferences}
           setConsentField={controller.setConsentField}
+          setOverlayPreference={controller.setOverlayPreference}
           sideOverlayVisible={controller.sideOverlayVisible}
           startSession={controller.startSession}
           stopSession={controller.stopSession}
+          toggleOverlaySection={controller.toggleOverlaySection}
           toggleShareSafeMode={controller.toggleShareSafeMode}
           topOverlayVisible={controller.topOverlayVisible}
         />

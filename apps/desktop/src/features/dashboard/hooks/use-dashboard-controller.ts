@@ -16,7 +16,11 @@ import {
   stripExtension,
 } from '@/features/dashboard/lib/file-import';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
-import { useAppStore } from '@/lib/state/app-store';
+import {
+  type OverlayPreferences,
+  type OverlaySectionKey,
+  useAppStore,
+} from '@/lib/state/app-store';
 import { invokeCommand, setOverlayVisibility } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
 
@@ -32,12 +36,18 @@ export type DashboardController = {
   memoItems: string[];
   nextTalkCandidates: string[];
   overlayTopic: string;
+  overlayPreferences: OverlayPreferences;
   preparedness: string;
   sideOverlayVisible: boolean;
   topOverlayVisible: boolean;
   transcriptPreview: AppState['transcript'];
   setActivePage: (page: PageId) => void;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
+  setOverlayPreference: <Key extends keyof OverlayPreferences>(
+    key: Key,
+    value: OverlayPreferences[Key],
+  ) => void;
+  toggleOverlaySection: (key: OverlaySectionKey) => void;
   clearProfileDocuments: () => Promise<void>;
   importLocalFiles: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   importSampleKnowledge: () => Promise<void>;
@@ -52,10 +62,13 @@ export function useDashboardController(): DashboardController {
   const {
     appState,
     consent,
+    overlayPreferences,
     setConsentField,
+    setOverlayPreference,
     setAppState,
     startSessionLocally,
     stopSessionLocally,
+    toggleOverlaySection,
   } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [knowledgeImportNotice, setKnowledgeImportNotice] = useState('');
@@ -229,14 +242,17 @@ export function useDashboardController(): DashboardController {
     memoItems,
     nextTalkCandidates,
     overlayTopic,
+    overlayPreferences,
     preparedness,
     removeProfileDocument,
     setActivePage,
     setConsentField,
+    setOverlayPreference,
     sideOverlayVisible,
     startSession,
     stopSession,
     toggleOverlay,
+    toggleOverlaySection,
     toggleShareSafeMode,
     topOverlayVisible,
     transcriptPreview,

@@ -1,4 +1,9 @@
 import type { DashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
+import type {
+  OverlayPosition,
+  OverlaySectionKey,
+  OverlayTheme,
+} from '@/lib/state/app-store';
 
 type SettingsPageProps = Pick<
   DashboardController,
@@ -6,59 +11,132 @@ type SettingsPageProps = Pick<
   | 'canStart'
   | 'clearProfileDocuments'
   | 'consent'
+  | 'overlayPreferences'
   | 'setConsentField'
+  | 'setOverlayPreference'
   | 'sideOverlayVisible'
   | 'startSession'
   | 'stopSession'
   | 'toggleShareSafeMode'
+  | 'toggleOverlaySection'
   | 'topOverlayVisible'
 >;
+
+const accentColors = [
+  '#2d5bff',
+  '#6d50ef',
+  '#18b3a8',
+  '#f3b11c',
+  '#ef476f',
+  '#9aa3b7',
+];
+
+const sectionItems: Array<{
+  key: OverlaySectionKey;
+  subtitle: string;
+  title: string;
+  tone: string;
+}> = [
+  {
+    key: 'assistant',
+    title: 'AI アシスタント',
+    subtitle: '質問への回答や提案を表示します',
+    tone: 'blue',
+  },
+  {
+    key: 'summary',
+    title: '議事の要点',
+    subtitle: '議論の要点や結論をリアルタイムで表示します',
+    tone: 'violet',
+  },
+  {
+    key: 'suggestions',
+    title: '提案・次のアクション',
+    subtitle: '推奨されるアクションや次のステップを表示します',
+    tone: 'gold',
+  },
+  {
+    key: 'transcript',
+    title: '転記（トランスクリプト）',
+    subtitle: '会話の文字起こしを表示します',
+    tone: 'green',
+  },
+  {
+    key: 'related',
+    title: '関連情報',
+    subtitle: '関連するプロジェクトやナレッジを表示します',
+    tone: 'slate',
+  },
+];
+
+const behaviorItems: Array<{
+  description: string;
+  key:
+    | 'alwaysOn'
+    | 'hideOnScreenShare'
+    | 'keepTranscriptPanel'
+    | 'startMinimized'
+    | 'highlightUnread';
+  title: string;
+}> = [
+  {
+    key: 'alwaysOn',
+    title: '常に表示（Always-on）',
+    description: '他のアプリの上にも常にオーバーレイを表示します。',
+  },
+  {
+    key: 'hideOnScreenShare',
+    title: '画面共有中は非表示',
+    description:
+      '画面共有やプレゼンテーション中はオーバーレイを非表示にします。',
+  },
+  {
+    key: 'keepTranscriptPanel',
+    title: 'トランスクリプトパネルを維持',
+    description: '画面が狭い場合でも、転記パネルを折りたたまずに表示します。',
+  },
+  {
+    key: 'startMinimized',
+    title: '起動時に最小化して開始',
+    description: 'アプリ起動時はオーバーレイを最小化した状態で開始します。',
+  },
+  {
+    key: 'highlightUnread',
+    title: '未読の提案をハイライト',
+    description: '新しい提案やアクションがある場合にハイライトで通知します。',
+  },
+];
+
+const themeOptions: OverlayTheme[] = ['dark', 'light', 'auto'];
+const themeLabels: Record<OverlayTheme, string> = {
+  dark: 'ダーク',
+  light: 'ライト',
+  auto: '自動',
+};
+
+const positionOptions: OverlayPosition[] = ['右上', '上部中央', '右寄せ'];
+
+function shadowLabel(shadow: number) {
+  if (shadow < 34) return '弱';
+  if (shadow < 67) return '中';
+  return '強';
+}
 
 export function SettingsPage({
   appState,
   canStart,
   clearProfileDocuments,
   consent,
+  overlayPreferences,
   setConsentField,
+  setOverlayPreference,
   sideOverlayVisible,
   startSession,
   stopSession,
+  toggleOverlaySection,
   toggleShareSafeMode,
   topOverlayVisible,
 }: SettingsPageProps) {
-  const sectionItems = [
-    {
-      title: 'AI アシスタント',
-      subtitle: '質問への回答や提案を表示します',
-      checked: topOverlayVisible,
-      tone: 'blue',
-    },
-    {
-      title: '議事の要点',
-      subtitle: '議論の要点や結論をリアルタイムで表示します',
-      checked: consent.shareSafeUnderstood,
-      tone: 'violet',
-    },
-    {
-      title: '提案・次のアクション',
-      subtitle: '推奨されるアクションや次のステップを表示します',
-      checked: consent.noCovertUse,
-      tone: 'gold',
-    },
-    {
-      title: '転記（トランスクリプト）',
-      subtitle: '会話の文字起こしを表示します',
-      checked: sideOverlayVisible,
-      tone: 'green',
-    },
-    {
-      title: '関連情報',
-      subtitle: '関連するプロジェクトやナレッジを表示します',
-      checked: consent.participantConsent,
-      tone: 'slate',
-    },
-  ];
-
   return (
     <div className="page-layout settings-page-v2">
       <div className="settings-hero">
@@ -82,11 +160,19 @@ export function SettingsPage({
                 </div>
                 <select
                   className="setting-select setting-select-v2"
-                  defaultValue="右上"
+                  onChange={(event) =>
+                    setOverlayPreference(
+                      'position',
+                      event.target.value as OverlayPosition,
+                    )
+                  }
+                  value={overlayPreferences.position}
                 >
-                  <option>右上</option>
-                  <option>上部中央</option>
-                  <option>右寄せ</option>
+                  {positionOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -97,10 +183,20 @@ export function SettingsPage({
                   <strong>高さ</strong>
                   <p>オーバーレイ全体の高さを調整します。</p>
                 </div>
-                <span className="settings-value-pill">400px</span>
+                <span className="settings-value-pill">
+                  {overlayPreferences.height}px
+                </span>
               </div>
               <div className="settings-slider-row">
-                <input defaultValue="56" type="range" />
+                <input
+                  max="560"
+                  min="280"
+                  onChange={(event) =>
+                    setOverlayPreference('height', Number(event.target.value))
+                  }
+                  type="range"
+                  value={overlayPreferences.height}
+                />
               </div>
             </div>
 
@@ -110,10 +206,20 @@ export function SettingsPage({
                   <strong>文字サイズ</strong>
                   <p>オーバーレイ内のテキストサイズを調整します。</p>
                 </div>
-                <span className="settings-value-pill">14px</span>
+                <span className="settings-value-pill">
+                  {overlayPreferences.fontSize}px
+                </span>
               </div>
               <div className="settings-slider-row">
-                <input defaultValue="34" type="range" />
+                <input
+                  max="18"
+                  min="12"
+                  onChange={(event) =>
+                    setOverlayPreference('fontSize', Number(event.target.value))
+                  }
+                  type="range"
+                  value={overlayPreferences.fontSize}
+                />
               </div>
             </div>
 
@@ -123,10 +229,20 @@ export function SettingsPage({
                   <strong>透明度</strong>
                   <p>オーバーレイの背景の透明度を調整します。</p>
                 </div>
-                <span className="settings-value-pill">90%</span>
+                <span className="settings-value-pill">
+                  {overlayPreferences.opacity}%
+                </span>
               </div>
               <div className="settings-slider-row">
-                <input defaultValue="90" type="range" />
+                <input
+                  max="100"
+                  min="55"
+                  onChange={(event) =>
+                    setOverlayPreference('opacity', Number(event.target.value))
+                  }
+                  type="range"
+                  value={overlayPreferences.opacity}
+                />
               </div>
             </div>
 
@@ -138,10 +254,17 @@ export function SettingsPage({
 
               <div className="settings-section-list">
                 {sectionItems.map((item) => (
-                  <div className="settings-section-row" key={item.title}>
+                  <button
+                    className="settings-section-row"
+                    key={item.key}
+                    onClick={() => toggleOverlaySection(item.key)}
+                    type="button"
+                  >
                     <span
                       aria-hidden="true"
-                      className={`settings-check-indicator ${item.checked ? 'checked' : ''}`}
+                      className={`settings-check-indicator ${
+                        overlayPreferences.sections[item.key] ? 'checked' : ''
+                      }`}
                     />
                     <span
                       className={`settings-section-icon tone-${item.tone}`}
@@ -151,7 +274,7 @@ export function SettingsPage({
                       <small>{item.subtitle}</small>
                     </span>
                     <span className="settings-drag-handle">⋮⋮</span>
-                  </div>
+                  </button>
                 ))}
               </div>
               <p className="settings-caption">
@@ -169,10 +292,16 @@ export function SettingsPage({
               </div>
               <select
                 className="setting-select setting-select-v2"
-                defaultValue="日本語"
+                onChange={(event) =>
+                  setOverlayPreference(
+                    'language',
+                    event.target.value as '日本語' | 'English',
+                  )
+                }
+                value={overlayPreferences.language}
               >
-                <option>日本語</option>
-                <option>English</option>
+                <option value="日本語">日本語</option>
+                <option value="English">English</option>
               </select>
             </div>
             <div className="settings-mini-row">
@@ -180,7 +309,13 @@ export function SettingsPage({
                 <strong>自動保存</strong>
                 <p>設定の変更を自動的に保存します。</p>
               </div>
-              <button className="switch on" type="button">
+              <button
+                className={`switch ${overlayPreferences.autoSave ? 'on' : ''}`}
+                onClick={() =>
+                  setOverlayPreference('autoSave', !overlayPreferences.autoSave)
+                }
+                type="button"
+              >
                 <span />
               </button>
             </div>
@@ -198,11 +333,18 @@ export function SettingsPage({
                   <p>オーバーレイの配色テーマを選択します。</p>
                 </div>
                 <div className="settings-segmented">
-                  <button className="active" type="button">
-                    ダーク
-                  </button>
-                  <button type="button">ライト</button>
-                  <button type="button">自動</button>
+                  {themeOptions.map((theme) => (
+                    <button
+                      className={
+                        overlayPreferences.theme === theme ? 'active' : ''
+                      }
+                      key={theme}
+                      onClick={() => setOverlayPreference('theme', theme)}
+                      type="button"
+                    >
+                      {themeLabels[theme]}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -214,17 +356,14 @@ export function SettingsPage({
                   <p>オーバーレイのアクセントカラーを選択します。</p>
                 </div>
                 <div className="settings-color-row">
-                  {[
-                    '#2d5bff',
-                    '#6d50ef',
-                    '#18b3a8',
-                    '#f3b11c',
-                    '#ef476f',
-                    '#9aa3b7',
-                  ].map((color, index) => (
+                  {accentColors.map((color) => (
                     <button
-                      className={`accent-swatch accent-swatch-v2 ${index === 0 ? 'active' : ''}`}
+                      aria-label={`${color} を選択`}
+                      className={`accent-swatch accent-swatch-v2 ${
+                        overlayPreferences.accentColor === color ? 'active' : ''
+                      }`}
                       key={color}
+                      onClick={() => setOverlayPreference('accentColor', color)}
                       style={{ background: color }}
                       type="button"
                     />
@@ -239,10 +378,23 @@ export function SettingsPage({
                   <strong>角の丸み</strong>
                   <p>オーバーレイの角の丸みを調整します。</p>
                 </div>
-                <span className="settings-value-pill">12px</span>
+                <span className="settings-value-pill">
+                  {overlayPreferences.cornerRadius}px
+                </span>
               </div>
               <div className="settings-slider-row">
-                <input defaultValue="24" type="range" />
+                <input
+                  max="28"
+                  min="8"
+                  onChange={(event) =>
+                    setOverlayPreference(
+                      'cornerRadius',
+                      Number(event.target.value),
+                    )
+                  }
+                  type="range"
+                  value={overlayPreferences.cornerRadius}
+                />
               </div>
             </div>
 
@@ -252,10 +404,20 @@ export function SettingsPage({
                   <strong>シャドウ</strong>
                   <p>オーバーレイの影の強さを調整します。</p>
                 </div>
-                <span className="settings-value-pill">中</span>
+                <span className="settings-value-pill">
+                  {shadowLabel(overlayPreferences.shadow)}
+                </span>
               </div>
               <div className="settings-slider-row">
-                <input defaultValue="52" type="range" />
+                <input
+                  max="84"
+                  min="12"
+                  onChange={(event) =>
+                    setOverlayPreference('shadow', Number(event.target.value))
+                  }
+                  type="range"
+                  value={overlayPreferences.shadow}
+                />
               </div>
             </div>
           </article>
@@ -263,30 +425,22 @@ export function SettingsPage({
           <article className="soft-card settings-panel-card">
             <h3>動作設定</h3>
             <div className="settings-toggle-list">
-              {[
-                ['常に表示（Always-on）', true],
-                ['画面共有中は非表示', true],
-                ['トランスクリプトパネルを維持', true],
-                ['起動時に最小化して開始', false],
-                ['未読の提案をハイライト', true],
-              ].map(([label, enabled]) => (
-                <div className="settings-toggle-row" key={label}>
+              {behaviorItems.map((item) => (
+                <div className="settings-toggle-row" key={item.key}>
                   <div>
-                    <strong>{label}</strong>
-                    <p>
-                      {label === '常に表示（Always-on）'
-                        ? '他のアプリの上にも常にオーバーレイを表示します。'
-                        : label === '画面共有中は非表示'
-                          ? '画面共有やプレゼンテーション中はオーバーレイを非表示にします。'
-                          : label === 'トランスクリプトパネルを維持'
-                            ? '画面が狭い場合でも、転記パネルを折りたたまずに表示します。'
-                            : label === '起動時に最小化して開始'
-                              ? 'アプリ起動時はオーバーレイを最小化した状態で開始します。'
-                              : '新しい提案やアクションがある場合にハイライトで通知します。'}
-                    </p>
+                    <strong>{item.title}</strong>
+                    <p>{item.description}</p>
                   </div>
                   <button
-                    className={`switch ${enabled ? 'on' : ''}`}
+                    className={`switch ${
+                      overlayPreferences[item.key] ? 'on' : ''
+                    }`}
+                    onClick={() =>
+                      setOverlayPreference(
+                        item.key,
+                        !overlayPreferences[item.key],
+                      )
+                    }
                     type="button"
                   >
                     <span />
@@ -312,6 +466,12 @@ export function SettingsPage({
               <li>現在のセッション状態: {appState.session.status}</li>
               <li>
                 読み込み済みナレッジ: {appState.importedDocuments.length} 件
+              </li>
+              <li>
+                上部オーバーレイ: {topOverlayVisible ? '表示中' : '非表示'}
+              </li>
+              <li>
+                右側オーバーレイ: {sideOverlayVisible ? '表示中' : '非表示'}
               </li>
               <li>
                 参加者同意: {consent.participantConsent ? '確認済み' : '未確認'}

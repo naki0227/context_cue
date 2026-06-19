@@ -1,6 +1,36 @@
 import { create } from 'zustand';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
 
+export type OverlayTheme = 'dark' | 'light' | 'auto';
+export type OverlayPosition = '右上' | '上部中央' | '右寄せ';
+export type OverlayLanguage = '日本語' | 'English';
+
+export type OverlaySectionKey =
+  | 'assistant'
+  | 'summary'
+  | 'suggestions'
+  | 'transcript'
+  | 'related';
+
+export type OverlayPreferences = {
+  accentColor: string;
+  alwaysOn: boolean;
+  autoSave: boolean;
+  cornerRadius: number;
+  fontSize: number;
+  height: number;
+  hideOnScreenShare: boolean;
+  highlightUnread: boolean;
+  keepTranscriptPanel: boolean;
+  language: OverlayLanguage;
+  opacity: number;
+  position: OverlayPosition;
+  sections: Record<OverlaySectionKey, boolean>;
+  shadow: number;
+  startMinimized: boolean;
+  theme: OverlayTheme;
+};
+
 const defaultState: AppState = {
   session: {
     status: 'idle',
@@ -37,9 +67,35 @@ const defaultConsent: ConsentState = {
   shareSafeUnderstood: false,
 };
 
+const defaultOverlayPreferences: OverlayPreferences = {
+  accentColor: '#2d5bff',
+  alwaysOn: true,
+  autoSave: true,
+  cornerRadius: 12,
+  fontSize: 14,
+  height: 400,
+  hideOnScreenShare: true,
+  highlightUnread: true,
+  keepTranscriptPanel: true,
+  language: '日本語',
+  opacity: 90,
+  position: '右上',
+  sections: {
+    assistant: true,
+    summary: true,
+    suggestions: true,
+    transcript: true,
+    related: false,
+  },
+  shadow: 52,
+  startMinimized: false,
+  theme: 'dark',
+};
+
 type StoreState = {
   appState: AppState;
   consent: ConsentState;
+  overlayPreferences: OverlayPreferences;
   setAppState: (appState: AppState) => void;
   patchSession: (session: AppState['session']) => void;
   patchRollingSummary: (rollingSummary: AppState['rollingSummary']) => void;
@@ -49,6 +105,11 @@ type StoreState = {
   ) => void;
   pushTranscriptChunk: (chunk: AppState['transcript'][number]) => void;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
+  setOverlayPreference: <Key extends keyof OverlayPreferences>(
+    key: Key,
+    value: OverlayPreferences[Key],
+  ) => void;
+  toggleOverlaySection: (key: OverlaySectionKey) => void;
   startSessionLocally: () => void;
   stopSessionLocally: () => void;
 };
@@ -56,6 +117,7 @@ type StoreState = {
 export const useAppStore = create<StoreState>((set) => ({
   appState: defaultState,
   consent: defaultConsent,
+  overlayPreferences: defaultOverlayPreferences,
   setAppState: (appState) => set({ appState }),
   patchSession: (session) =>
     set((state) => ({ appState: { ...state.appState, session } })),
@@ -77,6 +139,23 @@ export const useAppStore = create<StoreState>((set) => ({
       consent: {
         ...state.consent,
         [field]: value,
+      },
+    })),
+  setOverlayPreference: (key, value) =>
+    set((state) => ({
+      overlayPreferences: {
+        ...state.overlayPreferences,
+        [key]: value,
+      },
+    })),
+  toggleOverlaySection: (key) =>
+    set((state) => ({
+      overlayPreferences: {
+        ...state.overlayPreferences,
+        sections: {
+          ...state.overlayPreferences.sections,
+          [key]: !state.overlayPreferences.sections[key],
+        },
       },
     })),
   startSessionLocally: () =>

@@ -17,6 +17,7 @@ export function App() {
         listeningBarIds={listeningBarIds}
         nextTalkCandidates={controller.nextTalkCandidates}
         overlayTopic={controller.overlayTopic}
+        overlayPreferences={controller.overlayPreferences}
         sessionRunning={controller.appState.session.status === 'running'}
       />
     );
@@ -27,6 +28,7 @@ export function App() {
       <SideOverlayWindow
         listeningBarIds={listeningBarIds}
         memoItems={controller.memoItems}
+        overlayPreferences={controller.overlayPreferences}
         transcriptPreview={controller.transcriptPreview}
       />
     );
