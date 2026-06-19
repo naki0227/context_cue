@@ -50,7 +50,6 @@ function renderPage(controller: DashboardController, activePage: PageId) {
           sideOverlayVisible={controller.sideOverlayVisible}
           startSession={controller.startSession}
           stopSession={controller.stopSession}
-          toggleOverlay={controller.toggleOverlay}
           toggleShareSafeMode={controller.toggleShareSafeMode}
           topOverlayVisible={controller.topOverlayVisible}
         />
