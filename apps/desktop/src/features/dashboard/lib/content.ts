@@ -179,11 +179,62 @@ export const sessionTable = [
 ];
 
 export const peopleList = [
-  ['田中 一郎', '株式会社A 人事部'],
-  ['佐伯 花子', '面談担当 / エンジニア'],
-  ['山本 健太', '研究室 先輩'],
-  ['鈴木 葵', '就活エージェント'],
-  ['高橋 太郎', '株式会社C 役員'],
+  {
+    name: '田中 一郎',
+    role: '株式会社A 人事部 採用担当',
+    shortRole: '面談官・採用担当',
+    mail: 'ichiro.tanaka@company-a.com',
+    updatedAt: '2024/05/12',
+  },
+  {
+    name: '佐藤 花子',
+    role: '事業開発部 エンジニア',
+    shortRole: '社員・先輩',
+    mail: 'hanako.sato@company-a.com',
+    updatedAt: '2024/05/08',
+  },
+  {
+    name: '山本 健太',
+    role: '研究室 先輩',
+    shortRole: '社員・先輩',
+    mail: 'kenta.yamamoto@example.com',
+    updatedAt: '2024/05/05',
+  },
+  {
+    name: '鈴木 葵',
+    role: '就活エージェント',
+    shortRole: 'その他',
+    mail: 'aoi.suzuki@career.jp',
+    updatedAt: '2024/04/28',
+  },
+  {
+    name: '高橋 太郎',
+    role: '株式会社C 役員',
+    shortRole: '面談官・採用担当',
+    mail: 'taro.takahashi@company-c.com',
+    updatedAt: '2024/04/20',
+  },
+  {
+    name: '伊藤 翔',
+    role: 'プロダクトマネージャー',
+    shortRole: 'メンバー・同僚',
+    mail: 'sho.ito@product.example',
+    updatedAt: '2024/04/12',
+  },
+  {
+    name: '中村 美咲',
+    role: 'データサイエンティスト',
+    shortRole: 'メンバー・同僚',
+    mail: 'misaki.nakamura@lab.example',
+    updatedAt: '2024/04/10',
+  },
+  {
+    name: '渡辺 悠斗',
+    role: '営業部 リーダー',
+    shortRole: 'その他',
+    mail: 'yuto.watanabe@sales.example',
+    updatedAt: '2024/04/05',
+  },
 ];
 
 export const projectCards = [
