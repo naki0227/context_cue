@@ -1,21 +1,27 @@
 import { sessionTable } from '@/features/dashboard/lib/content';
-import { OverlayPreview } from '@/features/overlay/components/overlay-preview';
 
-type SessionsPageProps = {
-  confirmItems: string[];
-  flowPoints: string[];
-  nextTalkCandidates: string[];
-  overlayTopic: string;
-  sessionStatus: string;
-  sideOverlayVisible: boolean;
-  topOverlayVisible: boolean;
-};
-
-export function SessionsPage(props: SessionsPageProps) {
+export function SessionsPage() {
   return (
-    <div className="page-layout">
-      <div className="toolbar-row">
-        <div className="tab-row">
+    <div className="page-layout sessions-page-v2">
+      <div className="sessions-hero">
+        <h1>Sessions</h1>
+        <div className="toolbar-actions sessions-toolbar-actions">
+          <div className="search-shell">
+            <span className="search-shell-icon" />
+            <input
+              className="search-input search-input-v2"
+              placeholder="検索"
+              type="text"
+            />
+          </div>
+          <button className="primary-button primary-button-v2" type="button">
+            ＋ 新しいセッション
+          </button>
+        </div>
+      </div>
+
+      <div className="toolbar-row sessions-tabs-row">
+        <div className="tab-row sessions-tab-row">
           {[
             'すべて',
             '面接',
@@ -27,7 +33,7 @@ export function SessionsPage(props: SessionsPageProps) {
             'その他',
           ].map((tab, index) => (
             <button
-              className={`toolbar-tab ${index === 0 ? 'active' : ''}`}
+              className={`toolbar-tab sessions-tab ${index === 0 ? 'active' : ''}`}
               key={tab}
               type="button"
             >
@@ -35,34 +41,70 @@ export function SessionsPage(props: SessionsPageProps) {
             </button>
           ))}
         </div>
-        <div className="toolbar-actions">
-          <input className="search-input" placeholder="検索" type="text" />
-          <button className="primary-button" type="button">
-            ＋ 新しいセッション
-          </button>
-        </div>
       </div>
 
-      <article className="soft-card page-table-card">
-        <div className="table-head table-five">
+      <article className="soft-card page-table-card sessions-table-card">
+        <div className="table-head sessions-table-grid sessions-table-head">
           <span>タイトル</span>
           <span>タイプ</span>
           <span>日時</span>
           <span>相手 / 場所</span>
           <span>ステータス</span>
+          <span>メモ</span>
+          <span />
         </div>
+
         {sessionTable.map((row) => (
-          <div className="table-row table-five" key={row[0]}>
-            <strong>{row[0]}</strong>
-            <span>{row[1]}</span>
-            <span>{row[2]}</span>
-            <span>{row[3]}</span>
-            <span className="status-bubble">{row[4]}</span>
+          <div
+            className="table-row sessions-table-grid sessions-table-row"
+            key={row.title}
+          >
+            <strong className="sessions-title-cell">{row.title}</strong>
+            <span className={`session-pill tone-${row.typeTone}`}>
+              {row.type}
+            </span>
+            <span>{row.date}</span>
+            <div className="session-partner-cell">
+              <span>{row.partner}</span>
+              {row.recording ? (
+                <span
+                  className={`session-pill tone-${row.recordingTone} subtle-pill`}
+                >
+                  {row.recording}
+                </span>
+              ) : null}
+            </div>
+            <span className={`session-pill tone-${row.statusTone} subtle-pill`}>
+              {row.status}
+            </span>
+            <span className="session-memo-cell">{row.memo}</span>
+            <button className="row-menu-button" type="button">
+              ⋮
+            </button>
           </div>
         ))}
-      </article>
 
-      <OverlayPreview {...props} />
+        <div className="sessions-footer">
+          <span>1–8 / 24 件を表示</span>
+          <div className="sessions-pagination">
+            <button className="pagination-button" type="button">
+              ‹
+            </button>
+            <button className="pagination-button active" type="button">
+              1
+            </button>
+            <button className="pagination-button" type="button">
+              2
+            </button>
+            <button className="pagination-button" type="button">
+              3
+            </button>
+            <button className="pagination-button" type="button">
+              ›
+            </button>
+          </div>
+        </div>
+      </article>
     </div>
   );
 }

@@ -19,17 +19,7 @@ function renderPage(controller: DashboardController, activePage: PageId) {
     case 'home':
       return <HomePage preparedness={controller.preparedness} />;
     case 'sessions':
-      return (
-        <SessionsPage
-          confirmItems={controller.confirmItems}
-          flowPoints={controller.flowPoints}
-          nextTalkCandidates={controller.nextTalkCandidates}
-          overlayTopic={controller.overlayTopic}
-          sessionStatus={controller.appState.session.status}
-          sideOverlayVisible={controller.sideOverlayVisible}
-          topOverlayVisible={controller.topOverlayVisible}
-        />
-      );
+      return <SessionsPage />;
     case 'people':
       return <PeoplePage />;
     case 'projects':
@@ -70,7 +60,7 @@ function renderPage(controller: DashboardController, activePage: PageId) {
 
 export function DashboardShell({ controller }: DashboardShellProps) {
   const title = getPageTitle(controller.activePage);
-  const showPageHeader = controller.activePage !== 'home';
+  const showPageHeader = !['home', 'sessions'].includes(controller.activePage);
 
   return (
     <main className="workspace-shell">
