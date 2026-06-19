@@ -59,8 +59,8 @@ export function useDashboardController(): DashboardController {
   } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [knowledgeImportNotice, setKnowledgeImportNotice] = useState('');
-  const [topOverlayVisible, setTopOverlayVisible] = useState(true);
-  const [sideOverlayVisible, setSideOverlayVisible] = useState(true);
+  const [topOverlayVisible, setTopOverlayVisible] = useState(false);
+  const [sideOverlayVisible, setSideOverlayVisible] = useState(false);
   const [activePage, setActivePage] = useState<PageId>('home');
 
   useEffect(() => {
@@ -70,6 +70,15 @@ export function useDashboardController(): DashboardController {
 
     return attachAppEvents(useAppStore.getState());
   }, [setAppState]);
+
+  useEffect(() => {
+    const shouldShow = appState.session.status === 'running';
+
+    setOverlayVisibility('top', shouldShow).catch(() => undefined);
+    setOverlayVisibility('side', shouldShow).catch(() => undefined);
+    setTopOverlayVisible(shouldShow);
+    setSideOverlayVisible(shouldShow);
+  }, [appState.session.status]);
 
   const canStart =
     consent.participantConsent &&

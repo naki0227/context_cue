@@ -33,16 +33,50 @@ export const todaySchedule = [
 ];
 
 export const readinessItems = [
-  ['事前ブリーフ', '完了'],
-  ['想定質問', '12件'],
-  ['紹介カードを整理', '進行中'],
-  ['確認したいこと', '5件'],
+  {
+    label: '事前ブリーフ',
+    meta: '12件',
+    tone: 'done',
+  },
+  {
+    label: '想定質問',
+    meta: '8件',
+    tone: 'active',
+  },
+  {
+    label: '自社カードを整理',
+    meta: '0件',
+    tone: 'idle',
+  },
+  {
+    label: '確認したいこと 5件',
+    meta: '',
+    tone: 'arrow',
+  },
 ];
 
 export const recentSessions = [
-  ['株式会社B 一次面談', '2024/05/20'],
-  ['研究室ミーティング', '2024/05/17'],
-  ['GD練習（模擬）', '2024/05/16'],
+  {
+    title: '株式会社B 一次面接',
+    date: '2024/05/20',
+    status: '完了',
+    tone: 'done',
+    icon: 'document',
+  },
+  {
+    title: '研究室ミーティング',
+    date: '2024/05/17',
+    status: '予定',
+    tone: 'scheduled',
+    icon: 'calendar',
+  },
+  {
+    title: 'GD練習（模擬）',
+    date: '2024/05/16',
+    status: '完了',
+    tone: 'done',
+    icon: 'group',
+  },
 ];
 
 export const sessionTable = [
