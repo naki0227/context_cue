@@ -70,6 +70,7 @@ function renderPage(controller: DashboardController, activePage: PageId) {
 
 export function DashboardShell({ controller }: DashboardShellProps) {
   const title = getPageTitle(controller.activePage);
+  const showPageHeader = controller.activePage !== 'home';
 
   return (
     <main className="workspace-shell">
@@ -80,16 +81,16 @@ export function DashboardShell({ controller }: DashboardShellProps) {
         />
 
         <div className="dashboard-main">
-          <header className="page-header">
-            <div>
-              <h1>{title}</h1>
-              <p>
-                {controller.activePage === 'home'
-                  ? '会話の準備から振り返りまで、ひとつのワークスペースで管理します。'
-                  : '画像の構成に合わせて、一覧と詳細を見やすく整理しています。'}
-              </p>
-            </div>
-          </header>
+          {showPageHeader ? (
+            <header className="page-header">
+              <div>
+                <h1>{title}</h1>
+                <p>
+                  画像の構成に合わせて、一覧と詳細を見やすく整理しています。
+                </p>
+              </div>
+            </header>
+          ) : null}
 
           {renderPage(controller, controller.activePage)}
         </div>
