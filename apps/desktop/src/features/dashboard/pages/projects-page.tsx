@@ -1,7 +1,32 @@
+import { useState } from 'react';
 import { projectCards } from '@/features/dashboard/lib/content';
 
 export function ProjectsPage() {
-  const featuredProject = projectCards[0];
+  const tabs = ['すべて', '企業', 'プロジェクト', '課題'] as const;
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
+  const [query, setQuery] = useState('');
+  const [selectedTitle, setSelectedTitle] = useState(
+    projectCards[0]?.title ?? '',
+  );
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+
+  const filteredProjects = projectCards.filter((project) => {
+    const matchesTab =
+      activeTab === 'すべて' ||
+      project.category === activeTab ||
+      (activeTab === '課題' && project.issues > 0);
+    const normalizedQuery = query.trim().toLowerCase();
+    const haystack = `${project.title} ${project.subtitle}`.toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
+
+    return matchesTab && matchesQuery;
+  });
+
+  const featuredProject =
+    filteredProjects.find((project) => project.title === selectedTitle) ??
+    filteredProjects[0] ??
+    projectCards[0];
 
   return (
     <div className="page-layout projects-page-v2">
@@ -9,10 +34,11 @@ export function ProjectsPage() {
         <h1>Projects / Companies</h1>
         <div className="toolbar-actions sessions-toolbar-actions">
           <div className="tab-row people-tab-row">
-            {['すべて', '企業', 'プロジェクト', '課題'].map((tab, index) => (
+            {tabs.map((tab) => (
               <button
-                className={`toolbar-tab sessions-tab ${index === 0 ? 'active' : ''}`}
+                className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
                 key={tab}
+                onClick={() => setActiveTab(tab)}
                 type="button"
               >
                 {tab}
@@ -24,14 +50,24 @@ export function ProjectsPage() {
             <input
               className="search-input search-input-v2"
               placeholder="検索"
+              onChange={(event) => setQuery(event.target.value)}
               type="text"
+              value={query}
             />
           </div>
           <div className="view-switch">
-            <button className="view-switch-button" type="button">
+            <button
+              className={`view-switch-button ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              type="button"
+            >
               ▦
             </button>
-            <button className="view-switch-button active" type="button">
+            <button
+              className={`view-switch-button ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              type="button"
+            >
               ☰
             </button>
           </div>
@@ -43,10 +79,12 @@ export function ProjectsPage() {
 
       <div className="split-grid projects-grid-v2">
         <article className="soft-card projects-list-card">
-          {projectCards.map((project, index) => (
-            <div
-              className={`project-line project-line-v2 ${index === 0 ? 'active' : ''}`}
+          {filteredProjects.map((project) => (
+            <button
+              className={`project-line project-line-v2 ${project.title === featuredProject.title ? 'active' : ''}`}
               key={project.title}
+              onClick={() => setSelectedTitle(project.title)}
+              type="button"
             >
               <div className={`project-avatar icon-${project.icon}`} />
               <div className="project-main-copy">
@@ -72,7 +110,7 @@ export function ProjectsPage() {
                 </div>
                 <p>最終更新: {project.updatedAt}</p>
               </div>
-            </div>
+            </button>
           ))}
         </article>
 

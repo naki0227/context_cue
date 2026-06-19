@@ -819,6 +819,9 @@ button:disabled {
 
 .sessions-table-row {
   padding: 20px 8px;
+  width: 100%;
+  background: transparent;
+  text-align: left;
 }
 
 .sessions-title-cell {
@@ -971,6 +974,16 @@ button:disabled {
   padding: 10px 12px;
   border-radius: 16px;
   min-height: 88px;
+}
+
+.people-list-v2 li button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: transparent;
+  color: inherit;
+  text-align: left;
 }
 
 .people-list-v2 li + li {
@@ -1215,6 +1228,10 @@ button:disabled {
   gap: 16px;
   padding: 18px 18px;
   align-items: center;
+  width: 100%;
+  background: transparent;
+  color: inherit;
+  text-align: left;
 }
 
 .project-line-v2.active {
@@ -1663,6 +1680,9 @@ button:disabled {
   border-radius: 18px;
   border: 1px solid rgba(217, 225, 241, 0.8);
   background: rgba(255, 255, 255, 0.85);
+  width: 100%;
+  color: inherit;
+  text-align: left;
 }
 
 .review-list-item.active {

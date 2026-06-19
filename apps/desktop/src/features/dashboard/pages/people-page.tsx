@@ -1,7 +1,33 @@
+import { useState } from 'react';
 import { peopleList } from '@/features/dashboard/lib/content';
 
 export function PeoplePage() {
-  const featuredPerson = peopleList[0];
+  const tabs = [
+    'すべて',
+    '面談官・採用担当',
+    '社員・先輩',
+    'メンバー・同僚',
+    'その他',
+  ] as const;
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
+  const [query, setQuery] = useState('');
+  const [selectedName, setSelectedName] = useState(peopleList[0]?.name ?? '');
+
+  const filteredPeople = peopleList.filter((person) => {
+    const matchesTab = activeTab === 'すべて' || person.shortRole === activeTab;
+    const normalizedQuery = query.trim().toLowerCase();
+    const haystack =
+      `${person.name} ${person.role} ${person.mail}`.toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
+
+    return matchesTab && matchesQuery;
+  });
+
+  const featuredPerson =
+    filteredPeople.find((person) => person.name === selectedName) ??
+    filteredPeople[0] ??
+    peopleList[0];
 
   return (
     <div className="page-layout people-page-v2">
@@ -9,16 +35,11 @@ export function PeoplePage() {
         <h1>People</h1>
         <div className="toolbar-actions sessions-toolbar-actions">
           <div className="tab-row people-tab-row">
-            {[
-              'すべて',
-              '面談官・採用担当',
-              '社員・先輩',
-              'メンバー・同僚',
-              'その他',
-            ].map((tab, index) => (
+            {tabs.map((tab) => (
               <button
-                className={`toolbar-tab sessions-tab ${index === 0 ? 'active' : ''}`}
+                className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
                 key={tab}
+                onClick={() => setActiveTab(tab)}
                 type="button"
               >
                 {tab}
@@ -30,7 +51,9 @@ export function PeoplePage() {
             <input
               className="search-input search-input-v2"
               placeholder="検索（名前・役職・会社・メモ）"
+              onChange={(event) => setQuery(event.target.value)}
               type="text"
+              value={query}
             />
           </div>
           <button className="primary-button primary-button-v2" type="button">
@@ -42,13 +65,21 @@ export function PeoplePage() {
       <div className="split-grid people-grid-v2">
         <article className="soft-card people-list-card-v2">
           <ul className="people-list people-list-v2">
-            {peopleList.map((person, index) => (
-              <li className={index === 0 ? 'active' : ''} key={person.name}>
-                <div className="person-avatar person-avatar-v2" />
-                <div>
-                  <strong>{person.name}</strong>
-                  <p>{person.role}</p>
-                </div>
+            {filteredPeople.map((person) => (
+              <li
+                className={person.name === featuredPerson.name ? 'active' : ''}
+                key={person.name}
+              >
+                <button
+                  onClick={() => setSelectedName(person.name)}
+                  type="button"
+                >
+                  <div className="person-avatar person-avatar-v2" />
+                  <div>
+                    <strong>{person.name}</strong>
+                    <p>{person.role}</p>
+                  </div>
+                </button>
               </li>
             ))}
           </ul>
@@ -66,7 +97,7 @@ export function PeoplePage() {
                   <div className="people-name-row">
                     <h2>{featuredPerson.name}</h2>
                     <span className="session-pill tone-blue">
-                      面談官・採用担当
+                      {featuredPerson.shortRole}
                     </span>
                     <span className="people-favorite-star">☆</span>
                   </div>

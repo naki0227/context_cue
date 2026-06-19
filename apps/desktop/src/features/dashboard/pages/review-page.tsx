@@ -1,7 +1,37 @@
+import { useState } from 'react';
 import { reviewCards } from '@/features/dashboard/lib/content';
 
 export function ReviewPage() {
-  const featuredReview = reviewCards[0];
+  const tabs = [
+    'すべて',
+    '面談',
+    '面接',
+    '会議',
+    'GD',
+    '1on1',
+    'その他',
+  ] as const;
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
+  const [query, setQuery] = useState('');
+  const [selectedTitle, setSelectedTitle] = useState(
+    reviewCards[0]?.title ?? '',
+  );
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  const filteredReviews = reviewCards.filter((card) => {
+    const matchesTab = activeTab === 'すべて' || card.type === activeTab;
+    const normalizedQuery = query.trim().toLowerCase();
+    const haystack = `${card.title} ${card.meta}`.toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
+
+    return matchesTab && matchesQuery;
+  });
+
+  const featuredReview =
+    filteredReviews.find((card) => card.title === selectedTitle) ??
+    filteredReviews[0] ??
+    reviewCards[0];
 
   return (
     <div className="page-layout review-page-v2">
@@ -9,31 +39,40 @@ export function ReviewPage() {
         <h1>Review</h1>
         <div className="toolbar-actions sessions-toolbar-actions">
           <div className="tab-row people-tab-row">
-            {['すべて', '面談', '面接', '会議', 'GD', '1on1', 'その他'].map(
-              (tab, index) => (
-                <button
-                  className={`toolbar-tab sessions-tab ${index === 0 ? 'active' : ''}`}
-                  key={tab}
-                  type="button"
-                >
-                  {tab}
-                </button>
-              ),
-            )}
+            {tabs.map((tab) => (
+              <button
+                className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                type="button"
+              >
+                {tab}
+              </button>
+            ))}
           </div>
           <div className="search-shell projects-search-shell">
             <span className="search-shell-icon" />
             <input
               className="search-input search-input-v2"
               placeholder="検索"
+              onChange={(event) => setQuery(event.target.value)}
               type="text"
+              value={query}
             />
           </div>
           <div className="view-switch">
-            <button className="view-switch-button active" type="button">
+            <button
+              className={`view-switch-button ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              type="button"
+            >
               ☰
             </button>
-            <button className="view-switch-button" type="button">
+            <button
+              className={`view-switch-button ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              type="button"
+            >
               ▦
             </button>
           </div>
@@ -44,10 +83,12 @@ export function ReviewPage() {
         <article className="soft-card review-list-card">
           <h3>過去のセッション</h3>
           <div className="review-list-stack">
-            {reviewCards.map((card, index) => (
-              <div
-                className={`review-list-item ${index === 0 ? 'active' : ''}`}
+            {filteredReviews.map((card) => (
+              <button
+                className={`review-list-item ${card.title === featuredReview.title ? 'active' : ''}`}
                 key={card.title}
+                onClick={() => setSelectedTitle(card.title)}
+                type="button"
               >
                 <strong>{card.title}</strong>
                 <span className="session-pill tone-violet subtle-pill">
@@ -55,7 +96,7 @@ export function ReviewPage() {
                 </span>
                 <p>{card.date}</p>
                 <span>{card.meta}</span>
-              </div>
+              </button>
             ))}
           </div>
           <button className="text-link people-more-link" type="button">
