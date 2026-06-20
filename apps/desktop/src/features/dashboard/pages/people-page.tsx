@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { peopleList } from '@/features/dashboard/lib/content';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = [
   'すべて',
@@ -62,11 +63,17 @@ function fallbackSummary(name: string, role: string) {
 }
 
 export function PeoplePage() {
+  const draftPeople = useWorkspaceStore((state) => state.draftPeople);
+  const peopleExtraChecks = useWorkspaceStore(
+    (state) => state.peopleExtraChecks,
+  );
+  const addPersonDraft = useWorkspaceStore((state) => state.addPersonDraft);
+  const appendPeopleCheck = useWorkspaceStore(
+    (state) => state.appendPeopleCheck,
+  );
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
   const [selectedName, setSelectedName] = useState(peopleList[0]?.name ?? '');
-  const [draftPeople, setDraftPeople] = useState(peopleList.slice(0, 0));
-  const [extraChecks, setExtraChecks] = useState<Record<string, string[]>>({});
 
   const people = useMemo(() => [...draftPeople, ...peopleList], [draftPeople]);
 
@@ -90,7 +97,7 @@ export function PeoplePage() {
     fallbackSummary(featuredPerson.name, featuredPerson.role);
   const checks = [
     ...baseSummary.checks,
-    ...(extraChecks[featuredPerson.name] ?? []),
+    ...(peopleExtraChecks[featuredPerson.name] ?? []),
   ];
 
   function addPerson() {
@@ -102,18 +109,15 @@ export function PeoplePage() {
       updatedAt: '今日',
     } as (typeof peopleList)[number];
 
-    setDraftPeople((current) => [nextPerson, ...current]);
+    addPersonDraft(nextPerson);
     setSelectedName(nextPerson.name);
   }
 
   function addCheckItem() {
-    setExtraChecks((current) => ({
-      ...current,
-      [featuredPerson.name]: [
-        ...(current[featuredPerson.name] ?? []),
-        `追加メモ ${((current[featuredPerson.name] ?? []).length || 0) + 1}`,
-      ],
-    }));
+    appendPeopleCheck(
+      featuredPerson.name,
+      `追加メモ ${(peopleExtraChecks[featuredPerson.name] ?? []).length + 1}`,
+    );
   }
 
   return (

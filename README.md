@@ -8,14 +8,17 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 
 ## 現在の状態
 
-このリポジトリには、Phase 0 の MVP 雛形が入っています。
+このリポジトリには、ローカルファーストのデスクトップアプリとして動作する実装が入っています。
 
-- Tauri v2 デスクトップアプリの骨格
-- React + TypeScript のフロントエンド
+- Tauri v2 デスクトップアプリ
+- React + TypeScript のダッシュボード UI
+- 上部 / 右側の会話支援オーバーレイ
 - Rust 製の状態管理とコマンド層
 - モック文字起こしパイプライン
-- 質問判定つき Adaptive Inference の概念実装
+- 質問判定つき Adaptive Inference
 - サンプルプロフィール読み込みとキーワード検索
+- 個人ナレッジと Share Safe Mode のローカル永続化
+- Overlay Settings / ダッシュボード下書きのブラウザ側永続化
 
 ## 起動方法
 
@@ -39,6 +42,17 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 - Linux: `.AppImage` / `.deb` / `.rpm`
 
 配布フローの詳細は [配布手順](./docs/release.md) にまとめています。
+
+## ローカル保存とプライバシー
+
+How to Talk はローカル実行を前提にしています。
+
+- 個人ナレッジはローカルに保存されます
+- Overlay Settings とダッシュボードの下書きは端末内に保持されます
+- セッション中のモック transcript は永続化しません
+- 外部クラウドへ自動送信する構成は標準では有効にしていません
+
+詳細は [SECURITY.md](./SECURITY.md) を参照してください。
 
 ## 命名方針
 

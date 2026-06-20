@@ -8,7 +8,8 @@ pub struct ProfileImportDraft {
     pub content: String,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OwnedProfileDocument {
     pub id: String,
     pub title: String,

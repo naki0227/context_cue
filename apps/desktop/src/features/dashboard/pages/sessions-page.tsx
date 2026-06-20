@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { sessionTable } from '@/features/dashboard/lib/content';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = [
   'すべて',
@@ -15,12 +16,13 @@ const tabs = [
 const pageSize = 4;
 
 export function SessionsPage() {
+  const draftSessions = useWorkspaceStore((state) => state.draftSessions);
+  const addSessionDraft = useWorkspaceStore((state) => state.addSessionDraft);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
   const [selectedTitle, setSelectedTitle] = useState(
     sessionTable[0]?.title ?? '',
   );
-  const [draftSessions, setDraftSessions] = useState(sessionTable.slice(0, 0));
   const [page, setPage] = useState(1);
 
   const sessions = useMemo(
@@ -59,7 +61,7 @@ export function SessionsPage() {
       statusTone: 'blue',
     } as (typeof sessionTable)[number];
 
-    setDraftSessions((current) => [nextSession, ...current]);
+    addSessionDraft(nextSession);
     setSelectedTitle(nextSession.title);
     setPage(1);
   }

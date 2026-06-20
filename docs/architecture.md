@@ -19,11 +19,11 @@ MVP の最優先は以下の 4 点とする。
 | --- | --- | --- |
 | デスクトップ基盤 | Tauri v2 | 軽量、Rust と相性が良い、権限管理と配布の土台がある |
 | フロントエンド | React + TypeScript + Vite | Tauri と相性が良く、モック UI を高速に作れる |
-| スタイル | Tailwind CSS 4 | MVP の画面密度に向いており、オーバーレイの短文化 UI を作りやすい |
+| スタイル | React + CSS Modules ではなく、現状は `globals.css` ベースの手書き CSS | オーバーレイと高密度ダッシュボードをピクセル単位で調整しやすい |
 | UI 状態管理 | Zustand | グローバル状態が小さく、Tauri IPC と組み合わせやすい |
 | バリデーション | Zod | LLM JSON、設定、コマンド入出力の検証に使う |
 | Rust バックエンド | Rust stable | 音声処理、ファイル検索、保存制御、Tauri コマンドを集約する |
-| 保存設定 | Tauri Store plugin | 設定の永続化が容易 |
+| 保存設定 | Zustand persist + Rust ローカルファイル保存 | UI 設定と実データを責務分離して永続化できる |
 | グローバルショートカット | Tauri Global Shortcut plugin | Share Safe Mode の即時切り替えに必要 |
 | ファイルアクセス | 原則 Rust 側で実装 | 個人メモ・保存制御を frontend に直接持たせないため |
 | LLM 接続 | Ollama HTTP API | ローカル LLM 前提に最も自然 |
@@ -75,6 +75,7 @@ Local resources
 - Rust コマンド呼び出し
 - Rust イベント購読
 - UI 向けの軽い整形
+- Overlay Settings / 下書き UI のローカル永続化
 
 #### Rust の責務
 
@@ -88,6 +89,7 @@ Local resources
 - 保存ポリシー適用
 - ファイル I/O
 - エラー制御と再試行
+- 個人ナレッジと share-safe 状態のローカル永続化
 
 ### 3.3 設計原則
 

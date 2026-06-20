@@ -6,6 +6,7 @@ use context_cue_contracts::{
 
 use crate::{
     domain::profile_document::{OwnedProfileDocument, ProfileImportDraft},
+    infrastructure::persistence::{load_workspace, restore_app_state, save_workspace},
     error::AppError,
     repository::profile_repository::load_profile_documents,
     usecase::{
@@ -14,7 +15,7 @@ use crate::{
             import_profile_documents_from_files, remove_profile_document,
         },
         session_usecase::{
-            default_app_state, push_mock_chunk, start_session, stop_session, toggle_share_safe_mode,
+            push_mock_chunk, start_session, stop_session, toggle_share_safe_mode,
         },
     },
 };
@@ -50,6 +51,7 @@ impl SharedState {
     pub fn toggle_share_safe_mode(&self) -> AppState {
         let mut state = self.inner.lock().expect("shared state poisoned");
         toggle_share_safe_mode(&mut state.app_state);
+        persist_workspace(&state);
         state.snapshot()
     }
 
@@ -78,6 +80,7 @@ impl SharedState {
         let mut documents = std::mem::take(&mut state.documents);
         import_profile_documents(&mut documents, &seed_documents, &mut state.app_state);
         state.documents = documents;
+        persist_workspace(&state);
         state.snapshot()
     }
 
@@ -86,6 +89,7 @@ impl SharedState {
         let mut documents = std::mem::take(&mut state.documents);
         import_profile_documents_from_files(&mut documents, drafts, &mut state.app_state);
         state.documents = documents;
+        persist_workspace(&state);
         state.snapshot()
     }
 
@@ -94,6 +98,7 @@ impl SharedState {
         let mut documents = std::mem::take(&mut state.documents);
         remove_profile_document(&mut documents, document_id, &mut state.app_state);
         state.documents = documents;
+        persist_workspace(&state);
         state.snapshot()
     }
 
@@ -102,6 +107,7 @@ impl SharedState {
         let mut documents = std::mem::take(&mut state.documents);
         clear_profile_documents(&mut documents, &mut state.app_state);
         state.documents = documents;
+        persist_workspace(&state);
         state.snapshot()
     }
 
@@ -124,9 +130,11 @@ struct InnerState {
 
 impl Default for InnerState {
     fn default() -> Self {
+        let persisted = load_workspace();
+
         Self {
-            app_state: default_app_state(),
-            documents: Vec::new(),
+            app_state: restore_app_state(&persisted.documents, persisted.share_safe_mode),
+            documents: persisted.documents,
             seed_documents: Vec::new(),
         }
     }
@@ -136,6 +144,10 @@ impl InnerState {
     fn snapshot(&self) -> AppState {
         self.app_state.clone()
     }
+}
+
+fn persist_workspace(state: &InnerState) {
+    save_workspace(&state.documents, state.app_state.session.share_safe_mode);
 }
 
 #[cfg(test)]

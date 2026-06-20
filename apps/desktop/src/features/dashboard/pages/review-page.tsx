@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { reviewCards } from '@/features/dashboard/lib/content';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = [
   'すべて',
@@ -74,6 +75,8 @@ function fallbackReview(title: string) {
 }
 
 export function ReviewPage() {
+  const draftReviews = useWorkspaceStore((state) => state.draftReviews);
+  const addReviewDraft = useWorkspaceStore((state) => state.addReviewDraft);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
   const [selectedTitle, setSelectedTitle] = useState(
@@ -82,7 +85,6 @@ export function ReviewPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [detailTab, setDetailTab] =
     useState<(typeof innerTabs)[number]>('サマリー');
-  const [draftReviews, setDraftReviews] = useState(reviewCards.slice(0, 0));
 
   const reviews = useMemo(
     () => [...draftReviews, ...reviewCards],
@@ -114,7 +116,7 @@ export function ReviewPage() {
       type: 'その他',
     } as (typeof reviewCards)[number];
 
-    setDraftReviews((current) => [nextReview, ...current]);
+    addReviewDraft(nextReview);
     setSelectedTitle(nextReview.title);
   }
 

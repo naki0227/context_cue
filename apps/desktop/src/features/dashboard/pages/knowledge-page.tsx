@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { DashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
 import { knowledgeTags } from '@/features/dashboard/lib/content';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 type KnowledgePageProps = Pick<
   DashboardController,
@@ -142,9 +143,12 @@ export function KnowledgePage({
   knowledgeImportNotice,
   removeProfileDocument,
 }: KnowledgePageProps) {
+  const draftItems = useWorkspaceStore((state) => state.draftKnowledgeItems);
+  const addKnowledgeDraft = useWorkspaceStore(
+    (state) => state.addKnowledgeDraft,
+  );
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState(baseKnowledgeItems[0]?.id ?? '');
-  const [draftItems, setDraftItems] = useState<KnowledgeEntry[]>([]);
 
   const knowledgeItems = useMemo(
     () => [
@@ -183,7 +187,7 @@ export function KnowledgePage({
       ],
     };
 
-    setDraftItems((current) => [nextItem, ...current]);
+    addKnowledgeDraft(nextItem);
     setSelectedId(nextItem.id);
   }
 

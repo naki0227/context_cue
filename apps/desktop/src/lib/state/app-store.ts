@@ -1,5 +1,7 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
+import { createBrowserPersistStorage } from '@/lib/state/persist-storage';
 
 export type OverlayTheme = 'dark' | 'light' | 'auto';
 export type OverlayPosition = '右上' | '上部中央' | '右寄せ';
@@ -114,68 +116,82 @@ type StoreState = {
   stopSessionLocally: () => void;
 };
 
-export const useAppStore = create<StoreState>((set) => ({
-  appState: defaultState,
-  consent: defaultConsent,
-  overlayPreferences: defaultOverlayPreferences,
-  setAppState: (appState) => set({ appState }),
-  patchSession: (session) =>
-    set((state) => ({ appState: { ...state.appState, session } })),
-  patchRollingSummary: (rollingSummary) =>
-    set((state) => ({ appState: { ...state.appState, rollingSummary } })),
-  patchContextCue: (contextCue) =>
-    set((state) => ({ appState: { ...state.appState, contextCue } })),
-  patchAdaptiveInference: (adaptiveInference) =>
-    set((state) => ({ appState: { ...state.appState, adaptiveInference } })),
-  pushTranscriptChunk: (chunk) =>
-    set((state) => ({
-      appState: {
-        ...state.appState,
-        transcript: [...state.appState.transcript.slice(-9), chunk],
-      },
-    })),
-  setConsentField: (field, value) =>
-    set((state) => ({
-      consent: {
-        ...state.consent,
-        [field]: value,
-      },
-    })),
-  setOverlayPreference: (key, value) =>
-    set((state) => ({
-      overlayPreferences: {
-        ...state.overlayPreferences,
-        [key]: value,
-      },
-    })),
-  toggleOverlaySection: (key) =>
-    set((state) => ({
-      overlayPreferences: {
-        ...state.overlayPreferences,
-        sections: {
-          ...state.overlayPreferences.sections,
-          [key]: !state.overlayPreferences.sections[key],
-        },
-      },
-    })),
-  startSessionLocally: () =>
-    set((state) => ({
-      appState: {
-        ...state.appState,
-        session: {
-          ...state.appState.session,
-          status: 'running',
-        },
-      },
-    })),
-  stopSessionLocally: () =>
-    set((state) => ({
-      appState: {
-        ...state.appState,
-        session: {
-          ...state.appState.session,
-          status: 'stopped',
-        },
-      },
-    })),
-}));
+export const useAppStore = create<StoreState>()(
+  persist(
+    (set) => ({
+      appState: defaultState,
+      consent: defaultConsent,
+      overlayPreferences: defaultOverlayPreferences,
+      setAppState: (appState) => set({ appState }),
+      patchSession: (session) =>
+        set((state) => ({ appState: { ...state.appState, session } })),
+      patchRollingSummary: (rollingSummary) =>
+        set((state) => ({ appState: { ...state.appState, rollingSummary } })),
+      patchContextCue: (contextCue) =>
+        set((state) => ({ appState: { ...state.appState, contextCue } })),
+      patchAdaptiveInference: (adaptiveInference) =>
+        set((state) => ({
+          appState: { ...state.appState, adaptiveInference },
+        })),
+      pushTranscriptChunk: (chunk) =>
+        set((state) => ({
+          appState: {
+            ...state.appState,
+            transcript: [...state.appState.transcript.slice(-9), chunk],
+          },
+        })),
+      setConsentField: (field, value) =>
+        set((state) => ({
+          consent: {
+            ...state.consent,
+            [field]: value,
+          },
+        })),
+      setOverlayPreference: (key, value) =>
+        set((state) => ({
+          overlayPreferences: {
+            ...state.overlayPreferences,
+            [key]: value,
+          },
+        })),
+      toggleOverlaySection: (key) =>
+        set((state) => ({
+          overlayPreferences: {
+            ...state.overlayPreferences,
+            sections: {
+              ...state.overlayPreferences.sections,
+              [key]: !state.overlayPreferences.sections[key],
+            },
+          },
+        })),
+      startSessionLocally: () =>
+        set((state) => ({
+          appState: {
+            ...state.appState,
+            session: {
+              ...state.appState.session,
+              status: 'running',
+            },
+          },
+        })),
+      stopSessionLocally: () =>
+        set((state) => ({
+          appState: {
+            ...state.appState,
+            session: {
+              ...state.appState.session,
+              status: 'stopped',
+            },
+          },
+        })),
+    }),
+    {
+      name: 'context-cue-ui-v1',
+      partialize: (state) => ({
+        consent: state.consent,
+        overlayPreferences: state.overlayPreferences,
+      }),
+      storage: createBrowserPersistStorage(),
+    },
+  ),
+);

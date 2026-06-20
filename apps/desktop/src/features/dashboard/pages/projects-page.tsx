@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { projectCards } from '@/features/dashboard/lib/content';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = ['すべて', '企業', 'プロジェクト', '課題'] as const;
 
@@ -56,16 +57,18 @@ function fallbackProjectDetail(title: string, subtitle: string) {
 }
 
 export function ProjectsPage() {
+  const draftProjects = useWorkspaceStore((state) => state.draftProjects);
+  const projectExtraActions = useWorkspaceStore(
+    (state) => state.projectExtraActions,
+  );
+  const addProjectDraft = useWorkspaceStore((state) => state.addProjectDraft);
+  const addProjectAction = useWorkspaceStore((state) => state.addProjectAction);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
   const [selectedTitle, setSelectedTitle] = useState(
     projectCards[0]?.title ?? '',
   );
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-  const [draftProjects, setDraftProjects] = useState(projectCards.slice(0, 0));
-  const [extraActions, setExtraActions] = useState<Record<string, string[][]>>(
-    {},
-  );
 
   const projects = useMemo(
     () => [...draftProjects, ...projectCards],
@@ -94,7 +97,7 @@ export function ProjectsPage() {
     fallbackProjectDetail(featuredProject.title, featuredProject.subtitle);
   const actions = [
     ...detail.actions,
-    ...((extraActions[featuredProject.title] ?? []) as Array<
+    ...((projectExtraActions[featuredProject.title] ?? []) as Array<
       [string, string, string]
     >),
   ];
@@ -112,18 +115,16 @@ export function ProjectsPage() {
       icon: 'chart',
     } as (typeof projectCards)[number];
 
-    setDraftProjects((current) => [nextProject, ...current]);
+    addProjectDraft(nextProject);
     setSelectedTitle(nextProject.title);
   }
 
   function addAction() {
-    setExtraActions((current) => ({
-      ...current,
-      [featuredProject.title]: [
-        ...(current[featuredProject.title] ?? []),
-        ['新しいアクション', '未設定', '低'],
-      ],
-    }));
+    addProjectAction(featuredProject.title, [
+      '新しいアクション',
+      '未設定',
+      '低',
+    ]);
   }
 
   return (
