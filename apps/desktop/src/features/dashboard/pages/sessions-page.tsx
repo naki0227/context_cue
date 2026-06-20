@@ -1,24 +1,34 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { sessionTable } from '@/features/dashboard/lib/content';
 
+const tabs = [
+  'すべて',
+  '面接',
+  '面談',
+  '会議',
+  'GD',
+  '1on1',
+  '授業',
+  'その他',
+] as const;
+
+const pageSize = 4;
+
 export function SessionsPage() {
-  const tabs = [
-    'すべて',
-    '面接',
-    '面談',
-    '会議',
-    'GD',
-    '1on1',
-    '授業',
-    'その他',
-  ] as const;
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
   const [selectedTitle, setSelectedTitle] = useState(
     sessionTable[0]?.title ?? '',
   );
+  const [draftSessions, setDraftSessions] = useState(sessionTable.slice(0, 0));
+  const [page, setPage] = useState(1);
 
-  const filteredSessions = sessionTable.filter((row) => {
+  const sessions = useMemo(
+    () => [...draftSessions, ...sessionTable],
+    [draftSessions],
+  );
+
+  const filteredSessions = sessions.filter((row) => {
     const matchesTab = activeTab === 'すべて' || row.type === activeTab;
     const normalizedQuery = query.trim().toLowerCase();
     const haystack = `${row.title} ${row.partner} ${row.memo}`.toLowerCase();
@@ -27,6 +37,32 @@ export function SessionsPage() {
 
     return matchesTab && matchesQuery;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredSessions.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedSessions = filteredSessions.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
+  function addDraftSession() {
+    const nextSession = {
+      title: `新しいセッション ${draftSessions.length + 1}`,
+      type: '面談',
+      date: '未設定',
+      partner: '相手未設定 / オンライン',
+      recording: '',
+      status: '予定',
+      memo: '会話の目的と確認したいことをここに整理します。',
+      typeTone: 'green',
+      recordingTone: 'neutral',
+      statusTone: 'blue',
+    } as (typeof sessionTable)[number];
+
+    setDraftSessions((current) => [nextSession, ...current]);
+    setSelectedTitle(nextSession.title);
+    setPage(1);
+  }
 
   return (
     <div className="page-layout sessions-page-v2">
@@ -37,13 +73,20 @@ export function SessionsPage() {
             <span className="search-shell-icon" />
             <input
               className="search-input search-input-v2"
+              onChange={(event) => {
+                setPage(1);
+                setQuery(event.target.value);
+              }}
               placeholder="検索"
-              onChange={(event) => setQuery(event.target.value)}
               type="text"
               value={query}
             />
           </div>
-          <button className="primary-button primary-button-v2" type="button">
+          <button
+            className="primary-button primary-button-v2"
+            onClick={addDraftSession}
+            type="button"
+          >
             ＋ 新しいセッション
           </button>
         </div>
@@ -55,7 +98,10 @@ export function SessionsPage() {
             <button
               className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setPage(1);
+              }}
               type="button"
             >
               {tab}
@@ -75,7 +121,7 @@ export function SessionsPage() {
           <span />
         </div>
 
-        {filteredSessions.map((row) => (
+        {paginatedSessions.map((row) => (
           <button
             className={`table-row sessions-table-grid sessions-table-row ${selectedTitle === row.title ? 'active' : ''}`}
             key={row.title}
@@ -106,21 +152,45 @@ export function SessionsPage() {
         ))}
 
         <div className="sessions-footer">
-          <span>1–8 / 24 件を表示</span>
+          <span>
+            {filteredSessions.length === 0
+              ? '0 件を表示'
+              : `${(safePage - 1) * pageSize + 1}–${Math.min(
+                  safePage * pageSize,
+                  filteredSessions.length,
+                )} / ${filteredSessions.length} 件を表示`}
+          </span>
           <div className="sessions-pagination">
-            <button className="pagination-button" type="button">
+            <button
+              className="pagination-button"
+              disabled={safePage === 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              type="button"
+            >
               ‹
             </button>
-            <button className="pagination-button active" type="button">
-              1
-            </button>
-            <button className="pagination-button" type="button">
-              2
-            </button>
-            <button className="pagination-button" type="button">
-              3
-            </button>
-            <button className="pagination-button" type="button">
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (pageNumber) => (
+                <button
+                  className={`pagination-button ${
+                    safePage === pageNumber ? 'active' : ''
+                  }`}
+                  key={pageNumber}
+                  onClick={() => setPage(pageNumber)}
+                  type="button"
+                >
+                  {pageNumber}
+                </button>
+              ),
+            )}
+            <button
+              className="pagination-button"
+              disabled={safePage === totalPages}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+              type="button"
+            >
               ›
             </button>
           </div>

@@ -1,24 +1,95 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { reviewCards } from '@/features/dashboard/lib/content';
 
+const tabs = [
+  'すべて',
+  '面談',
+  '面接',
+  '会議',
+  'GD',
+  '1on1',
+  'その他',
+] as const;
+const innerTabs = [
+  'サマリー',
+  'トランスクリプト',
+  'AI分析',
+  'メモ',
+  'アクション',
+] as const;
+
+const reviewDetails: Record<
+  string,
+  {
+    actions: Array<[string, string, string]>;
+    improvements: string[];
+    insights: string[];
+    memo: string[];
+    summary: string[];
+    transcript: string[];
+  }
+> = {
+  '株式会社セールス・イノベーション': {
+    summary: [
+      '課題ヒアリングで相手の本質的なニーズを深掘りできた。',
+      '自社サービスの価値を具体例を交えて分かりやすく伝えられた。',
+      'クロージングに向けて自然な流れで次のステップを提案できた。',
+    ],
+    transcript: [
+      '相手: 現場定着がうまく進まず、営業プロセスが属人化しています。',
+      'あなた: 定着の阻害要因を運用面とツール面に分けて整理しましょう。',
+      '相手: その切り分けは分かりやすいです。現場教育も課題です。',
+    ],
+    insights: [
+      '現在、営業プロセスの属人化が課題になっている。',
+      'SFAの導入は進めているが、現場定着に苦戦している。',
+      '来期予算での投資検討を進めており、6月中の判断を目指している。',
+    ],
+    improvements: [
+      '冒頭のアイスブレイクがやや長く、本題への導入に時間がかかった。',
+      '競合比較の説明で、当社独自の強みの訴求が弱かった。',
+      '相手の懸念点に対する具体的な解決策の提示が不足していた。',
+    ],
+    memo: [
+      '現場定着の成功事例を次回用に必ず準備する。',
+      'ROIシミュレーションを数値で示せる形にして持参する。',
+    ],
+    actions: [
+      ['提案資料をカスタマイズして再送する', '田中 一郎', '2024/05/22'],
+      ['事例集（同業界）の追加資料を作成する', '佐藤 花子', '2024/05/24'],
+      ['次回ミーティングの日程調整を行う', '田中 一郎', '2024/05/24'],
+    ],
+  },
+};
+
+function fallbackReview(title: string) {
+  return {
+    summary: [`${title} の振り返りをここに整理していきます。`],
+    transcript: ['まだ詳細なトランスクリプトはありません。'],
+    insights: ['相手の背景・意図・次回の論点を記録する想定です。'],
+    improvements: ['話し方や論点整理で改善したい点をここに残します。'],
+    memo: ['次回までに準備したいことを追加してください。'],
+    actions: [['次回準備メモを作る', 'User', '未設定']],
+  };
+}
+
 export function ReviewPage() {
-  const tabs = [
-    'すべて',
-    '面談',
-    '面接',
-    '会議',
-    'GD',
-    '1on1',
-    'その他',
-  ] as const;
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
   const [selectedTitle, setSelectedTitle] = useState(
     reviewCards[0]?.title ?? '',
   );
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [detailTab, setDetailTab] =
+    useState<(typeof innerTabs)[number]>('サマリー');
+  const [draftReviews, setDraftReviews] = useState(reviewCards.slice(0, 0));
 
-  const filteredReviews = reviewCards.filter((card) => {
+  const reviews = useMemo(
+    () => [...draftReviews, ...reviewCards],
+    [draftReviews],
+  );
+
+  const filteredReviews = reviews.filter((card) => {
     const matchesTab = activeTab === 'すべて' || card.type === activeTab;
     const normalizedQuery = query.trim().toLowerCase();
     const haystack = `${card.title} ${card.meta}`.toLowerCase();
@@ -31,7 +102,21 @@ export function ReviewPage() {
   const featuredReview =
     filteredReviews.find((card) => card.title === selectedTitle) ??
     filteredReviews[0] ??
-    reviewCards[0];
+    reviews[0];
+  const detail =
+    reviewDetails[featuredReview.title] ?? fallbackReview(featuredReview.title);
+
+  function addReview() {
+    const nextReview = {
+      title: `新しい振り返り ${draftReviews.length + 1}`,
+      date: '今日',
+      meta: '未設定 / 30分 / ローカル',
+      type: 'その他',
+    } as (typeof reviewCards)[number];
+
+    setDraftReviews((current) => [nextReview, ...current]);
+    setSelectedTitle(nextReview.title);
+  }
 
   return (
     <div className="page-layout review-page-v2">
@@ -54,8 +139,8 @@ export function ReviewPage() {
             <span className="search-shell-icon" />
             <input
               className="search-input search-input-v2"
-              placeholder="検索"
               onChange={(event) => setQuery(event.target.value)}
+              placeholder="検索"
               type="text"
               value={query}
             />
@@ -76,6 +161,13 @@ export function ReviewPage() {
               ▦
             </button>
           </div>
+          <button
+            className="primary-button primary-button-v2"
+            onClick={addReview}
+            type="button"
+          >
+            ＋ 新しい振り返り
+          </button>
         </div>
       </div>
 
@@ -127,16 +219,11 @@ export function ReviewPage() {
           </div>
 
           <div className="tab-row review-inner-tabs">
-            {[
-              'サマリー',
-              'トランスクリプト',
-              'AI分析',
-              'メモ',
-              'アクション',
-            ].map((tab, index) => (
+            {innerTabs.map((tab) => (
               <button
-                className={`toolbar-tab sessions-tab ${index === 0 ? 'active' : ''}`}
+                className={`toolbar-tab sessions-tab ${detailTab === tab ? 'active' : ''}`}
                 key={tab}
+                onClick={() => setDetailTab(tab)}
                 type="button"
               >
                 {tab}
@@ -145,94 +232,99 @@ export function ReviewPage() {
           </div>
 
           <div className="review-detail-grid">
-            <section className="soft-card review-panel">
-              <h3>良かった点</h3>
-              <ul className="people-check-list">
-                <li>課題ヒアリングで相手の本質的なニーズを深掘りできた</li>
-                <li>
-                  自社サービスの価値を具体例を交えて分かりやすく伝えられた
-                </li>
-                <li>相手の反応を見ながら柔軟に説明の順序を調整できた</li>
-                <li>
-                  クロージングに向けて自然な流れで次のステップを提案できた
-                </li>
-              </ul>
-            </section>
-
-            <section className="soft-card review-panel">
-              <h3>重要な学び・気づき</h3>
-              <h4>相手の状況・背景</h4>
-              <ul className="bullet-text">
-                <li>現在、営業プロセスの属人化が課題になっている</li>
-                <li>SFAの導入は進めているが、現場定着に苦戦している</li>
-                <li>
-                  来期予算での投資検討を進めており、6月中の判断を目指している
-                </li>
-              </ul>
-              <h4>ニーズ・期待</h4>
-              <ul className="bullet-text">
-                <li>営業活動の可視化と、チーム全体の生産性向上を実現したい</li>
-                <li>現場が使いやすく、定着しやすい仕組みを重視している</li>
-                <li>導入後のサポート体制や伴走支援に期待している</li>
-              </ul>
-              <h4>懸念・不安点</h4>
-              <ul className="bullet-text">
-                <li>他システムとの連携やデータ移行の工数</li>
-                <li>現場メンバーの抵抗感や運用定着のリスク</li>
-                <li>投資対効果を経営層にどう説明するか</li>
-              </ul>
-            </section>
-
-            <section className="soft-card review-panel">
-              <h3>改善点</h3>
-              <ul className="bullet-text warning-list">
-                <li>
-                  冒頭のアイスブレイクがやや長く、本題への導入に時間がかかった
-                </li>
-                <li>競合比較の説明で、当社独自の強みの訴求が弱かった</li>
-                <li>相手の懸念点に対する具体的な解決策の提示が不足していた</li>
-              </ul>
-            </section>
-
-            <section className="soft-card review-panel">
-              <h3>次回のアクション</h3>
-              <div className="projects-linked-list">
-                {[
-                  [
-                    '提案資料をカスタマイズして再送する',
-                    '田中 一郎',
-                    '2024/05/22',
-                  ],
-                  [
-                    '事例集（同業界）の追加資料を作成する',
-                    '佐藤 花子',
-                    '2024/05/24',
-                  ],
-                  [
-                    '次回ミーティングの日程調整を行う',
-                    '田中 一郎',
-                    '2024/05/24',
-                  ],
-                ].map(([title, owner, date]) => (
-                  <div className="review-action-row" key={`${title}-${date}`}>
-                    <span className="action-check" />
-                    <strong>{title}</strong>
-                    <span>{owner}</span>
-                    <span>{date}</span>
+            {detailTab === 'サマリー' ? (
+              <>
+                <section className="soft-card review-panel">
+                  <h3>良かった点</h3>
+                  <ul className="people-check-list">
+                    {detail.summary.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="soft-card review-panel">
+                  <h3>重要な学び・気づき</h3>
+                  <ul className="bullet-text">
+                    {detail.insights.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="soft-card review-panel">
+                  <h3>改善点</h3>
+                  <ul className="bullet-text warning-list">
+                    {detail.improvements.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="soft-card review-panel">
+                  <h3>次回のアクション</h3>
+                  <div className="projects-linked-list">
+                    {detail.actions.map(([title, owner, date]) => (
+                      <div
+                        className="review-action-row"
+                        key={`${title}-${date}`}
+                      >
+                        <span className="action-check" />
+                        <strong>{title}</strong>
+                        <span>{owner}</span>
+                        <span>{date}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
+                </section>
+              </>
+            ) : null}
 
-            <section className="soft-card review-panel review-highlight-panel span-2">
-              <h3>次回までのポイント</h3>
-              <p className="people-summary-text">
-                現場定着の成功事例を具体的に提示し、導入後のサポート体制をより詳細に説明する。
-              </p>
-              <p className="people-summary-text">
-                ROIシミュレーションを用意し、投資対効果を数値で示す。
-              </p>
-            </section>
+            {detailTab === 'トランスクリプト' ? (
+              <section className="soft-card review-panel span-2">
+                <h3>トランスクリプト</h3>
+                <ul className="bullet-text">
+                  {detail.transcript.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {detailTab === 'AI分析' ? (
+              <section className="soft-card review-panel span-2">
+                <h3>AI分析</h3>
+                <ul className="bullet-text">
+                  {detail.insights.concat(detail.improvements).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {detailTab === 'メモ' ? (
+              <section className="soft-card review-panel span-2">
+                <h3>メモ</h3>
+                <ul className="bullet-text">
+                  {detail.memo.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {detailTab === 'アクション' ? (
+              <section className="soft-card review-panel span-2">
+                <h3>次回までのポイント</h3>
+                <div className="projects-linked-list">
+                  {detail.actions.map(([title, owner, date]) => (
+                    <div className="review-action-row" key={`${title}-${date}`}>
+                      <span className="action-check" />
+                      <strong>{title}</strong>
+                      <span>{owner}</span>
+                      <span>{date}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         </article>
       </div>
