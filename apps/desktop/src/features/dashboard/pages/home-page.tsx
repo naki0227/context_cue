@@ -1,14 +1,23 @@
 import {
+  type PageId,
   readinessItems,
   recentSessions,
   todaySchedule,
 } from '@/features/dashboard/lib/content';
 
 type HomePageProps = {
+  onOpenPage: (page: PageId) => void;
   preparedness: string;
 };
 
-export function HomePage({ preparedness }: HomePageProps) {
+export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
+  const readinessPageMap: Record<string, PageId> = {
+    事前ブリーフ: 'templates',
+    想定質問: 'templates',
+    自社カードを整理: 'knowledge',
+    '確認したいこと 5件': 'settings',
+  };
+
   return (
     <div className="page-layout home-page-v2">
       <header className="home-page-header">
@@ -19,7 +28,11 @@ export function HomePage({ preparedness }: HomePageProps) {
       </header>
 
       <div className="page-grid home-grid home-grid-polished home-grid-v2">
-        <article className="soft-card hero-card next-session-card next-session-card-v2">
+        <button
+          className="soft-card hero-card next-session-card next-session-card-v2"
+          onClick={() => onOpenPage('sessions')}
+          type="button"
+        >
           <p className="page-section-title home-section-title">
             次のセッション
           </p>
@@ -43,7 +56,7 @@ export function HomePage({ preparedness }: HomePageProps) {
               </div>
             </div>
           </div>
-        </article>
+        </button>
 
         <article className="soft-card compact-card home-status-card home-status-card-v2">
           <div className="section-head home-card-head">
@@ -53,13 +66,19 @@ export function HomePage({ preparedness }: HomePageProps) {
           <ul className="simple-check-list readiness-list readiness-list-v2">
             {readinessItems.map((item) => (
               <li key={item.label}>
-                <span className={`readiness-marker marker-${item.tone}`} />
-                <span className="check-label">{item.label}</span>
-                {item.meta ? (
-                  <strong>{item.meta}</strong>
-                ) : (
-                  <span className="readiness-arrow">›</span>
-                )}
+                <button
+                  className="home-inline-button"
+                  onClick={() => onOpenPage(readinessPageMap[item.label])}
+                  type="button"
+                >
+                  <span className={`readiness-marker marker-${item.tone}`} />
+                  <span className="check-label">{item.label}</span>
+                  {item.meta ? (
+                    <strong>{item.meta}</strong>
+                  ) : (
+                    <span className="readiness-arrow">›</span>
+                  )}
+                </button>
               </li>
             ))}
           </ul>
@@ -70,8 +89,14 @@ export function HomePage({ preparedness }: HomePageProps) {
           <ul className="agenda-list agenda-list-v2">
             {todaySchedule.slice(1).map((item) => (
               <li key={item.title}>
-                <strong>{item.time}</strong>
-                <span>{item.title}</span>
+                <button
+                  className="home-inline-button"
+                  onClick={() => onOpenPage('sessions')}
+                  type="button"
+                >
+                  <strong>{item.time}</strong>
+                  <span>{item.title}</span>
+                </button>
               </li>
             ))}
           </ul>
@@ -82,24 +107,54 @@ export function HomePage({ preparedness }: HomePageProps) {
             AIからのおすすめ
           </p>
           <ul className="recommend-list recommend-list-v2">
-            <li>想定質問の回答候補を更新しました</li>
-            <li>過去の面談記録から質問20選を追加しました</li>
-            <li>あなたの強みを活かせる質問があります</li>
+            <li>
+              <button
+                className="home-inline-button"
+                onClick={() => onOpenPage('templates')}
+                type="button"
+              >
+                想定質問の回答候補を更新しました
+              </button>
+            </li>
+            <li>
+              <button
+                className="home-inline-button"
+                onClick={() => onOpenPage('review')}
+                type="button"
+              >
+                過去の面談記録から質問20選を追加しました
+              </button>
+            </li>
+            <li>
+              <button
+                className="home-inline-button"
+                onClick={() => onOpenPage('knowledge')}
+                type="button"
+              >
+                あなたの強みを活かせる質問があります
+              </button>
+            </li>
           </ul>
         </article>
 
         <article className="soft-card span-2 recent-sessions-card recent-sessions-card-v2">
           <div className="section-head home-card-head">
             <h3>最近のセッション</h3>
-            <button className="text-link" type="button">
+            <button
+              className="text-link"
+              onClick={() => onOpenPage('sessions')}
+              type="button"
+            >
               すべて見る
             </button>
           </div>
           <div className="recent-row recent-row-home recent-row-home-v2">
             {recentSessions.map((session) => (
-              <div
+              <button
                 className="recent-session-chip recent-session-chip-home recent-session-chip-v2"
                 key={session.title}
+                onClick={() => onOpenPage('review')}
+                type="button"
               >
                 <span
                   className={`mini-icon mini-icon-v2 icon-${session.icon}`}
@@ -111,7 +166,7 @@ export function HomePage({ preparedness }: HomePageProps) {
                 <span className={`recent-session-status tone-${session.tone}`}>
                   {session.status}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </article>

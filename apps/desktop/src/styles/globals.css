@@ -462,6 +462,11 @@ button:disabled {
 
 .next-session-card-v2 {
   padding: 22px 22px 20px;
+  width: 100%;
+  border: 1px solid rgba(214, 224, 244, 0.92);
+  background: white;
+  text-align: left;
+  cursor: pointer;
 }
 
 .next-session-header-v2 {
@@ -640,6 +645,18 @@ button:disabled {
   line-height: 1;
 }
 
+.home-inline-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
 .agenda-list-v2 li {
   padding: 15px 0;
   align-items: baseline;
@@ -682,6 +699,11 @@ button:disabled {
   gap: 14px;
   min-height: 96px;
   border-radius: 18px;
+  width: 100%;
+  border: 1px solid rgba(39, 76, 255, 0.08);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .mini-icon-v2 {

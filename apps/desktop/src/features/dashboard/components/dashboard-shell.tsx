@@ -17,7 +17,12 @@ type DashboardShellProps = {
 function renderPage(controller: DashboardController, activePage: PageId) {
   switch (activePage) {
     case 'home':
-      return <HomePage preparedness={controller.preparedness} />;
+      return (
+        <HomePage
+          onOpenPage={controller.setActivePage}
+          preparedness={controller.preparedness}
+        />
+      );
     case 'sessions':
       return <SessionsPage />;
     case 'people':
