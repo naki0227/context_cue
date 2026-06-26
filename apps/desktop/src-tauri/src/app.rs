@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use context_cue_contracts::{
     AdaptiveInferenceState, AppState, ConsentInput, ContextCue, RollingSummary, TranscriptChunk,
 };
+use serde_json::Value;
 
 use crate::{
     domain::profile_document::{OwnedProfileDocument, ProfileImportDraft},
@@ -120,10 +121,26 @@ impl SharedState {
             .status
             .clone()
     }
+
+    pub fn workspace_snapshot(&self) -> Value {
+        self.inner
+            .lock()
+            .expect("shared state poisoned")
+            .dashboard_state
+            .clone()
+    }
+
+    pub fn save_workspace_snapshot(&self, workspace_state: Value) -> Value {
+        let mut state = self.inner.lock().expect("shared state poisoned");
+        state.dashboard_state = workspace_state;
+        persist_workspace(&state);
+        state.dashboard_state.clone()
+    }
 }
 
 struct InnerState {
     app_state: AppState,
+    dashboard_state: Value,
     documents: Vec<OwnedProfileDocument>,
     seed_documents: Vec<OwnedProfileDocument>,
 }
@@ -134,6 +151,7 @@ impl Default for InnerState {
 
         Self {
             app_state: restore_app_state(&persisted.documents, persisted.share_safe_mode),
+            dashboard_state: persisted.dashboard_state,
             documents: persisted.documents,
             seed_documents: Vec::new(),
         }
@@ -147,7 +165,11 @@ impl InnerState {
 }
 
 fn persist_workspace(state: &InnerState) {
-    save_workspace(&state.documents, state.app_state.session.share_safe_mode);
+    save_workspace(
+        &state.documents,
+        &state.dashboard_state,
+        state.app_state.session.share_safe_mode,
+    );
 }
 
 #[cfg(test)]

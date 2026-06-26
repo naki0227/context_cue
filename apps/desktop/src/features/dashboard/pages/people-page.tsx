@@ -1,5 +1,9 @@
-import { useMemo, useState } from 'react';
-import { peopleList } from '@/features/dashboard/lib/content';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  linesToText,
+  textToLines,
+} from '@/features/dashboard/lib/editor-utils';
+import type { PersonRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = [
@@ -10,114 +14,64 @@ const tabs = [
   'その他',
 ] as const;
 
-const peopleSummaries: Record<
-  string,
-  {
-    checks: string[];
-    history: Array<[string, string, string, string]>;
-    memo: string[];
-    profile: string[];
-  }
-> = {
-  '田中 一郎': {
-    profile: [
-      '株式会社Aの新卒採用を担当。理系採用の一次面談・最終面談を担当している。',
-      '学生の価値観や志向性を重視したカルチャーフィットを大切にしており、研究内容やチームでの工夫、再現性のある取り組みを評価する傾向。',
-    ],
-    checks: [
-      'チーム配属後のオンボーディングの進め方は？',
-      '評価で特に重視する行動やアウトプットは？',
-      '入社後に活躍している人の共通点は？',
-      '御社でのキャリアパスの具体例について',
-    ],
-    memo: [
-      '研究テーマに興味を持ってくれた。特に〇〇の部分を評価。',
-      '「チームでの成果の再現性」を繰り返し確認された。',
-      '逆質問で「若手の裁量」について聞くと良い反応。',
-    ],
-    history: [
-      ['一次面談', '面談', '2024/05/12 14:00', '30分'],
-      ['ES提出前相談', '面談', '2024/04/28 15:30', '30分'],
-      ['インターン面談', '面談', '2024/03/15 16:00', '30分'],
-    ],
-  },
-};
-
-function fallbackSummary(name: string, role: string) {
-  return {
-    profile: [
-      `${name} さんとの会話で役立つ背景情報をまとめるためのプロフィール下書きです。`,
-      `${role} としての視点や関心ごとを会話後に蓄積していく前提です。`,
-    ],
-    checks: [
-      '次回はどの論点を優先して確認するべきか？',
-      '相手が重視していた判断基準は何か？',
-      '前回の会話から続きで聞くべきことは何か？',
-    ],
-    memo: [
-      '会話の印象や反応の良かった話題をここに残します。',
-      '次回は相手の関心に合わせてエピソードの出し分けをすると良さそうです。',
-    ],
-    history: [['最近の接点', 'その他', '未記録', '---']],
-  };
-}
-
 export function PeoplePage() {
-  const draftPeople = useWorkspaceStore((state) => state.draftPeople);
-  const peopleExtraChecks = useWorkspaceStore(
-    (state) => state.peopleExtraChecks,
-  );
-  const addPersonDraft = useWorkspaceStore((state) => state.addPersonDraft);
-  const appendPeopleCheck = useWorkspaceStore(
-    (state) => state.appendPeopleCheck,
-  );
+  const people = useWorkspaceStore((state) => state.people);
+  const addPerson = useWorkspaceStore((state) => state.addPerson);
+  const updatePerson = useWorkspaceStore((state) => state.updatePerson);
+  const removePerson = useWorkspaceStore((state) => state.removePerson);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
-  const [selectedName, setSelectedName] = useState(peopleList[0]?.name ?? '');
+  const [selectedId, setSelectedId] = useState(people[0]?.id ?? '');
 
-  const people = useMemo(() => [...draftPeople, ...peopleList], [draftPeople]);
+  const filteredPeople = useMemo(() => {
+    return people.filter((person) => {
+      const matchesTab =
+        activeTab === 'すべて' || person.shortRole === activeTab;
+      const normalizedQuery = query.trim().toLowerCase();
+      const haystack =
+        `${person.name} ${person.role} ${person.mail} ${person.memo.join(' ')}`.toLowerCase();
+      const matchesQuery =
+        normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
 
-  const filteredPeople = people.filter((person) => {
-    const matchesTab = activeTab === 'すべて' || person.shortRole === activeTab;
-    const normalizedQuery = query.trim().toLowerCase();
-    const haystack =
-      `${person.name} ${person.role} ${person.mail}`.toLowerCase();
-    const matchesQuery =
-      normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
+      return matchesTab && matchesQuery;
+    });
+  }, [activeTab, people, query]);
 
-    return matchesTab && matchesQuery;
-  });
+  useEffect(() => {
+    const fallbackId = filteredPeople[0]?.id ?? people[0]?.id ?? '';
+    if (!people.some((item) => item.id === selectedId) && fallbackId) {
+      setSelectedId(fallbackId);
+    }
+  }, [filteredPeople, people, selectedId]);
 
   const featuredPerson =
-    filteredPeople.find((person) => person.name === selectedName) ??
-    filteredPeople[0] ??
-    people[0];
-  const baseSummary =
-    peopleSummaries[featuredPerson.name] ??
-    fallbackSummary(featuredPerson.name, featuredPerson.role);
-  const checks = [
-    ...baseSummary.checks,
-    ...(peopleExtraChecks[featuredPerson.name] ?? []),
-  ];
+    people.find((person) => person.id === selectedId) ?? people[0] ?? null;
 
-  function addPerson() {
-    const nextPerson = {
-      name: `新しい人物 ${draftPeople.length + 1}`,
-      role: '役職未設定',
-      shortRole: 'その他',
-      mail: `person-${draftPeople.length + 1}@local.example`,
-      updatedAt: '今日',
-    } as (typeof peopleList)[number];
-
-    addPersonDraft(nextPerson);
-    setSelectedName(nextPerson.name);
+  function addPersonRecord() {
+    const id = addPerson();
+    setSelectedId(id);
   }
 
-  function addCheckItem() {
-    appendPeopleCheck(
-      featuredPerson.name,
-      `追加メモ ${(peopleExtraChecks[featuredPerson.name] ?? []).length + 1}`,
-    );
+  function patchPerson<Key extends keyof PersonRecord>(
+    key: Key,
+    value: PersonRecord[Key],
+  ) {
+    if (!featuredPerson) {
+      return;
+    }
+
+    updatePerson(featuredPerson.id, {
+      [key]: value,
+      updatedAt: new Date().toLocaleDateString('ja-JP'),
+    });
+  }
+
+  function deletePerson() {
+    if (!featuredPerson || !window.confirm('この人物を削除しますか？')) {
+      return;
+    }
+
+    removePerson(featuredPerson.id);
   }
 
   return (
@@ -149,7 +103,7 @@ export function PeoplePage() {
           </div>
           <button
             className="primary-button primary-button-v2"
-            onClick={addPerson}
+            onClick={addPersonRecord}
             type="button"
           >
             ＋ 新しい人物を追加
@@ -162,13 +116,10 @@ export function PeoplePage() {
           <ul className="people-list people-list-v2">
             {filteredPeople.map((person) => (
               <li
-                className={person.name === featuredPerson.name ? 'active' : ''}
-                key={person.name}
+                className={person.id === selectedId ? 'active' : ''}
+                key={person.id}
               >
-                <button
-                  onClick={() => setSelectedName(person.name)}
-                  type="button"
-                >
+                <button onClick={() => setSelectedId(person.id)} type="button">
                   <div className="person-avatar person-avatar-v2" />
                   <div>
                     <strong>{person.name}</strong>
@@ -178,120 +129,154 @@ export function PeoplePage() {
               </li>
             ))}
           </ul>
-          <button
-            className="text-link people-more-link"
-            onClick={() => {
-              setActiveTab('すべて');
-              setQuery('');
-            }}
-            type="button"
-          >
-            すべての人物を見る
-          </button>
         </article>
 
-        <article className="people-detail-stack">
-          <section className="soft-card people-profile-card">
-            <div className="people-profile-top">
-              <div className="people-profile-main">
-                <div className="person-avatar person-avatar-v2 person-avatar-large" />
-                <div>
-                  <div className="people-name-row">
-                    <h2>{featuredPerson.name}</h2>
-                    <span className="session-pill tone-blue">
-                      {featuredPerson.shortRole}
-                    </span>
-                    <span className="people-favorite-star">☆</span>
+        {featuredPerson ? (
+          <article className="people-detail-stack">
+            <section className="soft-card people-profile-card">
+              <div className="people-profile-top">
+                <div className="people-profile-main">
+                  <div className="person-avatar person-avatar-v2 person-avatar-large" />
+                  <div>
+                    <div className="people-name-row">
+                      <h2>{featuredPerson.name}</h2>
+                      <span className="session-pill tone-blue">
+                        {featuredPerson.shortRole}
+                      </span>
+                    </div>
+                    <p className="people-role-text">{featuredPerson.role}</p>
+                    <p className="people-contact-line">
+                      ✉ {featuredPerson.mail}
+                    </p>
+                    <p className="people-contact-line">
+                      ◷ 最終接触: {featuredPerson.lastContactLabel}
+                    </p>
                   </div>
-                  <p className="people-role-text">{featuredPerson.role}</p>
-                  <p className="people-contact-line">✉ {featuredPerson.mail}</p>
-                  <p className="people-contact-line">
-                    ◷ 最終接触: {featuredPerson.updatedAt}（面談）
-                  </p>
                 </div>
-              </div>
-              <button className="outline-button" type="button">
-                編集
-              </button>
-            </div>
-          </section>
-
-          <div className="people-detail-grid">
-            <section className="soft-card people-info-card">
-              <h3>プロフィールサマリー</h3>
-              {baseSummary.profile.map((paragraph) => (
-                <p className="people-summary-text" key={paragraph}>
-                  {paragraph}
-                </p>
-              ))}
-              <ul className="people-bullet-list">
-                <li>担当: 一次面談 / 最終面談</li>
-                <li>採用領域: エンジニア職（新卒）</li>
-                <li>拠点: 東京本社</li>
-                <li>特徴: 論理的な会話を好む / 学生の深掘りに強い</li>
-              </ul>
-            </section>
-
-            <section className="soft-card people-check-card">
-              <h3>次回に向けた質問・確認したいこと</h3>
-              <ul className="people-check-list">
-                {checks.map((item, index) => (
-                  <li
-                    className={
-                      index === checks.length - 1 && index > 2 ? 'muted' : ''
-                    }
-                    key={item}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="text-link people-add-link"
-                onClick={addCheckItem}
-                type="button"
-              >
-                ＋ 項目を追加
-              </button>
-            </section>
-
-            <section className="soft-card people-note-card">
-              <h3>メモ</h3>
-              <ul className="bullet-text">
-                {baseSummary.memo.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <p className="people-note-updated">
-                最終更新: {featuredPerson.updatedAt} 14:30
-              </p>
-            </section>
-
-            <section className="soft-card people-history-card">
-              <div className="section-head">
-                <h3>最近のセッション</h3>
-                <button className="text-link" type="button">
-                  すべて見る
+                <button
+                  className="outline-button"
+                  onClick={deletePerson}
+                  type="button"
+                >
+                  削除
                 </button>
               </div>
-              <div className="people-history-list">
-                {baseSummary.history.map(([title, type, date, duration]) => (
-                  <div className="people-history-row" key={`${title}-${date}`}>
-                    <strong>{title}</strong>
-                    <span className="session-pill tone-violet subtle-pill">
-                      {type}
-                    </span>
-                    <span>{date}</span>
-                    <span>{duration}</span>
-                  </div>
-                ))}
-              </div>
-              <button className="text-link people-more-link" type="button">
-                すべてのセッションを見る
-              </button>
             </section>
-          </div>
-        </article>
+
+            <div className="people-detail-grid">
+              <section className="soft-card detail-editor-card">
+                <h3>基本情報</h3>
+                <div className="detail-editor-grid">
+                  <label>
+                    <span>名前</span>
+                    <input
+                      value={featuredPerson.name}
+                      onChange={(event) =>
+                        patchPerson('name', event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>役割タグ</span>
+                    <select
+                      value={featuredPerson.shortRole}
+                      onChange={(event) =>
+                        patchPerson(
+                          'shortRole',
+                          event.target.value as PersonRecord['shortRole'],
+                        )
+                      }
+                    >
+                      {tabs.slice(1).map((tab) => (
+                        <option key={tab} value={tab}>
+                          {tab}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="span-2">
+                    <span>役職・所属</span>
+                    <input
+                      value={featuredPerson.role}
+                      onChange={(event) =>
+                        patchPerson('role', event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>メール</span>
+                    <input
+                      value={featuredPerson.mail}
+                      onChange={(event) =>
+                        patchPerson('mail', event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>最終接触</span>
+                    <input
+                      value={featuredPerson.lastContactLabel}
+                      onChange={(event) =>
+                        patchPerson('lastContactLabel', event.target.value)
+                      }
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className="soft-card detail-editor-card">
+                <h3>プロフィールサマリー</h3>
+                <textarea
+                  rows={7}
+                  value={linesToText(featuredPerson.profile)}
+                  onChange={(event) =>
+                    patchPerson('profile', textToLines(event.target.value))
+                  }
+                />
+              </section>
+
+              <section className="soft-card detail-editor-card">
+                <h3>次回に向けた質問・確認したいこと</h3>
+                <textarea
+                  rows={7}
+                  value={linesToText(featuredPerson.checks)}
+                  onChange={(event) =>
+                    patchPerson('checks', textToLines(event.target.value))
+                  }
+                />
+              </section>
+
+              <section className="soft-card detail-editor-card">
+                <h3>メモ</h3>
+                <textarea
+                  rows={6}
+                  value={linesToText(featuredPerson.memo)}
+                  onChange={(event) =>
+                    patchPerson('memo', textToLines(event.target.value))
+                  }
+                />
+              </section>
+
+              <section className="soft-card people-history-card">
+                <div className="section-head">
+                  <h3>最近のセッション</h3>
+                </div>
+                <div className="people-history-list">
+                  {featuredPerson.history.map((item) => (
+                    <div className="people-history-row" key={item.id}>
+                      <strong>{item.title}</strong>
+                      <span className="session-pill tone-violet subtle-pill">
+                        {item.type}
+                      </span>
+                      <span>{item.date}</span>
+                      <span>{item.duration}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </article>
+        ) : null}
       </div>
     </div>
   );

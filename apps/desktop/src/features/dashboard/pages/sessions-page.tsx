@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { sessionTable } from '@/features/dashboard/lib/content';
+import { useEffect, useMemo, useState } from 'react';
+import type { SessionRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = [
@@ -13,32 +13,37 @@ const tabs = [
   'その他',
 ] as const;
 
-const pageSize = 4;
+const pageSize = 8;
 
 export function SessionsPage() {
-  const draftSessions = useWorkspaceStore((state) => state.draftSessions);
-  const addSessionDraft = useWorkspaceStore((state) => state.addSessionDraft);
+  const sessions = useWorkspaceStore((state) => state.sessions);
+  const addSession = useWorkspaceStore((state) => state.addSession);
+  const updateSession = useWorkspaceStore((state) => state.updateSession);
+  const removeSession = useWorkspaceStore((state) => state.removeSession);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
-  const [selectedTitle, setSelectedTitle] = useState(
-    sessionTable[0]?.title ?? '',
-  );
+  const [selectedId, setSelectedId] = useState(sessions[0]?.id ?? '');
   const [page, setPage] = useState(1);
 
-  const sessions = useMemo(
-    () => [...draftSessions, ...sessionTable],
-    [draftSessions],
-  );
+  const filteredSessions = useMemo(() => {
+    return sessions.filter((row) => {
+      const matchesTab = activeTab === 'すべて' || row.type === activeTab;
+      const normalizedQuery = query.trim().toLowerCase();
+      const haystack =
+        `${row.title} ${row.partner} ${row.location} ${row.memo}`.toLowerCase();
+      const matchesQuery =
+        normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
 
-  const filteredSessions = sessions.filter((row) => {
-    const matchesTab = activeTab === 'すべて' || row.type === activeTab;
-    const normalizedQuery = query.trim().toLowerCase();
-    const haystack = `${row.title} ${row.partner} ${row.memo}`.toLowerCase();
-    const matchesQuery =
-      normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
+      return matchesTab && matchesQuery;
+    });
+  }, [activeTab, query, sessions]);
 
-    return matchesTab && matchesQuery;
-  });
+  useEffect(() => {
+    const fallbackId = filteredSessions[0]?.id ?? sessions[0]?.id ?? '';
+    if (!sessions.some((item) => item.id === selectedId) && fallbackId) {
+      setSelectedId(fallbackId);
+    }
+  }, [filteredSessions, selectedId, sessions]);
 
   const totalPages = Math.max(1, Math.ceil(filteredSessions.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -46,24 +51,32 @@ export function SessionsPage() {
     (safePage - 1) * pageSize,
     safePage * pageSize,
   );
+  const selectedSession =
+    sessions.find((item) => item.id === selectedId) ?? sessions[0] ?? null;
 
   function addDraftSession() {
-    const nextSession = {
-      title: `新しいセッション ${draftSessions.length + 1}`,
-      type: '面談',
-      date: '未設定',
-      partner: '相手未設定 / オンライン',
-      recording: '',
-      status: '予定',
-      memo: '会話の目的と確認したいことをここに整理します。',
-      typeTone: 'green',
-      recordingTone: 'neutral',
-      statusTone: 'blue',
-    } as (typeof sessionTable)[number];
-
-    addSessionDraft(nextSession);
-    setSelectedTitle(nextSession.title);
+    const id = addSession();
+    setSelectedId(id);
     setPage(1);
+  }
+
+  function patchSession<Key extends keyof SessionRecord>(
+    key: Key,
+    value: SessionRecord[Key],
+  ) {
+    if (!selectedSession) {
+      return;
+    }
+
+    updateSession(selectedSession.id, { [key]: value });
+  }
+
+  function deleteSession() {
+    if (!selectedSession || !window.confirm('このセッションを削除しますか？')) {
+      return;
+    }
+
+    removeSession(selectedSession.id);
   }
 
   return (
@@ -125,18 +138,20 @@ export function SessionsPage() {
 
         {paginatedSessions.map((row) => (
           <button
-            className={`table-row sessions-table-grid sessions-table-row ${selectedTitle === row.title ? 'active' : ''}`}
-            key={row.title}
-            onClick={() => setSelectedTitle(row.title)}
+            className={`table-row sessions-table-grid sessions-table-row ${selectedId === row.id ? 'active' : ''}`}
+            key={row.id}
+            onClick={() => setSelectedId(row.id)}
             type="button"
           >
             <strong className="sessions-title-cell">{row.title}</strong>
             <span className={`session-pill tone-${row.typeTone}`}>
               {row.type}
             </span>
-            <span>{row.date}</span>
+            <span>{row.dateLabel}</span>
             <div className="session-partner-cell">
-              <span>{row.partner}</span>
+              <span>
+                {row.partner} / {row.location}
+              </span>
               {row.recording ? (
                 <span
                   className={`session-pill tone-${row.recordingTone} subtle-pill`}
@@ -162,42 +177,123 @@ export function SessionsPage() {
                   filteredSessions.length,
                 )} / ${filteredSessions.length} 件を表示`}
           </span>
-          <div className="sessions-pagination">
-            <button
-              className="pagination-button"
-              disabled={safePage === 1}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              type="button"
-            >
-              ‹
-            </button>
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-              (pageNumber) => (
-                <button
-                  className={`pagination-button ${
-                    safePage === pageNumber ? 'active' : ''
-                  }`}
-                  key={pageNumber}
-                  onClick={() => setPage(pageNumber)}
-                  type="button"
-                >
-                  {pageNumber}
-                </button>
-              ),
-            )}
-            <button
-              className="pagination-button"
-              disabled={safePage === totalPages}
-              onClick={() =>
-                setPage((current) => Math.min(totalPages, current + 1))
-              }
-              type="button"
-            >
-              ›
-            </button>
-          </div>
         </div>
       </article>
+
+      {selectedSession ? (
+        <section className="soft-card detail-editor-card">
+          <div className="detail-editor-head">
+            <div>
+              <h3>セッション詳細</h3>
+              <p>一覧と同じデータを直接編集できます。</p>
+            </div>
+            <button
+              className="outline-button"
+              onClick={deleteSession}
+              type="button"
+            >
+              削除
+            </button>
+          </div>
+
+          <div className="detail-editor-grid">
+            <label>
+              <span>タイトル</span>
+              <input
+                value={selectedSession.title}
+                onChange={(event) => patchSession('title', event.target.value)}
+              />
+            </label>
+            <label>
+              <span>日時表示</span>
+              <input
+                value={selectedSession.dateLabel}
+                onChange={(event) =>
+                  patchSession('dateLabel', event.target.value)
+                }
+              />
+            </label>
+            <label>
+              <span>タイプ</span>
+              <select
+                value={selectedSession.type}
+                onChange={(event) =>
+                  patchSession(
+                    'type',
+                    event.target.value as SessionRecord['type'],
+                  )
+                }
+              >
+                {tabs.slice(1).map((tab) => (
+                  <option key={tab} value={tab}>
+                    {tab}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>ステータス</span>
+              <select
+                value={selectedSession.status}
+                onChange={(event) =>
+                  patchSession(
+                    'status',
+                    event.target.value as SessionRecord['status'],
+                  )
+                }
+              >
+                <option value="予定">予定</option>
+                <option value="進行中">進行中</option>
+                <option value="完了">完了</option>
+              </select>
+            </label>
+            <label>
+              <span>相手</span>
+              <input
+                value={selectedSession.partner}
+                onChange={(event) =>
+                  patchSession('partner', event.target.value)
+                }
+              />
+            </label>
+            <label>
+              <span>場所</span>
+              <input
+                value={selectedSession.location}
+                onChange={(event) =>
+                  patchSession('location', event.target.value)
+                }
+              />
+            </label>
+            <label>
+              <span>プラットフォーム</span>
+              <input
+                value={selectedSession.platform}
+                onChange={(event) =>
+                  patchSession('platform', event.target.value)
+                }
+              />
+            </label>
+            <label>
+              <span>録画表示</span>
+              <input
+                value={selectedSession.recording}
+                onChange={(event) =>
+                  patchSession('recording', event.target.value)
+                }
+              />
+            </label>
+            <label className="span-2">
+              <span>メモ</span>
+              <textarea
+                rows={4}
+                value={selectedSession.memo}
+                onChange={(event) => patchSession('memo', event.target.value)}
+              />
+            </label>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

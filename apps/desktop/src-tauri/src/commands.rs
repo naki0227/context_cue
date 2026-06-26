@@ -1,4 +1,5 @@
 use context_cue_contracts::{AppState, ConsentInput};
+use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};
 
 use crate::{
@@ -10,6 +11,16 @@ use crate::{
 #[tauri::command]
 pub fn get_app_state(state: State<'_, SharedState>) -> AppState {
     state.snapshot()
+}
+
+#[tauri::command]
+pub fn get_workspace_state(state: State<'_, SharedState>) -> Value {
+    state.workspace_snapshot()
+}
+
+#[tauri::command]
+pub fn save_workspace_state(state: State<'_, SharedState>, workspace_state: Value) -> Value {
+    state.save_workspace_snapshot(workspace_state)
 }
 
 #[tauri::command]

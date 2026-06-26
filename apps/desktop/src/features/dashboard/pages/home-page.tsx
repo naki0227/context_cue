@@ -1,21 +1,75 @@
+import { useMemo } from 'react';
 import {
+  formatPreparedness,
   type PageId,
-  readinessItems,
-  recentSessions,
-  todaySchedule,
 } from '@/features/dashboard/lib/content';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 type HomePageProps = {
   onOpenPage: (page: PageId) => void;
-  preparedness: string;
 };
 
-export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
+export function HomePage({ onOpenPage }: HomePageProps) {
+  const sessions = useWorkspaceStore((state) => state.sessions);
+  const knowledgeItems = useWorkspaceStore((state) => state.knowledgeItems);
+  const templates = useWorkspaceStore((state) => state.templates);
+  const reviews = useWorkspaceStore((state) => state.reviews);
+
+  const nextSession = useMemo(() => {
+    return (
+      sessions.find(
+        (item) => item.status === '予定' || item.status === '進行中',
+      ) ?? sessions[0]
+    );
+  }, [sessions]);
+
+  const todaySchedule = useMemo(() => {
+    return sessions.filter(
+      (item) =>
+        item.dateLabel.includes('今日') ||
+        item.status === '予定' ||
+        item.status === '進行中',
+    );
+  }, [sessions]);
+
+  const recentSessions = useMemo(() => {
+    return sessions.filter((item) => item.status === '完了').slice(0, 3);
+  }, [sessions]);
+
+  const readinessItems = useMemo(() => {
+    const briefCount = templates.filter(
+      (item) => item.tag === '事前準備',
+    ).length;
+    const questionCount = templates.filter(
+      (item) => item.tag === '想定質問',
+    ).length;
+    const knowledgeCount = knowledgeItems.length;
+    const reviewActionCount = reviews.reduce(
+      (total, item) => total + item.actions.length,
+      0,
+    );
+
+    return [
+      { label: '事前ブリーフ', meta: `${briefCount}件`, tone: 'done' },
+      { label: '想定質問', meta: `${questionCount}件`, tone: 'active' },
+      { label: '自分の情報を整理', meta: `${knowledgeCount}件`, tone: 'idle' },
+      {
+        label: '確認したいこと',
+        meta: `${reviewActionCount}件`,
+        tone: 'arrow',
+      },
+    ];
+  }, [knowledgeItems.length, reviews, templates]);
+
+  const preparedness = formatPreparedness(
+    readinessItems.filter((item) => item.meta !== '0件').length,
+  );
+
   const readinessPageMap: Record<string, PageId> = {
     事前ブリーフ: 'templates',
     想定質問: 'templates',
-    自社カードを整理: 'knowledge',
-    '確認したいこと 5件': 'settings',
+    自分の情報を整理: 'knowledge',
+    確認したいこと: 'review',
   };
 
   return (
@@ -28,35 +82,46 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
       </header>
 
       <div className="page-grid home-grid home-grid-polished home-grid-v2">
-        <button
-          className="soft-card hero-card next-session-card next-session-card-v2"
-          onClick={() => onOpenPage('sessions')}
-          type="button"
-        >
-          <p className="page-section-title home-section-title">
-            次のセッション
-          </p>
-          <div className="next-session-header-v2">
-            <strong className="next-session-time-plain">14:00</strong>
-            <span className="blue-badge">30分後</span>
-          </div>
-          <div className="next-session-panel next-session-panel-v2">
-            <div className="next-session-icon next-session-icon-v2">
-              <span className="calendar-glyph" />
-            </div>
-            <div className="next-session-main next-session-main-v2">
-              <strong className="next-session-title-v2">
-                株式会社A カジュアル面談
+        {nextSession ? (
+          <button
+            className="soft-card hero-card next-session-card next-session-card-v2"
+            onClick={() => onOpenPage('sessions')}
+            type="button"
+          >
+            <p className="page-section-title home-section-title">
+              次のセッション
+            </p>
+            <div className="next-session-header-v2">
+              <strong className="next-session-time-plain">
+                {nextSession.dateLabel.split(' ').at(-1) ??
+                  nextSession.dateLabel}
               </strong>
-              <div className="next-session-meta-row">
-                <span className="channel-logo" />
-                <span className="meeting-channel-v2">Google Meet</span>
-                <span className="duration-icon" />
-                <span className="meeting-duration">60分</span>
+              <span className="blue-badge">
+                {nextSession.status === '進行中' ? '進行中' : '予定'}
+              </span>
+            </div>
+            <div className="next-session-panel next-session-panel-v2">
+              <div className="next-session-icon next-session-icon-v2">
+                <span className="calendar-glyph" />
+              </div>
+              <div className="next-session-main next-session-main-v2">
+                <strong className="next-session-title-v2">
+                  {nextSession.title}
+                </strong>
+                <div className="next-session-meta-row">
+                  <span className="channel-logo" />
+                  <span className="meeting-channel-v2">
+                    {nextSession.platform}
+                  </span>
+                  <span className="duration-icon" />
+                  <span className="meeting-duration">
+                    {nextSession.durationMinutes}分
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </button>
+          </button>
+        ) : null}
 
         <article className="soft-card compact-card home-status-card home-status-card-v2">
           <div className="section-head home-card-head">
@@ -73,11 +138,7 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
                 >
                   <span className={`readiness-marker marker-${item.tone}`} />
                   <span className="check-label">{item.label}</span>
-                  {item.meta ? (
-                    <strong>{item.meta}</strong>
-                  ) : (
-                    <span className="readiness-arrow">›</span>
-                  )}
+                  <strong>{item.meta}</strong>
                 </button>
               </li>
             ))}
@@ -87,14 +148,16 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
         <article className="soft-card compact-card home-schedule-card home-panel-v2">
           <p className="page-section-title home-section-title">今日の予定</p>
           <ul className="agenda-list agenda-list-v2">
-            {todaySchedule.slice(1).map((item) => (
-              <li key={item.title}>
+            {todaySchedule.slice(0, 2).map((item) => (
+              <li key={item.id}>
                 <button
                   className="home-inline-button"
                   onClick={() => onOpenPage('sessions')}
                   type="button"
                 >
-                  <strong>{item.time}</strong>
+                  <strong>
+                    {item.dateLabel.split(' ').at(-1) ?? item.dateLabel}
+                  </strong>
                   <span>{item.title}</span>
                 </button>
               </li>
@@ -113,7 +176,7 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
                 onClick={() => onOpenPage('templates')}
                 type="button"
               >
-                想定質問の回答候補を更新しました
+                事前準備テンプレートを {templates.length} 件管理しています
               </button>
             </li>
             <li>
@@ -122,7 +185,7 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
                 onClick={() => onOpenPage('review')}
                 type="button"
               >
-                過去の面談記録から質問20選を追加しました
+                振り返りは {reviews.length} 件、次回アクションを再利用できます
               </button>
             </li>
             <li>
@@ -131,7 +194,7 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
                 onClick={() => onOpenPage('knowledge')}
                 type="button"
               >
-                あなたの強みを活かせる質問があります
+                ナレッジは {knowledgeItems.length} 件保存されています
               </button>
             </li>
           </ul>
@@ -152,18 +215,18 @@ export function HomePage({ onOpenPage, preparedness }: HomePageProps) {
             {recentSessions.map((session) => (
               <button
                 className="recent-session-chip recent-session-chip-home recent-session-chip-v2"
-                key={session.title}
+                key={session.id}
                 onClick={() => onOpenPage('review')}
                 type="button"
               >
-                <span
-                  className={`mini-icon mini-icon-v2 icon-${session.icon}`}
-                />
+                <span className="mini-icon mini-icon-v2 icon-document" />
                 <div className="recent-session-copy">
                   <strong>{session.title}</strong>
-                  <span>{session.date}</span>
+                  <span>{session.dateLabel}</span>
                 </div>
-                <span className={`recent-session-status tone-${session.tone}`}>
+                <span
+                  className={`recent-session-status tone-${session.statusTone}`}
+                >
                   {session.status}
                 </span>
               </button>

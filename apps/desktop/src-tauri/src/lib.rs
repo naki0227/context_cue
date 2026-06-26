@@ -22,10 +22,12 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_app_state,
+            commands::get_workspace_state,
             commands::import_profile_documents,
             commands::import_profile_documents_from_files,
             commands::remove_profile_document,
             commands::clear_profile_documents,
+            commands::save_workspace_state,
             commands::start_session,
             commands::stop_session,
             commands::toggle_share_safe_mode,

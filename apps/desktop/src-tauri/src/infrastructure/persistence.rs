@@ -1,6 +1,7 @@
 use std::fs;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::{
     config::persisted_state_file,
@@ -12,6 +13,8 @@ use crate::{
 #[serde(rename_all = "camelCase")]
 pub struct PersistedWorkspace {
     pub documents: Vec<OwnedProfileDocument>,
+    #[serde(default)]
+    pub dashboard_state: Value,
     pub share_safe_mode: bool,
 }
 
@@ -24,7 +27,11 @@ pub fn load_workspace() -> PersistedWorkspace {
     serde_json::from_str(&content).unwrap_or_default()
 }
 
-pub fn save_workspace(documents: &[OwnedProfileDocument], share_safe_mode: bool) {
+pub fn save_workspace(
+    documents: &[OwnedProfileDocument],
+    dashboard_state: &Value,
+    share_safe_mode: bool,
+) {
     let path = persisted_state_file();
     let Some(parent) = path.parent() else {
         return;
@@ -36,6 +43,7 @@ pub fn save_workspace(documents: &[OwnedProfileDocument], share_safe_mode: bool)
 
     let workspace = PersistedWorkspace {
         documents: documents.to_vec(),
+        dashboard_state: dashboard_state.clone(),
         share_safe_mode,
     };
 
@@ -60,6 +68,7 @@ pub fn restore_app_state(documents: &[OwnedProfileDocument], share_safe_mode: bo
 mod tests {
     use super::{load_workspace, save_workspace};
     use crate::domain::profile_document::OwnedProfileDocument;
+    use serde_json::json;
 
     #[test]
     fn workspace_round_trip_works() {
@@ -75,11 +84,13 @@ mod tests {
                 content: "hello".to_owned(),
                 source_type: "ローカルファイル".to_owned(),
             }],
+            &json!({ "sessions": [] }),
             true,
         );
 
         let loaded = load_workspace();
         assert_eq!(loaded.documents.len(), 1);
+        assert_eq!(loaded.dashboard_state, json!({ "sessions": [] }));
         assert!(loaded.share_safe_mode);
     }
 }

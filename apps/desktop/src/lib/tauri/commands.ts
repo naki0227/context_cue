@@ -1,12 +1,19 @@
 import { invoke } from '@tauri-apps/api/core';
+import { createSeedWorkspace } from '@/features/dashboard/lib/workspace-seed';
 import {
   type AppState,
   appStateSchema,
   type ConsentState,
 } from '@/lib/schemas/app-state';
+import {
+  type WorkspaceSnapshot,
+  workspaceSnapshotSchema,
+} from '@/lib/schemas/workspace-state';
 
 type CommandName =
   | 'get_app_state'
+  | 'get_workspace_state'
+  | 'save_workspace_state'
   | 'start_session'
   | 'stop_session'
   | 'toggle_share_safe_mode'
@@ -29,6 +36,7 @@ type CommandPayload = {
   documents?: ImportedProfileDocumentDraft[];
   overlay?: OverlayTarget;
   visible?: boolean;
+  workspaceState?: WorkspaceSnapshot;
 };
 
 const mockDocuments = [
@@ -66,9 +74,11 @@ function createMockAppState() {
 }
 
 let mockAppState = createMockAppState();
+let mockWorkspaceState = workspaceSnapshotSchema.parse(createSeedWorkspace());
 
 export function resetMockAppState() {
   mockAppState = createMockAppState();
+  mockWorkspaceState = workspaceSnapshotSchema.parse(createSeedWorkspace());
   mockOverlayVisibility.top = true;
   mockOverlayVisibility.side = true;
 }
@@ -81,7 +91,16 @@ const mockOverlayVisibility: Record<OverlayTarget, boolean> = {
 function invokeMockCommand(
   command: CommandName,
   payload?: CommandPayload,
-): AppState {
+): AppState | WorkspaceSnapshot {
+  if (command === 'get_workspace_state') {
+    return workspaceSnapshotSchema.parse(mockWorkspaceState);
+  }
+
+  if (command === 'save_workspace_state' && payload?.workspaceState) {
+    mockWorkspaceState = workspaceSnapshotSchema.parse(payload.workspaceState);
+    return workspaceSnapshotSchema.parse(mockWorkspaceState);
+  }
+
   if (command === 'start_session') {
     mockAppState = {
       ...mockAppState,
@@ -197,11 +216,24 @@ export async function setOverlayVisibility(
 export async function invokeCommand(
   command: CommandName,
   payload?: CommandPayload,
-): Promise<AppState> {
+): Promise<AppState>;
+export async function invokeCommand(
+  command: 'get_workspace_state' | 'save_workspace_state',
+  payload?: CommandPayload,
+): Promise<WorkspaceSnapshot>;
+export async function invokeCommand(
+  command: CommandName,
+  payload?: CommandPayload,
+): Promise<AppState | WorkspaceSnapshot> {
   if (
     !(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
   ) {
     return invokeMockCommand(command, payload);
+  }
+
+  if (command === 'get_workspace_state' || command === 'save_workspace_state') {
+    const result = await invoke<WorkspaceSnapshot>(command, payload ?? {});
+    return workspaceSnapshotSchema.parse(result);
   }
 
   const result = await invoke<AppState>(command, payload ?? {});

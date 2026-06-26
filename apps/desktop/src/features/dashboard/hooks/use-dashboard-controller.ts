@@ -16,11 +16,16 @@ import {
   stripExtension,
 } from '@/features/dashboard/lib/file-import';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
+import { workspaceSnapshotSchema } from '@/lib/schemas/workspace-state';
 import {
   type OverlayPreferences,
   type OverlaySectionKey,
   useAppStore,
 } from '@/lib/state/app-store';
+import {
+  createWorkspaceSnapshot,
+  useWorkspaceStore,
+} from '@/lib/state/workspace-store';
 import { invokeCommand, setOverlayVisibility } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
 
@@ -75,6 +80,14 @@ export function useDashboardController(): DashboardController {
   const [topOverlayVisible, setTopOverlayVisible] = useState(false);
   const [sideOverlayVisible, setSideOverlayVisible] = useState(false);
   const [activePage, setActivePage] = useState<PageId>('home');
+  const [workspaceLoaded, setWorkspaceLoaded] = useState(false);
+  const syncImportedKnowledgeItems = useWorkspaceStore(
+    (state) => state.syncImportedKnowledgeItems,
+  );
+  const removeKnowledgeItem = useWorkspaceStore(
+    (state) => state.removeKnowledgeItem,
+  );
+  const replaceWorkspace = useWorkspaceStore((state) => state.replaceWorkspace);
 
   useEffect(() => {
     invokeCommand('get_app_state')
@@ -85,6 +98,32 @@ export function useDashboardController(): DashboardController {
   }, [setAppState]);
 
   useEffect(() => {
+    invokeCommand('get_workspace_state')
+      .then((snapshot) => {
+        replaceWorkspace(workspaceSnapshotSchema.parse(snapshot));
+        setWorkspaceLoaded(true);
+      })
+      .catch(() => {
+        setWorkspaceLoaded(true);
+      });
+  }, [replaceWorkspace]);
+
+  useEffect(() => {
+    if (!workspaceLoaded) {
+      return;
+    }
+
+    const unsubscribe = useWorkspaceStore.subscribe((state) => {
+      const snapshot = createWorkspaceSnapshot(state);
+      invokeCommand('save_workspace_state', {
+        workspaceState: snapshot,
+      }).catch(() => undefined);
+    });
+
+    return unsubscribe;
+  }, [workspaceLoaded]);
+
+  useEffect(() => {
     const shouldShow = appState.session.status === 'running';
 
     setOverlayVisibility('top', shouldShow).catch(() => undefined);
@@ -92,6 +131,19 @@ export function useDashboardController(): DashboardController {
     setTopOverlayVisible(shouldShow);
     setSideOverlayVisible(shouldShow);
   }, [appState.session.status]);
+
+  useEffect(() => {
+    syncImportedKnowledgeItems(
+      appState.importedDocuments.map((document) => ({
+        documentId: document.id,
+        source:
+          document.sourceType === 'サンプル'
+            ? 'imported-sample'
+            : 'imported-file',
+        title: document.title,
+      })),
+    );
+  }, [appState.importedDocuments, syncImportedKnowledgeItems]);
 
   const canStart =
     consent.participantConsent &&
@@ -166,6 +218,20 @@ export function useDashboardController(): DashboardController {
         documents,
       });
       setAppState(state);
+      syncImportedKnowledgeItems(
+        state.importedDocuments.map((document) => {
+          const sourceDocument = documents.find(
+            (candidate) => candidate.title === document.title,
+          );
+
+          return {
+            documentId: document.id,
+            source: 'imported-file' as const,
+            title: document.title,
+            content: sourceDocument?.content,
+          };
+        }),
+      );
       setKnowledgeImportNotice(
         `${state.importedDocuments.length - previousCount}件のファイルを追加しました。`,
       );
@@ -181,6 +247,13 @@ export function useDashboardController(): DashboardController {
   async function importSampleKnowledge() {
     const state = await invokeCommand('import_profile_documents');
     setAppState(state);
+    syncImportedKnowledgeItems(
+      state.importedDocuments.map((document) => ({
+        documentId: document.id,
+        source: 'imported-sample' as const,
+        title: document.title,
+      })),
+    );
     setKnowledgeImportNotice('サンプル個人ナレッジを読み込みました。');
   }
 
@@ -189,11 +262,23 @@ export function useDashboardController(): DashboardController {
       documentId,
     });
     setAppState(state);
+    const knowledgeItems = useWorkspaceStore.getState().knowledgeItems;
+    const target = knowledgeItems.find(
+      (item) => item.sourceDocumentId === documentId,
+    );
+    if (target) {
+      removeKnowledgeItem(target.id);
+    }
   }
 
   async function clearProfileDocuments() {
     const state = await invokeCommand('clear_profile_documents');
     setAppState(state);
+    for (const item of useWorkspaceStore
+      .getState()
+      .knowledgeItems.filter((entry) => entry.source !== 'manual')) {
+      removeKnowledgeItem(item.id);
+    }
     setKnowledgeImportNotice('追加済みの個人ナレッジを削除しました。');
   }
 

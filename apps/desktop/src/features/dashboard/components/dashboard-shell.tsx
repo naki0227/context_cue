@@ -17,12 +17,7 @@ type DashboardShellProps = {
 function renderPage(controller: DashboardController, activePage: PageId) {
   switch (activePage) {
     case 'home':
-      return (
-        <HomePage
-          onOpenPage={controller.setActivePage}
-          preparedness={controller.preparedness}
-        />
-      );
+      return <HomePage onOpenPage={controller.setActivePage} />;
     case 'sessions':
       return <SessionsPage />;
     case 'people':
@@ -32,7 +27,6 @@ function renderPage(controller: DashboardController, activePage: PageId) {
     case 'knowledge':
       return (
         <KnowledgePage
-          appState={controller.appState}
           fileInputRef={controller.fileInputRef}
           importLocalFiles={controller.importLocalFiles}
           importSampleKnowledge={controller.importSampleKnowledge}
