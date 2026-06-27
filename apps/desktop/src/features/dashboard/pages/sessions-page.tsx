@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  listPersonNames,
+  listProjectTitles,
+  resolvePersonIdsByNames,
+  resolveProjectIdsByTitles,
+} from '@/features/dashboard/lib/workspace-relations';
 import type { SessionRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
@@ -17,6 +23,9 @@ const pageSize = 8;
 
 export function SessionsPage() {
   const sessions = useWorkspaceStore((state) => state.sessions);
+  const people = useWorkspaceStore((state) => state.people);
+  const projects = useWorkspaceStore((state) => state.projects);
+  const reviews = useWorkspaceStore((state) => state.reviews);
   const addSession = useWorkspaceStore((state) => state.addSession);
   const updateSession = useWorkspaceStore((state) => state.updateSession);
   const removeSession = useWorkspaceStore((state) => state.removeSession);
@@ -282,6 +291,53 @@ export function SessionsPage() {
                   patchSession('recording', event.target.value)
                 }
               />
+            </label>
+            <label className="span-2">
+              <span>関連人物</span>
+              <input
+                placeholder="名前またはIDを , 区切りで入力"
+                value={listPersonNames(people, selectedSession.peopleIds)}
+                onChange={(event) =>
+                  patchSession(
+                    'peopleIds',
+                    resolvePersonIdsByNames(people, event.target.value),
+                  )
+                }
+              />
+            </label>
+            <label className="span-2">
+              <span>関連プロジェクト</span>
+              <input
+                placeholder="タイトルまたはIDを , 区切りで入力"
+                value={listProjectTitles(projects, selectedSession.projectIds)}
+                onChange={(event) =>
+                  patchSession(
+                    'projectIds',
+                    resolveProjectIdsByTitles(projects, event.target.value),
+                  )
+                }
+              />
+            </label>
+            <label>
+              <span>関連レビュー</span>
+              <select
+                value={selectedSession.reviewId ?? ''}
+                onChange={(event) =>
+                  patchSession(
+                    'reviewId',
+                    event.target.value.length > 0
+                      ? event.target.value
+                      : undefined,
+                  )
+                }
+              >
+                <option value="">未設定</option>
+                {reviews.map((review) => (
+                  <option key={review.id} value={review.id}>
+                    {review.title}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="span-2">
               <span>メモ</span>

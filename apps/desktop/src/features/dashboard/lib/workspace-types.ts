@@ -25,9 +25,12 @@ export type SessionRecord = {
   location: string;
   memo: string;
   partner: string;
+  peopleIds: string[];
   platform: string;
+  projectIds: string[];
   recording: string;
   recordingTone: SessionTone;
+  reviewId?: string;
   startAt: string;
   status: SessionStatus;
   statusTone: SessionTone;

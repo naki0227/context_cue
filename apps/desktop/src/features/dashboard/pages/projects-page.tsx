@@ -4,6 +4,7 @@ import {
   parseNumber,
   textToLines,
 } from '@/features/dashboard/lib/editor-utils';
+import { buildProjectLinkedSessions } from '@/features/dashboard/lib/workspace-relations';
 import type {
   ProjectAction,
   ProjectRecord,
@@ -41,6 +42,7 @@ function textToActions(value: string): ProjectAction[] {
 
 export function ProjectsPage() {
   const projects = useWorkspaceStore((state) => state.projects);
+  const sessions = useWorkspaceStore((state) => state.sessions);
   const addProject = useWorkspaceStore((state) => state.addProject);
   const updateProject = useWorkspaceStore((state) => state.updateProject);
   const updateProjectActions = useWorkspaceStore(
@@ -79,6 +81,9 @@ export function ProjectsPage() {
     projects.find((project) => project.id === selectedId) ??
     projects[0] ??
     null;
+  const linkedSessions = featuredProject
+    ? buildProjectLinkedSessions(sessions, featuredProject.id)
+    : [];
 
   function addProjectRecord() {
     const id = addProject();
@@ -180,6 +185,10 @@ export function ProjectsPage() {
                 <p>{project.subtitle}</p>
                 <div className="project-meta-chips">
                   <span>関連セッション {project.sessions}</span>
+                  <span>
+                    実接続{' '}
+                    {buildProjectLinkedSessions(sessions, project.id).length}
+                  </span>
                   <span>課題 {project.issues}</span>
                 </div>
               </div>
@@ -218,7 +227,7 @@ export function ProjectsPage() {
                   </p>
                   <div className="project-meta-pills">
                     <span>最終更新: {featuredProject.updatedAt}</span>
-                    <span>関連セッション {featuredProject.sessions}</span>
+                    <span>関連セッション {linkedSessions.length}</span>
                     <span>課題 {featuredProject.issues}</span>
                   </div>
                 </div>
@@ -318,6 +327,31 @@ export function ProjectsPage() {
                     patchProject('points', textToLines(event.target.value))
                   }
                 />
+              </section>
+
+              <section className="soft-card projects-sessions-card">
+                <div className="section-head">
+                  <h3>関連セッション</h3>
+                  <span>{linkedSessions.length}件</span>
+                </div>
+                <div className="projects-linked-list">
+                  {linkedSessions.length === 0 ? (
+                    <p className="helper-text">
+                      まだ関連セッションはありません。Sessions
+                      側で紐付けるとここに反映されます。
+                    </p>
+                  ) : (
+                    linkedSessions.map((session) => (
+                      <div className="projects-linked-row" key={session.id}>
+                        <strong>{session.title}</strong>
+                        <span className="session-pill tone-violet subtle-pill">
+                          {session.type}
+                        </span>
+                        <span>{session.date}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </section>
 
               <section className="soft-card detail-editor-card">

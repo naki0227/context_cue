@@ -3,6 +3,7 @@ import {
   linesToText,
   textToLines,
 } from '@/features/dashboard/lib/editor-utils';
+import { buildReviewRelatedSession } from '@/features/dashboard/lib/workspace-relations';
 import type { ReviewRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
@@ -40,6 +41,7 @@ function textToActions(value: string): ReviewRecord['actions'] {
 
 export function ReviewPage() {
   const reviews = useWorkspaceStore((state) => state.reviews);
+  const sessions = useWorkspaceStore((state) => state.sessions);
   const addReview = useWorkspaceStore((state) => state.addReview);
   const updateReview = useWorkspaceStore((state) => state.updateReview);
   const removeReview = useWorkspaceStore((state) => state.removeReview);
@@ -69,6 +71,9 @@ export function ReviewPage() {
 
   const featuredReview =
     reviews.find((card) => card.id === selectedId) ?? reviews[0] ?? null;
+  const relatedSession = featuredReview
+    ? buildReviewRelatedSession(sessions, featuredReview.id)
+    : null;
 
   function addReviewRecord() {
     const id = addReview();
@@ -165,6 +170,12 @@ export function ReviewPage() {
                 </div>
                 <p className="projects-role-text">{featuredReview.meta}</p>
                 <p className="projects-role-text">{featuredReview.date}</p>
+                {relatedSession ? (
+                  <p className="projects-role-text">
+                    関連セッション: {relatedSession.title} /{' '}
+                    {relatedSession.dateLabel}
+                  </p>
+                ) : null}
               </div>
               <button
                 className="outline-button small"

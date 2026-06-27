@@ -3,6 +3,7 @@ import {
   linesToText,
   textToLines,
 } from '@/features/dashboard/lib/editor-utils';
+import { buildPersonSessionHistory } from '@/features/dashboard/lib/workspace-relations';
 import type { PersonRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
@@ -16,6 +17,7 @@ const tabs = [
 
 export function PeoplePage() {
   const people = useWorkspaceStore((state) => state.people);
+  const sessions = useWorkspaceStore((state) => state.sessions);
   const addPerson = useWorkspaceStore((state) => state.addPerson);
   const updatePerson = useWorkspaceStore((state) => state.updatePerson);
   const removePerson = useWorkspaceStore((state) => state.removePerson);
@@ -46,6 +48,15 @@ export function PeoplePage() {
 
   const featuredPerson =
     people.find((person) => person.id === selectedId) ?? people[0] ?? null;
+  const derivedHistory = featuredPerson
+    ? buildPersonSessionHistory(sessions, featuredPerson.id)
+    : [];
+  const visibleHistory =
+    derivedHistory.length > 0
+      ? derivedHistory
+      : (featuredPerson?.history ?? []);
+  const lastContactLabel =
+    visibleHistory[0]?.date ?? featuredPerson?.lastContactLabel ?? '未接触';
 
   function addPersonRecord() {
     const id = addPerson();
@@ -149,7 +160,7 @@ export function PeoplePage() {
                       ✉ {featuredPerson.mail}
                     </p>
                     <p className="people-contact-line">
-                      ◷ 最終接触: {featuredPerson.lastContactLabel}
+                      ◷ 最終接触: {lastContactLabel}
                     </p>
                   </div>
                 </div>
@@ -262,7 +273,7 @@ export function PeoplePage() {
                   <h3>最近のセッション</h3>
                 </div>
                 <div className="people-history-list">
-                  {featuredPerson.history.map((item) => (
+                  {visibleHistory.map((item) => (
                     <div className="people-history-row" key={item.id}>
                       <strong>{item.title}</strong>
                       <span className="session-pill tone-violet subtle-pill">
