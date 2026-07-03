@@ -17,7 +17,7 @@ pub fn run() {
         .setup(|app| {
             let shared = app.state::<app::SharedState>().inner().clone();
             shared.bootstrap_profiles();
-            infrastructure::window_manager::build_overlay_windows(&app.handle())?;
+            infrastructure::window_manager::build_overlay_windows(app.handle())?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

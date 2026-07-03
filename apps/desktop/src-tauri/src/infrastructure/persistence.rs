@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::{
-    config::persisted_state_file,
-    domain::profile_document::OwnedProfileDocument,
+    config::persisted_state_file, domain::profile_document::OwnedProfileDocument,
     usecase::session_usecase::default_app_state,
 };
 
@@ -54,7 +53,10 @@ pub fn save_workspace(
     let _ = fs::write(path, serialized);
 }
 
-pub fn restore_app_state(documents: &[OwnedProfileDocument], share_safe_mode: bool) -> context_cue_contracts::AppState {
+pub fn restore_app_state(
+    documents: &[OwnedProfileDocument],
+    share_safe_mode: bool,
+) -> context_cue_contracts::AppState {
     let mut app_state = default_app_state();
     app_state.session.share_safe_mode = share_safe_mode;
     app_state.imported_documents = documents

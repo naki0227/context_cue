@@ -1,4 +1,4 @@
-use tauri::{window::Color, AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, window::Color};
 
 use crate::error::AppError;
 
@@ -24,10 +24,16 @@ pub fn set_overlay_visibility(
         .ok_or_else(|| AppError::OverlayWindowNotFound(label.to_owned()))?;
 
     if visible {
-        window.show().map_err(|_| AppError::OverlayWindowNotFound(label.to_owned()))?;
-        window.set_focus().map_err(|_| AppError::OverlayWindowNotFound(label.to_owned()))?;
+        window
+            .show()
+            .map_err(|_| AppError::OverlayWindowNotFound(label.to_owned()))?;
+        window
+            .set_focus()
+            .map_err(|_| AppError::OverlayWindowNotFound(label.to_owned()))?;
     } else {
-        window.hide().map_err(|_| AppError::OverlayWindowNotFound(label.to_owned()))?;
+        window
+            .hide()
+            .map_err(|_| AppError::OverlayWindowNotFound(label.to_owned()))?;
     }
 
     Ok(())

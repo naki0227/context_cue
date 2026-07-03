@@ -58,10 +58,7 @@ pub fn clear_profile_documents(
     refresh_imported_documents(documents, app_state);
 }
 
-pub fn refresh_imported_documents(
-    documents: &[OwnedProfileDocument],
-    app_state: &mut AppState,
-) {
+pub fn refresh_imported_documents(documents: &[OwnedProfileDocument], app_state: &mut AppState) {
     app_state.imported_documents = documents
         .iter()
         .map(OwnedProfileDocument::to_imported_document)

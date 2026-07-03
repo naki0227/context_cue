@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
+  detachPersonRelations,
+  detachProjectRelations,
+  detachReviewRelations,
+  normalizeWorkspaceCollections,
+  normalizeWorkspaceSnapshot,
+} from '@/features/dashboard/lib/workspace-normalize';
+import {
   buildImportedKnowledgeContent,
   createSeedWorkspace,
 } from '@/features/dashboard/lib/workspace-seed';
@@ -53,6 +60,16 @@ type WorkspaceState = {
   updateTemplate: (id: string, patch: Partial<TemplateRecord>) => void;
 };
 
+type WorkspaceCollections = Pick<
+  WorkspaceState,
+  | 'sessions'
+  | 'people'
+  | 'projects'
+  | 'reviews'
+  | 'knowledgeItems'
+  | 'templates'
+>;
+
 const seedWorkspace = createSeedWorkspace();
 
 function stampNow() {
@@ -71,17 +88,7 @@ function removeById<T extends { id: string }>(items: T[], id: string) {
   return items.filter((item) => item.id !== id);
 }
 
-export function createWorkspaceSnapshot(
-  state: Pick<
-    WorkspaceState,
-    | 'sessions'
-    | 'people'
-    | 'projects'
-    | 'reviews'
-    | 'knowledgeItems'
-    | 'templates'
-  >,
-): WorkspaceSnapshot {
+function pickWorkspaceCollections(state: WorkspaceCollections) {
   return {
     sessions: state.sessions,
     people: state.people,
@@ -89,7 +96,23 @@ export function createWorkspaceSnapshot(
     reviews: state.reviews,
     knowledgeItems: state.knowledgeItems,
     templates: state.templates,
-  };
+  } satisfies WorkspaceCollections;
+}
+
+function applyWorkspacePatch(
+  state: WorkspaceCollections,
+  patch: Partial<WorkspaceCollections>,
+) {
+  return normalizeWorkspaceCollections({
+    ...pickWorkspaceCollections(state),
+    ...patch,
+  });
+}
+
+export function createWorkspaceSnapshot(
+  state: WorkspaceCollections,
+): WorkspaceSnapshot {
+  return normalizeWorkspaceCollections(pickWorkspaceCollections(state));
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
@@ -102,14 +125,16 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       knowledgeItems: seedWorkspace.knowledgeItems,
       templates: seedWorkspace.templates,
       replaceWorkspace: (snapshot) =>
-        set({
-          sessions: snapshot.sessions as SessionRecord[],
-          people: snapshot.people as PersonRecord[],
-          projects: snapshot.projects as ProjectRecord[],
-          reviews: snapshot.reviews as ReviewRecord[],
-          knowledgeItems: snapshot.knowledgeItems as KnowledgeRecord[],
-          templates: snapshot.templates as TemplateRecord[],
-        }),
+        set(
+          normalizeWorkspaceSnapshot({
+            sessions: snapshot.sessions,
+            people: snapshot.people,
+            projects: snapshot.projects,
+            reviews: snapshot.reviews,
+            knowledgeItems: snapshot.knowledgeItems,
+            templates: snapshot.templates,
+          }) as unknown as WorkspaceCollections,
+        ),
 
       addSession: (item) => {
         const id = item?.id ?? `session-${crypto.randomUUID()}`;
@@ -133,14 +158,26 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           statusTone: item?.statusTone ?? 'blue',
           memo: item?.memo ?? '会話の目的と確認したいことをここに整理します。',
         };
-        set((state) => ({ sessions: [nextItem, ...state.sessions] }));
+        set((state) =>
+          applyWorkspacePatch(state, {
+            sessions: [nextItem, ...state.sessions],
+          }),
+        );
         return id;
       },
 
       updateSession: (id, patch) =>
-        set((state) => ({ sessions: upsertById(state.sessions, id, patch) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            sessions: upsertById(state.sessions, id, patch),
+          }),
+        ),
       removeSession: (id) =>
-        set((state) => ({ sessions: removeById(state.sessions, id) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            sessions: removeById(state.sessions, id),
+          }),
+        ),
 
       addPerson: (item) => {
         const id = item?.id ?? `person-${crypto.randomUUID()}`;
@@ -157,14 +194,27 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           memo: item?.memo ?? ['印象や注意点をここに残します。'],
           history: item?.history ?? [],
         };
-        set((state) => ({ people: [nextItem, ...state.people] }));
+        set((state) =>
+          applyWorkspacePatch(state, {
+            people: [nextItem, ...state.people],
+          }),
+        );
         return id;
       },
 
       updatePerson: (id, patch) =>
-        set((state) => ({ people: upsertById(state.people, id, patch) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            people: upsertById(state.people, id, patch),
+          }),
+        ),
       removePerson: (id) =>
-        set((state) => ({ people: removeById(state.people, id) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            people: removeById(state.people, id),
+            sessions: detachPersonRelations(state.sessions, id),
+          }),
+        ),
 
       addProject: (item) => {
         const id = item?.id ?? `project-${crypto.randomUUID()}`;
@@ -189,20 +239,35 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             '担当者や関係性を追加してください。',
           ],
         };
-        set((state) => ({ projects: [nextItem, ...state.projects] }));
+        set((state) =>
+          applyWorkspacePatch(state, {
+            projects: [nextItem, ...state.projects],
+          }),
+        );
         return id;
       },
 
       updateProject: (id, patch) =>
-        set((state) => ({ projects: upsertById(state.projects, id, patch) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            projects: upsertById(state.projects, id, patch),
+          }),
+        ),
       updateProjectActions: (id, actions) =>
-        set((state) => ({
-          projects: state.projects.map((item) =>
-            item.id === id ? { ...item, actions } : item,
-          ),
-        })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            projects: state.projects.map((item) =>
+              item.id === id ? { ...item, actions } : item,
+            ),
+          }),
+        ),
       removeProject: (id) =>
-        set((state) => ({ projects: removeById(state.projects, id) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            projects: removeById(state.projects, id),
+            sessions: detachProjectRelations(state.sessions, id),
+          }),
+        ),
 
       addReview: (item) => {
         const id = item?.id ?? `review-${crypto.randomUUID()}`;
@@ -221,14 +286,27 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           memo: item?.memo ?? ['次回に向けたメモを追加してください。'],
           actions: item?.actions ?? [],
         };
-        set((state) => ({ reviews: [nextItem, ...state.reviews] }));
+        set((state) =>
+          applyWorkspacePatch(state, {
+            reviews: [nextItem, ...state.reviews],
+          }),
+        );
         return id;
       },
 
       updateReview: (id, patch) =>
-        set((state) => ({ reviews: upsertById(state.reviews, id, patch) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            reviews: upsertById(state.reviews, id, patch),
+          }),
+        ),
       removeReview: (id) =>
-        set((state) => ({ reviews: removeById(state.reviews, id) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            reviews: removeById(state.reviews, id),
+            sessions: detachReviewRelations(state.sessions, id),
+          }),
+        ),
 
       addKnowledgeItem: (item) => {
         const id = item?.id ?? `knowledge-${crypto.randomUUID()}`;
@@ -242,23 +320,29 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           sourceDocumentId: item?.sourceDocumentId,
           content: item?.content ?? ['内容を入力してください。'],
         };
-        set((state) => ({
-          knowledgeItems: [
-            nextItem,
-            ...state.knowledgeItems.filter((current) => current.id !== id),
-          ],
-        }));
+        set((state) =>
+          applyWorkspacePatch(state, {
+            knowledgeItems: [
+              nextItem,
+              ...state.knowledgeItems.filter((current) => current.id !== id),
+            ],
+          }),
+        );
         return id;
       },
 
       updateKnowledgeItem: (id, patch) =>
-        set((state) => ({
-          knowledgeItems: upsertById(state.knowledgeItems, id, patch),
-        })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            knowledgeItems: upsertById(state.knowledgeItems, id, patch),
+          }),
+        ),
       removeKnowledgeItem: (id) =>
-        set((state) => ({
-          knowledgeItems: removeById(state.knowledgeItems, id),
-        })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            knowledgeItems: removeById(state.knowledgeItems, id),
+          }),
+        ),
       syncImportedKnowledgeItems: (items) =>
         set((state) => {
           const importedIds = new Set(items.map((item) => item.documentId));
@@ -299,9 +383,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             (item) => item.source === 'manual',
           );
 
-          return {
+          return applyWorkspacePatch(state, {
             knowledgeItems: [...mappedImportedItems, ...manualOnlyItems],
-          };
+          });
         }),
 
       addTemplate: (item) => {
@@ -318,14 +402,26 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           updatedAt: item?.updatedAt ?? stampNow(),
           body: item?.body ?? ['テンプレート本文を入力してください。'],
         };
-        set((state) => ({ templates: [nextItem, ...state.templates] }));
+        set((state) =>
+          applyWorkspacePatch(state, {
+            templates: [nextItem, ...state.templates],
+          }),
+        );
         return id;
       },
 
       updateTemplate: (id, patch) =>
-        set((state) => ({ templates: upsertById(state.templates, id, patch) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            templates: upsertById(state.templates, id, patch),
+          }),
+        ),
       removeTemplate: (id) =>
-        set((state) => ({ templates: removeById(state.templates, id) })),
+        set((state) =>
+          applyWorkspacePatch(state, {
+            templates: removeById(state.templates, id),
+          }),
+        ),
     }),
     {
       name: 'context-cue-workspace-v2',

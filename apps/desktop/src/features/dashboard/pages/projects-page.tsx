@@ -85,6 +85,10 @@ export function ProjectsPage() {
     ? buildProjectLinkedSessions(sessions, featuredProject.id)
     : [];
 
+  function linkedCount(projectId: string) {
+    return buildProjectLinkedSessions(sessions, projectId).length;
+  }
+
   function addProjectRecord() {
     const id = addProject();
     setSelectedId(id);
@@ -184,11 +188,7 @@ export function ProjectsPage() {
                 </div>
                 <p>{project.subtitle}</p>
                 <div className="project-meta-chips">
-                  <span>関連セッション {project.sessions}</span>
-                  <span>
-                    実接続{' '}
-                    {buildProjectLinkedSessions(sessions, project.id).length}
-                  </span>
+                  <span>関連セッション {linkedCount(project.id)}</span>
                   <span>課題 {project.issues}</span>
                 </div>
               </div>

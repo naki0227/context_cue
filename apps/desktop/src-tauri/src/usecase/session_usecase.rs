@@ -8,7 +8,10 @@ use context_cue_core::{
 };
 use uuid::Uuid;
 
-use crate::{domain::profile_document::OwnedProfileDocument, error::AppError, repository::profile_repository::rank_notes};
+use crate::{
+    domain::profile_document::OwnedProfileDocument, error::AppError,
+    repository::profile_repository::rank_notes,
+};
 
 pub fn default_app_state() -> AppState {
     AppState {
@@ -125,7 +128,7 @@ pub fn push_mock_chunk(
         intent,
         related_notes: shorten_list(&related, 3),
         suggested_points: shorten_list(
-            &vec![
+            &[
                 "前回の決定事項を短く確認する".to_owned(),
                 "担当と期限を明確にする".to_owned(),
                 "質問時だけ deep mode を使う".to_owned(),

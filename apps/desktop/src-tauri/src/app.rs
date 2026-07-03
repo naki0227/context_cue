@@ -7,17 +7,15 @@ use serde_json::Value;
 
 use crate::{
     domain::profile_document::{OwnedProfileDocument, ProfileImportDraft},
-    infrastructure::persistence::{load_workspace, restore_app_state, save_workspace},
     error::AppError,
+    infrastructure::persistence::{load_workspace, restore_app_state, save_workspace},
     repository::profile_repository::load_profile_documents,
     usecase::{
         profile_usecase::{
-            clear_profile_documents, import_profile_documents,
-            import_profile_documents_from_files, remove_profile_document,
+            clear_profile_documents, import_profile_documents, import_profile_documents_from_files,
+            remove_profile_document,
         },
-        session_usecase::{
-            push_mock_chunk, start_session, stop_session, toggle_share_safe_mode,
-        },
+        session_usecase::{push_mock_chunk, start_session, stop_session, toggle_share_safe_mode},
     },
 };
 
@@ -230,6 +228,9 @@ mod tests {
 
         assert_eq!(imported.imported_documents.len(), 1);
         assert_eq!(imported.imported_documents[0].title, "自己紹介");
-        assert_eq!(imported.imported_documents[0].source_type, "ローカルファイル");
+        assert_eq!(
+            imported.imported_documents[0].source_type,
+            "ローカルファイル"
+        );
     }
 }
