@@ -2,15 +2,13 @@
 
 ## 進行中
 
-- [進行中] Sessions / Projects / Review / workspace-store の 300 行超ファイルをさらに分割する
-- [進行中] 一覧編集UIの関係選択を自由入力から選択UIへ改善する
+- [進行中] Projects / Review の 300 行超ファイルをさらに分割する
+- [進行中] 一覧編集UIの関係選択を People / Projects / Review 全体で選択UIにそろえる
 
 ## 未着手
 
-- [未着手] Sessions の詳細編集を専用コンポーネントへ分離する
 - [未着手] Projects の一覧・詳細を feature component に分離する
 - [未着手] Review の詳細編集を feature component に分離する
-- [未着手] workspace-store の CRUD ロジックを slice / helper 単位へ分割する
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
 
 ## 完了
@@ -22,6 +20,9 @@
 - [完了] オーバーレイ設定画面を分割して責務整理した
 - [完了] 関連人物 / 関連プロジェクト / 関連レビューの整合性正規化を追加した
 - [完了] CI に frontend build / Rust fmt / clippy / check / build を追加した
+- [完了] Sessions の詳細編集を専用コンポーネントへ分離した
+- [完了] Sessions の関連人物 / 関連プロジェクト入力をチェック式の選択UIへ変更した
+- [完了] workspace-store の生成 / 共通更新ロジックを helper 単位へ分割した
 
 ## 要確認
 
@@ -30,4 +31,4 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] `apps/desktop/src/features/dashboard/pages/sessions-page.tsx` の詳細編集部を切り出す
+- [次回] `apps/desktop/src/features/dashboard/pages/projects-page.tsx` を一覧 / 詳細コンポーネントへ分割する

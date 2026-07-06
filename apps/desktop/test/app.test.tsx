@@ -84,6 +84,33 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('updates session relations with checkbox selectors', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Sessions/i,
+      }),
+    );
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /株式会社A カジュアル面談/i,
+      }),
+    );
+
+    const personCheckbox = await screen.findByRole('checkbox', {
+      name: /佐藤 花子/i,
+    });
+    expect(personCheckbox).not.toBeChecked();
+
+    await user.click(personCheckbox);
+
+    expect(personCheckbox).toBeChecked();
+    expect(screen.getByText('2件選択')).toBeInTheDocument();
+  });
+
   it('renders top overlay window content on top overlay view', async () => {
     window.history.replaceState({}, '', '/?view=overlay-top');
     render(<App />);
