@@ -13,6 +13,7 @@
 
 ## 完了
 
+- [完了] Rust CI の `clippy::unnecessary_sort_by` 失敗を修正した
 - [完了] ダッシュボード実体データをローカル保存層へ統合した
 - [完了] Sessions / People / Projects / Review / Knowledge / Templates の追加・編集・削除を実装した
 - [完了] import データと手入力データを同一保存層で扱うようにした

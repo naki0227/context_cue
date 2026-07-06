@@ -1,4 +1,4 @@
-use std::fs;
+use std::{cmp::Reverse, fs};
 
 use context_cue_core::profile_search::{ProfileDocument, score_document};
 
@@ -50,7 +50,7 @@ pub fn rank_notes(documents: &[OwnedProfileDocument], query: &str) -> Vec<String
         })
         .collect::<Vec<_>>();
 
-    ranked.sort_by(|left, right| right.0.cmp(&left.0));
+    ranked.sort_by_key(|entry| Reverse(entry.0));
     ranked
         .into_iter()
         .filter(|(score, _)| *score > 0)
