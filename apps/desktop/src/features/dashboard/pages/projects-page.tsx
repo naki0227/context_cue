@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  linesToText,
-  parseNumber,
-  textToLines,
-} from '@/features/dashboard/lib/editor-utils';
+import { ProjectDetailCard } from '@/features/dashboard/components/projects/project-detail-card';
+import { ProjectListCard } from '@/features/dashboard/components/projects/project-list-card';
 import { buildProjectLinkedSessions } from '@/features/dashboard/lib/workspace-relations';
 import type {
   ProjectAction,
@@ -12,33 +9,6 @@ import type {
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 const tabs = ['すべて', '企業', 'プロジェクト', '課題'] as const;
-
-function actionsToText(actions: ProjectAction[]) {
-  return actions
-    .map((item) => `${item.title} | ${item.dueDate} | ${item.priority}`)
-    .join('\n');
-}
-
-function textToActions(value: string): ProjectAction[] {
-  return value
-    .split('\n')
-    .map((line, index) => {
-      const [title = '', dueDate = '', priority = '低'] = line
-        .split('|')
-        .map((item) => item.trim());
-      if (!title) {
-        return null;
-      }
-
-      return {
-        id: `project-action-${index}-${title}`,
-        title,
-        dueDate,
-        priority: priority === '高' || priority === '中' ? priority : '低',
-      } satisfies ProjectAction;
-    })
-    .filter((item): item is ProjectAction => Boolean(item));
-}
 
 export function ProjectsPage() {
   const projects = useWorkspaceStore((state) => state.projects);
@@ -84,10 +54,6 @@ export function ProjectsPage() {
   const linkedSessions = featuredProject
     ? buildProjectLinkedSessions(sessions, featuredProject.id)
     : [];
-
-  function linkedCount(projectId: string) {
-    return buildProjectLinkedSessions(sessions, projectId).length;
-  }
 
   function addProjectRecord() {
     const id = addProject();
@@ -170,216 +136,24 @@ export function ProjectsPage() {
       </div>
 
       <div className="split-grid projects-grid-v2">
-        <article className="soft-card projects-list-card">
-          {filteredProjects.map((project) => (
-            <button
-              className={`project-line project-line-v2 ${project.id === selectedId ? 'active' : ''}`}
-              key={project.id}
-              onClick={() => setSelectedId(project.id)}
-              type="button"
-            >
-              <div className={`project-avatar icon-${project.icon}`} />
-              <div className="project-main-copy">
-                <div className="project-title-row">
-                  <strong>{project.title}</strong>
-                  <span className={`session-pill tone-${project.tone}`}>
-                    {project.category}
-                  </span>
-                </div>
-                <p>{project.subtitle}</p>
-                <div className="project-meta-chips">
-                  <span>関連セッション {linkedCount(project.id)}</span>
-                  <span>課題 {project.issues}</span>
-                </div>
-              </div>
-              <div className="progress-box progress-box-v2">
-                <span>{project.progress}%</span>
-                <div className="progress-track">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${project.progress}%` }}
-                  />
-                </div>
-                <p>最終更新: {project.updatedAt}</p>
-              </div>
-            </button>
-          ))}
-        </article>
+        <ProjectListCard
+          projects={filteredProjects}
+          selectedId={selectedId}
+          sessions={sessions}
+          onSelect={setSelectedId}
+        />
 
         {featuredProject ? (
-          <article className="projects-detail-stack">
-            <section className="soft-card projects-profile-card">
-              <div className="projects-profile-top">
-                <div
-                  className={`project-avatar icon-${featuredProject.icon} large`}
-                />
-                <div className="projects-profile-copy">
-                  <div className="project-title-row">
-                    <h2>{featuredProject.title}</h2>
-                    <span
-                      className={`session-pill tone-${featuredProject.tone}`}
-                    >
-                      {featuredProject.category}
-                    </span>
-                  </div>
-                  <p className="projects-role-text">
-                    {featuredProject.subtitle}
-                  </p>
-                  <div className="project-meta-pills">
-                    <span>最終更新: {featuredProject.updatedAt}</span>
-                    <span>関連セッション {linkedSessions.length}</span>
-                    <span>課題 {featuredProject.issues}</span>
-                  </div>
-                </div>
-                <button
-                  className="outline-button"
-                  onClick={deleteProject}
-                  type="button"
-                >
-                  削除
-                </button>
-              </div>
-            </section>
-
-            <div className="projects-detail-grid">
-              <section className="soft-card detail-editor-card">
-                <h3>基本情報</h3>
-                <div className="detail-editor-grid">
-                  <label>
-                    <span>タイトル</span>
-                    <input
-                      value={featuredProject.title}
-                      onChange={(event) =>
-                        patchProject('title', event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>カテゴリ</span>
-                    <select
-                      value={featuredProject.category}
-                      onChange={(event) =>
-                        patchProject(
-                          'category',
-                          event.target.value as ProjectRecord['category'],
-                        )
-                      }
-                    >
-                      {tabs.slice(1).map((tab) => (
-                        <option key={tab} value={tab}>
-                          {tab}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="span-2">
-                    <span>サブタイトル</span>
-                    <input
-                      value={featuredProject.subtitle}
-                      onChange={(event) =>
-                        patchProject('subtitle', event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>進捗</span>
-                    <input
-                      type="number"
-                      value={featuredProject.progress}
-                      onChange={(event) =>
-                        patchProject(
-                          'progress',
-                          parseNumber(event.target.value),
-                        )
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>課題数</span>
-                    <input
-                      type="number"
-                      value={featuredProject.issues}
-                      onChange={(event) =>
-                        patchProject('issues', parseNumber(event.target.value))
-                      }
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>概要</h3>
-                <textarea
-                  rows={6}
-                  value={featuredProject.overview}
-                  onChange={(event) =>
-                    patchProject('overview', event.target.value)
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>重要なポイント</h3>
-                <textarea
-                  rows={7}
-                  value={linesToText(featuredProject.points)}
-                  onChange={(event) =>
-                    patchProject('points', textToLines(event.target.value))
-                  }
-                />
-              </section>
-
-              <section className="soft-card projects-sessions-card">
-                <div className="section-head">
-                  <h3>関連セッション</h3>
-                  <span>{linkedSessions.length}件</span>
-                </div>
-                <div className="projects-linked-list">
-                  {linkedSessions.length === 0 ? (
-                    <p className="helper-text">
-                      まだ関連セッションはありません。Sessions
-                      側で紐付けるとここに反映されます。
-                    </p>
-                  ) : (
-                    linkedSessions.map((session) => (
-                      <div className="projects-linked-row" key={session.id}>
-                        <strong>{session.title}</strong>
-                        <span className="session-pill tone-violet subtle-pill">
-                          {session.type}
-                        </span>
-                        <span>{session.date}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>今後のアクション</h3>
-                <textarea
-                  rows={7}
-                  value={actionsToText(featuredProject.actions)}
-                  onChange={(event) =>
-                    updateProjectActions(
-                      featuredProject.id,
-                      textToActions(event.target.value),
-                    )
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>あなたとのつながり</h3>
-                <textarea
-                  rows={6}
-                  value={linesToText(featuredProject.connections)}
-                  onChange={(event) =>
-                    patchProject('connections', textToLines(event.target.value))
-                  }
-                />
-              </section>
-            </div>
-          </article>
+          <ProjectDetailCard
+            linkedSessions={linkedSessions}
+            project={featuredProject}
+            tabs={tabs}
+            onDelete={deleteProject}
+            onPatch={patchProject}
+            onUpdateActions={(actions: ProjectAction[]) =>
+              updateProjectActions(featuredProject.id, actions)
+            }
+          />
         ) : null}
       </div>
     </div>

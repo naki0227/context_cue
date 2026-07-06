@@ -111,6 +111,31 @@ describe('App', () => {
     expect(screen.getByText('2件選択')).toBeInTheDocument();
   });
 
+  it('updates project title from the projects detail editor', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Projects \/ Companies/i,
+      }),
+    );
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /株式会社カジュアル酒場/i,
+      }),
+    );
+
+    const titleInput = screen.getByDisplayValue('株式会社カジュアル酒場');
+    await user.clear(titleInput);
+    await user.type(titleInput, '株式会社カジュアル酒場 改');
+
+    expect(
+      screen.getAllByDisplayValue('株式会社カジュアル酒場 改').length,
+    ).toBeGreaterThan(0);
+  });
+
   it('renders top overlay window content on top overlay view', async () => {
     window.history.replaceState({}, '', '/?view=overlay-top');
     render(<App />);

@@ -2,17 +2,17 @@
 
 ## 進行中
 
-- [進行中] Projects / Review の 300 行超ファイルをさらに分割する
+- [進行中] Review の 300 行超ファイルをさらに分割する
 - [進行中] 一覧編集UIの関係選択を People / Projects / Review 全体で選択UIにそろえる
 
 ## 未着手
 
-- [未着手] Projects の一覧・詳細を feature component に分離する
 - [未着手] Review の詳細編集を feature component に分離する
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
 
 ## 完了
 
+- [完了] Projects の一覧・詳細を feature component に分離した
 - [完了] Rust CI の `clippy::unnecessary_sort_by` 失敗を修正した
 - [完了] ダッシュボード実体データをローカル保存層へ統合した
 - [完了] Sessions / People / Projects / Review / Knowledge / Templates の追加・編集・削除を実装した
@@ -32,4 +32,4 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] `apps/desktop/src/features/dashboard/pages/projects-page.tsx` を一覧 / 詳細コンポーネントへ分割する
+- [次回] `apps/desktop/src/features/dashboard/pages/review-page.tsx` を一覧 / 詳細コンポーネントへ分割する
