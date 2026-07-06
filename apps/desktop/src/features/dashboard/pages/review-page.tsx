@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  linesToText,
-  textToLines,
-} from '@/features/dashboard/lib/editor-utils';
+import { ReviewDetailCard } from '@/features/dashboard/components/review/review-detail-card';
+import { ReviewListCard } from '@/features/dashboard/components/review/review-list-card';
 import { buildReviewRelatedSession } from '@/features/dashboard/lib/workspace-relations';
 import type { ReviewRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
@@ -16,28 +14,6 @@ const tabs = [
   '1on1',
   'その他',
 ] as const;
-
-function actionsToText(actions: ReviewRecord['actions']) {
-  return actions
-    .map((item) => `${item.title} | ${item.owner} | ${item.date}`)
-    .join('\n');
-}
-
-function textToActions(value: string): ReviewRecord['actions'] {
-  return value
-    .split('\n')
-    .map((line, index) => {
-      const [title = '', owner = '', date = ''] = line
-        .split('|')
-        .map((item) => item.trim());
-      if (!title) {
-        return null;
-      }
-
-      return { id: `review-action-${index}-${title}`, title, owner, date };
-    })
-    .filter((item): item is ReviewRecord['actions'][number] => Boolean(item));
-}
 
 export function ReviewPage() {
   const reviews = useWorkspaceStore((state) => state.reviews);
@@ -137,174 +113,20 @@ export function ReviewPage() {
       </div>
 
       <div className="split-grid review-grid-v2">
-        <article className="soft-card review-list-card">
-          <h3>過去のセッション</h3>
-          <div className="review-list-stack">
-            {filteredReviews.map((card) => (
-              <button
-                className={`review-list-item ${card.id === selectedId ? 'active' : ''}`}
-                key={card.id}
-                onClick={() => setSelectedId(card.id)}
-                type="button"
-              >
-                <strong>{card.title}</strong>
-                <span className="session-pill tone-violet subtle-pill">
-                  {card.type}
-                </span>
-                <p>{card.date}</p>
-                <span>{card.meta}</span>
-              </button>
-            ))}
-          </div>
-        </article>
+        <ReviewListCard
+          reviews={filteredReviews}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
 
         {featuredReview ? (
-          <article className="soft-card review-detail-card">
-            <div className="review-detail-top">
-              <div>
-                <div className="project-title-row">
-                  <h2>{featuredReview.title}</h2>
-                  <span className="session-pill tone-violet">
-                    {featuredReview.type}
-                  </span>
-                </div>
-                <p className="projects-role-text">{featuredReview.meta}</p>
-                <p className="projects-role-text">{featuredReview.date}</p>
-                {relatedSession ? (
-                  <p className="projects-role-text">
-                    関連セッション: {relatedSession.title} /{' '}
-                    {relatedSession.dateLabel}
-                  </p>
-                ) : null}
-              </div>
-              <button
-                className="outline-button small"
-                onClick={deleteReview}
-                type="button"
-              >
-                削除
-              </button>
-            </div>
-
-            <div className="review-detail-grid">
-              <section className="soft-card detail-editor-card">
-                <h3>基本情報</h3>
-                <div className="detail-editor-grid">
-                  <label>
-                    <span>タイトル</span>
-                    <input
-                      value={featuredReview.title}
-                      onChange={(event) =>
-                        patchReview('title', event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>タイプ</span>
-                    <select
-                      value={featuredReview.type}
-                      onChange={(event) =>
-                        patchReview(
-                          'type',
-                          event.target.value as ReviewRecord['type'],
-                        )
-                      }
-                    >
-                      {tabs.slice(1).map((tab) => (
-                        <option key={tab} value={tab}>
-                          {tab}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>日付</span>
-                    <input
-                      value={featuredReview.date}
-                      onChange={(event) =>
-                        patchReview('date', event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>メタ情報</span>
-                    <input
-                      value={featuredReview.meta}
-                      onChange={(event) =>
-                        patchReview('meta', event.target.value)
-                      }
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>良かった点</h3>
-                <textarea
-                  rows={6}
-                  value={linesToText(featuredReview.summary)}
-                  onChange={(event) =>
-                    patchReview('summary', textToLines(event.target.value))
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>重要な学び・気づき</h3>
-                <textarea
-                  rows={6}
-                  value={linesToText(featuredReview.insights)}
-                  onChange={(event) =>
-                    patchReview('insights', textToLines(event.target.value))
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>改善点</h3>
-                <textarea
-                  rows={6}
-                  value={linesToText(featuredReview.improvements)}
-                  onChange={(event) =>
-                    patchReview('improvements', textToLines(event.target.value))
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>メモ</h3>
-                <textarea
-                  rows={6}
-                  value={linesToText(featuredReview.memo)}
-                  onChange={(event) =>
-                    patchReview('memo', textToLines(event.target.value))
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card">
-                <h3>次回アクション</h3>
-                <textarea
-                  rows={6}
-                  value={actionsToText(featuredReview.actions)}
-                  onChange={(event) =>
-                    patchReview('actions', textToActions(event.target.value))
-                  }
-                />
-              </section>
-
-              <section className="soft-card detail-editor-card span-2">
-                <h3>トランスクリプト</h3>
-                <textarea
-                  rows={8}
-                  value={linesToText(featuredReview.transcript)}
-                  onChange={(event) =>
-                    patchReview('transcript', textToLines(event.target.value))
-                  }
-                />
-              </section>
-            </div>
-          </article>
+          <ReviewDetailCard
+            relatedSession={relatedSession}
+            review={featuredReview}
+            tabs={tabs}
+            onDelete={deleteReview}
+            onPatch={patchReview}
+          />
         ) : null}
       </div>
     </div>

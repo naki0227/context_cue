@@ -136,6 +136,33 @@ describe('App', () => {
     ).toBeGreaterThan(0);
   });
 
+  it('updates review title from the review detail editor', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Review/i,
+      }),
+    );
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /株式会社セールス・イノベーション/i,
+      }),
+    );
+
+    const titleInput = screen.getByDisplayValue(
+      '株式会社セールス・イノベーション',
+    );
+    await user.clear(titleInput);
+    await user.type(titleInput, '株式会社セールス・イノベーション 改');
+
+    expect(
+      screen.getAllByDisplayValue('株式会社セールス・イノベーション 改').length,
+    ).toBeGreaterThan(0);
+  });
+
   it('renders top overlay window content on top overlay view', async () => {
     window.history.replaceState({}, '', '/?view=overlay-top');
     render(<App />);
