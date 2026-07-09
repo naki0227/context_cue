@@ -20,6 +20,7 @@ export function ReviewPage() {
   const sessions = useWorkspaceStore((state) => state.sessions);
   const addReview = useWorkspaceStore((state) => state.addReview);
   const updateReview = useWorkspaceStore((state) => state.updateReview);
+  const updateSession = useWorkspaceStore((state) => state.updateSession);
   const removeReview = useWorkspaceStore((state) => state.removeReview);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
@@ -75,6 +76,24 @@ export function ReviewPage() {
     removeReview(featuredReview.id);
   }
 
+  function updateRelatedSessionId(nextSessionId: string | null) {
+    if (!featuredReview) {
+      return;
+    }
+
+    for (const session of sessions) {
+      const shouldLink = session.id === nextSessionId;
+      const isLinked = session.reviewId === featuredReview.id;
+      if (shouldLink === isLinked) {
+        continue;
+      }
+
+      updateSession(session.id, {
+        reviewId: shouldLink ? featuredReview.id : undefined,
+      });
+    }
+  }
+
   return (
     <div className="page-layout review-page-v2">
       <div className="sessions-hero">
@@ -123,8 +142,10 @@ export function ReviewPage() {
           <ReviewDetailCard
             relatedSession={relatedSession}
             review={featuredReview}
+            sessions={sessions}
             tabs={tabs}
             onDelete={deleteReview}
+            onChangeRelatedSessionId={updateRelatedSessionId}
             onPatch={patchReview}
           />
         ) : null}

@@ -2,7 +2,7 @@
 
 ## 進行中
 
-- [進行中] 一覧編集UIの関係選択を People / Projects / Review 全体で選択UIにそろえる
+- [進行中] UI の見た目と操作感を各画面でさらに磨き込む
 
 ## 未着手
 
@@ -10,6 +10,7 @@
 
 ## 完了
 
+- [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
 - [完了] Review の一覧・詳細を feature component に分離した
 - [完了] Projects の一覧・詳細を feature component に分離した
 - [完了] Rust CI の `clippy::unnecessary_sort_by` 失敗を修正した
@@ -31,4 +32,4 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] People / Projects / Review の relation 編集 UI を選択式にそろえる
+- [次回] Playwright で主要 CRUD と relation 編集の E2E テストを追加する

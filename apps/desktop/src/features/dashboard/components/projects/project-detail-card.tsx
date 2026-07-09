@@ -1,3 +1,4 @@
+import { RelationSelector } from '@/features/dashboard/components/common/relation-selector';
 import {
   linesToText,
   parseNumber,
@@ -7,17 +8,20 @@ import type {
   ProjectAction,
   ProjectLinkedSession,
   ProjectRecord,
+  SessionRecord,
 } from '@/features/dashboard/lib/workspace-types';
 
 type ProjectDetailCardProps = {
   linkedSessions: ProjectLinkedSession[];
   project: ProjectRecord;
+  sessions: SessionRecord[];
   tabs: readonly string[];
   onDelete: () => void;
   onPatch: <Key extends keyof ProjectRecord>(
     key: Key,
     value: ProjectRecord[Key],
   ) => void;
+  onChangeLinkedSessionIds: (nextIds: string[]) => void;
   onUpdateActions: (actions: ProjectAction[]) => void;
 };
 
@@ -51,11 +55,15 @@ function textToActions(value: string): ProjectAction[] {
 export function ProjectDetailCard({
   linkedSessions,
   project,
+  sessions,
   tabs,
   onDelete,
+  onChangeLinkedSessionIds,
   onPatch,
   onUpdateActions,
 }: ProjectDetailCardProps) {
+  const linkedSessionIds = linkedSessions.map((session) => session.id);
+
   return (
     <article className="projects-detail-stack">
       <section className="soft-card projects-profile-card">
@@ -161,28 +169,18 @@ export function ProjectDetailCard({
         </section>
 
         <section className="soft-card projects-sessions-card">
-          <div className="section-head">
-            <h3>関連セッション</h3>
-            <span>{linkedSessions.length}件</span>
-          </div>
-          <div className="projects-linked-list">
-            {linkedSessions.length === 0 ? (
-              <p className="helper-text">
-                まだ関連セッションはありません。Sessions
-                側で紐付けるとここに反映されます。
-              </p>
-            ) : (
-              linkedSessions.map((session) => (
-                <div className="projects-linked-row" key={session.id}>
-                  <strong>{session.title}</strong>
-                  <span className="session-pill tone-violet subtle-pill">
-                    {session.type}
-                  </span>
-                  <span>{session.date}</span>
-                </div>
-              ))
-            )}
-          </div>
+          <RelationSelector
+            emptyText="まだセッションはありません。Sessions から追加するとここで選べます。"
+            helperText="この企業・プロジェクトに紐づく会話を選びます。"
+            options={sessions.map((session) => ({
+              id: session.id,
+              label: session.title,
+              description: `${session.type} / ${session.dateLabel} / ${session.partner}`,
+            }))}
+            selectedIds={linkedSessionIds}
+            title="関連セッション"
+            onChange={onChangeLinkedSessionIds}
+          />
         </section>
 
         <section className="soft-card detail-editor-card">

@@ -136,6 +136,33 @@ describe('App', () => {
     ).toBeGreaterThan(0);
   });
 
+  it('updates project linked sessions with checkbox selectors', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Projects \/ Companies/i,
+      }),
+    );
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /株式会社カジュアル酒場/i,
+      }),
+    );
+
+    const sessionCheckbox = await screen.findByRole('checkbox', {
+      name: /研究室ミーティング/i,
+    });
+    expect(sessionCheckbox).not.toBeChecked();
+
+    await user.click(sessionCheckbox);
+
+    expect(sessionCheckbox).toBeChecked();
+    expect(screen.getByText('3件選択')).toBeInTheDocument();
+  });
+
   it('updates review title from the review detail editor', async () => {
     render(<App />);
     const user = userEvent.setup();
@@ -161,6 +188,35 @@ describe('App', () => {
     expect(
       screen.getAllByDisplayValue('株式会社セールス・イノベーション 改').length,
     ).toBeGreaterThan(0);
+  });
+
+  it('updates review related session with a single selector', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Review/i,
+      }),
+    );
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /株式会社セールス・イノベーション/i,
+      }),
+    );
+
+    const sessionCheckbox = await screen.findByRole('checkbox', {
+      name: /研究室ミーティング/i,
+    });
+    expect(sessionCheckbox).not.toBeChecked();
+
+    await user.click(sessionCheckbox);
+
+    expect(sessionCheckbox).toBeChecked();
+    expect(
+      screen.getByText(/関連セッション: 研究室ミーティング/i),
+    ).toBeInTheDocument();
   });
 
   it('renders top overlay window content on top overlay view', async () => {

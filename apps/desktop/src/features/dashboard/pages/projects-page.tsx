@@ -18,6 +18,7 @@ export function ProjectsPage() {
   const updateProjectActions = useWorkspaceStore(
     (state) => state.updateProjectActions,
   );
+  const updateSession = useWorkspaceStore((state) => state.updateSession);
   const removeProject = useWorkspaceStore((state) => state.removeProject);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('すべて');
   const [query, setQuery] = useState('');
@@ -80,6 +81,26 @@ export function ProjectsPage() {
     }
 
     removeProject(featuredProject.id);
+  }
+
+  function updateLinkedSessionIds(nextIds: string[]) {
+    if (!featuredProject) {
+      return;
+    }
+
+    for (const session of sessions) {
+      const shouldLink = nextIds.includes(session.id);
+      const isLinked = session.projectIds.includes(featuredProject.id);
+      if (shouldLink === isLinked) {
+        continue;
+      }
+
+      updateSession(session.id, {
+        projectIds: shouldLink
+          ? [...session.projectIds, featuredProject.id]
+          : session.projectIds.filter((id) => id !== featuredProject.id),
+      });
+    }
   }
 
   return (
@@ -147,8 +168,10 @@ export function ProjectsPage() {
           <ProjectDetailCard
             linkedSessions={linkedSessions}
             project={featuredProject}
+            sessions={sessions}
             tabs={tabs}
             onDelete={deleteProject}
+            onChangeLinkedSessionIds={updateLinkedSessionIds}
             onPatch={patchProject}
             onUpdateActions={(actions: ProjectAction[]) =>
               updateProjectActions(featuredProject.id, actions)

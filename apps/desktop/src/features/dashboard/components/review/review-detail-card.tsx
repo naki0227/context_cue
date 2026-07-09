@@ -1,3 +1,4 @@
+import { RelationSelector } from '@/features/dashboard/components/common/relation-selector';
 import {
   linesToText,
   textToLines,
@@ -10,8 +11,10 @@ import type {
 type ReviewDetailCardProps = {
   relatedSession: SessionRecord | null;
   review: ReviewRecord;
+  sessions: SessionRecord[];
   tabs: readonly string[];
   onDelete: () => void;
+  onChangeRelatedSessionId: (nextSessionId: string | null) => void;
   onPatch: <Key extends keyof ReviewRecord>(
     key: Key,
     value: ReviewRecord[Key],
@@ -43,8 +46,10 @@ function textToActions(value: string): ReviewRecord['actions'] {
 export function ReviewDetailCard({
   relatedSession,
   review,
+  sessions,
   tabs,
   onDelete,
+  onChangeRelatedSessionId,
   onPatch,
 }: ReviewDetailCardProps) {
   return (
@@ -114,6 +119,22 @@ export function ReviewDetailCard({
               />
             </label>
           </div>
+        </section>
+
+        <section className="soft-card detail-editor-card">
+          <RelationSelector
+            emptyText="まだセッションはありません。Sessions から追加するとここで選べます。"
+            helperText="この振り返りの元になった会話をひとつ選びます。"
+            mode="single"
+            options={sessions.map((session) => ({
+              id: session.id,
+              label: session.title,
+              description: `${session.type} / ${session.dateLabel} / ${session.partner}`,
+            }))}
+            selectedIds={relatedSession ? [relatedSession.id] : []}
+            title="関連セッション"
+            onChange={(nextIds) => onChangeRelatedSessionId(nextIds[0] ?? null)}
+          />
         </section>
 
         <section className="soft-card detail-editor-card">

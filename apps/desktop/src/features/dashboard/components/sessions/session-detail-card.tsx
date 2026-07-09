@@ -1,4 +1,4 @@
-import { SessionRelationSelector } from '@/features/dashboard/components/sessions/session-relation-selector';
+import { RelationSelector } from '@/features/dashboard/components/common/relation-selector';
 import type {
   PersonRecord,
   ProjectRecord,
@@ -131,7 +131,7 @@ export function SessionDetailCard({
           </select>
         </label>
         <div className="span-2">
-          <SessionRelationSelector
+          <RelationSelector
             emptyText="まだ関連人物はありません。People から追加するとここで選べます。"
             helperText="このセッションで実際に関係する人物をチェックで選択します。"
             options={people.map((person) => ({
@@ -145,7 +145,7 @@ export function SessionDetailCard({
           />
         </div>
         <div className="span-2">
-          <SessionRelationSelector
+          <RelationSelector
             emptyText="まだ関連プロジェクトはありません。Projects / Companies から追加するとここで選べます。"
             helperText="このセッションに紐づく企業・プロジェクトを選択します。"
             options={projects.map((project) => ({
