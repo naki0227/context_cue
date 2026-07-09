@@ -1,6 +1,6 @@
 import { AppSidebar } from '@/features/dashboard/components/app-sidebar';
 import type { DashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
-import { getPageTitle, type PageId } from '@/features/dashboard/lib/content';
+import type { PageId } from '@/features/dashboard/lib/content';
 import { HomePage } from '@/features/dashboard/pages/home-page';
 import { KnowledgePage } from '@/features/dashboard/pages/knowledge-page';
 import { PeoplePage } from '@/features/dashboard/pages/people-page';
@@ -60,9 +60,6 @@ function renderPage(controller: DashboardController, activePage: PageId) {
 }
 
 export function DashboardShell({ controller }: DashboardShellProps) {
-  const title = getPageTitle(controller.activePage);
-  const showPageHeader = controller.activePage === 'knowledge';
-
   return (
     <main className="workspace-shell">
       <section className="dashboard-grid">
@@ -72,17 +69,6 @@ export function DashboardShell({ controller }: DashboardShellProps) {
         />
 
         <div className="dashboard-main">
-          {showPageHeader ? (
-            <header className="page-header">
-              <div>
-                <h1>{title}</h1>
-                <p>
-                  画像の構成に合わせて、一覧と詳細を見やすく整理しています。
-                </p>
-              </div>
-            </header>
-          ) : null}
-
           {renderPage(controller, controller.activePage)}
         </div>
       </section>

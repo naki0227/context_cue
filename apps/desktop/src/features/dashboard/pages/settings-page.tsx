@@ -10,10 +10,7 @@ export function SettingsPage(props: SettingsPageProps) {
     <div className="page-layout settings-page-v2">
       <div className="settings-hero">
         <h1>Overlay Settings</h1>
-        <p>
-          オーバーレイ（AI
-          アシスタント）の表示やデザイン、動作をカスタマイズできます。
-        </p>
+        <p>表示位置、セクション、起動時の挙動を調整します。</p>
       </div>
 
       <div className="settings-grid settings-grid-v2">

@@ -2,7 +2,7 @@
 
 ## 進行中
 
-- [進行中] UI の見た目と操作感を各画面でさらに磨き込む
+- [進行中] Playwright による主要 CRUD フローの E2E テスト追加を準備する
 
 ## 未着手
 
@@ -10,6 +10,7 @@
 
 ## 完了
 
+- [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
 - [完了] Review の一覧・詳細を feature component に分離した
 - [完了] Projects の一覧・詳細を feature component に分離した

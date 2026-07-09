@@ -139,7 +139,7 @@ export function TemplatesPage() {
             <div className="detail-editor-head">
               <div>
                 <h3>テンプレート詳細</h3>
-                <p>一覧と同じ保存データを編集します。</p>
+                <p>会話前後に使う型を整えます。</p>
               </div>
               <button
                 className="outline-button"
@@ -214,8 +214,8 @@ export function TemplatesPage() {
 
       <p className="templates-footer-note">
         {filteredTemplates.length === 0
-          ? '一致するテンプレートがありません。検索条件を変えてみてください。'
-          : 'テンプレートを活用して、効率的に情報を整理しましょう。'}
+          ? '一致するテンプレートがありません。'
+          : `${filteredTemplates.length} 件を表示中`}
       </p>
     </div>
   );

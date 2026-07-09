@@ -51,7 +51,7 @@ describe('App', () => {
 
     await user.click(
       await screen.findByRole('button', {
-        name: /サンプル個人ナレッジを追加/i,
+        name: /サンプル追加/i,
       }),
     );
 

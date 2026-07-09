@@ -91,27 +91,41 @@ export function KnowledgePage({
   }
 
   return (
-    <div className="page-layout">
-      <div className="toolbar-row">
-        <div className="toolbar-actions">
+    <div className="page-layout knowledge-page-v2">
+      <div className="sessions-hero">
+        <h1>My Knowledge</h1>
+        <div className="toolbar-actions sessions-toolbar-actions">
+          <div className="search-shell projects-search-shell">
+            <span className="search-shell-icon" />
+            <input
+              className="search-input search-input-v2"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="検索"
+              type="text"
+              value={query}
+            />
+          </div>
           <button
-            className="primary-button"
+            className="secondary-button knowledge-import-button"
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+          >
+            ファイル追加
+          </button>
+          <button
+            className="secondary-button knowledge-import-button"
+            onClick={importSampleKnowledge}
+            type="button"
+          >
+            サンプル追加
+          </button>
+          <button
+            className="primary-button primary-button-v2"
             onClick={addDraftItem}
             type="button"
           >
             ＋ 新しい項目
           </button>
-          <input
-            className="search-input"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="検索"
-            type="text"
-            value={query}
-          />
-          <div className="icon-pair">
-            <span />
-            <span />
-          </div>
         </div>
       </div>
 
@@ -150,22 +164,8 @@ export function KnowledgePage({
             type="file"
           />
 
-          <div className="knowledge-actions">
-            <button onClick={() => fileInputRef.current?.click()} type="button">
-              ナレッジを追加
-            </button>
-            <button
-              className="secondary-button"
-              onClick={importSampleKnowledge}
-              type="button"
-            >
-              サンプル個人ナレッジを追加
-            </button>
-          </div>
-
           <p className="helper-text">
-            {knowledgeImportNotice ||
-              'ローカルの .md / .txt を追加すると同じ保存層に統合されます。'}
+            {knowledgeImportNotice || 'ローカルの .md / .txt を扱えます。'}
           </p>
           <p className="helper-text">
             追加済みファイル数: {importedItems.length}

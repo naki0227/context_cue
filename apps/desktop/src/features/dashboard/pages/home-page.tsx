@@ -77,7 +77,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
       <header className="home-page-header">
         <div>
           <h1>おはようございます、User さん</h1>
-          <p>次のセッションに向けた準備と最近の流れをまとめています。</p>
+          <p>次の会話、準備、直近の記録をひとつの流れで見ます。</p>
         </div>
       </header>
 
@@ -167,7 +167,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
 
         <article className="soft-card compact-card home-recommend-card home-panel-v2">
           <p className="page-section-title home-section-title">
-            AIからのおすすめ
+            次に見るところ
           </p>
           <ul className="recommend-list recommend-list-v2">
             <li>
@@ -176,7 +176,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
                 onClick={() => onOpenPage('templates')}
                 type="button"
               >
-                事前準備テンプレートを {templates.length} 件管理しています
+                事前準備テンプレート {templates.length} 件
               </button>
             </li>
             <li>
@@ -185,7 +185,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
                 onClick={() => onOpenPage('review')}
                 type="button"
               >
-                振り返りは {reviews.length} 件、次回アクションを再利用できます
+                振り返り {reviews.length} 件
               </button>
             </li>
             <li>
@@ -194,7 +194,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
                 onClick={() => onOpenPage('knowledge')}
                 type="button"
               >
-                ナレッジは {knowledgeItems.length} 件保存されています
+                ナレッジ {knowledgeItems.length} 件
               </button>
             </li>
           </ul>

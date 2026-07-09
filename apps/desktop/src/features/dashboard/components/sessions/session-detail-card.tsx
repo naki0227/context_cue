@@ -33,7 +33,7 @@ export function SessionDetailCard({
       <div className="detail-editor-head">
         <div>
           <h3>セッション詳細</h3>
-          <p>一覧と同じデータを直接編集できます。</p>
+          <p>会話の予定、相手、関連データを整えます。</p>
         </div>
         <button className="outline-button" onClick={onDelete} type="button">
           削除
