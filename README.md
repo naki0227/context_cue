@@ -78,3 +78,5 @@ How to Talk はローカル実行を前提にしています。
 - [アーキテクチャ設計](./docs/architecture.md)
 - [実装計画](./docs/implementation-plan.md)
 - [配布手順](./docs/release.md)
+- [本番リリース準備監査](./docs/production-readiness-audit.md)
+- [My Knowledge入力ガイド](./docs/my-knowledge-guide.md)

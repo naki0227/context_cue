@@ -2,15 +2,54 @@
 
 ## 進行中
 
-- [進行中] Playwright による主要 CRUD フローの E2E テスト追加を準備する
+- なし
 
-## 未着手
+## P0: 本番ブロッカー
 
+- [未着手] マイク入力、権限、デバイス選択、VADを実装する
+- [未着手] whisper.cpp adapterと日本語リアルタイムSTTを実装する
+- [未着手] Ollama検出、起動状態、モデル一覧を実データ化する
+- [未着手] `gemma4:e2b`取得進捗を表示する初回セットアップを実装する
+- [未着手] LLM prompt、JSON schema、timeout、cancel、retry、fallbackを実装する
+- [未着手] Consentをセッション単位にし、本文なしの同意監査記録を追加する
+- [未着手] Share Safe Modeでoverlay本文を確実に非表示にする
+- [未着手] 空のoverlayからハードコードされた面接会話を削除する
+- [未着手] 保存ファイルを`0600`、原子的書込み、schema version付きにする
+- [未着手] Rust側workspace schema検証と入力サイズ上限を追加する
+- [未着手] backup保持上限、全データ削除、export、破損復旧を実装する
+- [未着手] 音声、transcript、summary、AI出力の保存ポリシーを実装する
+- [未着手] セッション終了後summaryとReview生成を実データへ接続する
+- [未着手] mainとoverlayのTauri capabilityを分離し、CSPを設定する
+- [未着手] 正式アイコン、macOS署名・公証、Windows署名を設定する
+- [未着手] 3 OSで初回Releaseとインストールsmoke testを実施する
+
+## P1: 公開前必須
+
+- [未着手] User基本情報とMy Knowledge onboardingを実装する
+- [未着手] AI整理前preview、差分承認、出典・確度・機密度を実装する
+- [未着手] セッションごとの参照ナレッジ選択を実装する
+- [未着手] 設定画面の表示位置、hotkey、起動時最小化を実動作へ接続する
+- [未着手] 保存・IPC・overlay・event失敗のエラーUIと再試行を実装する
+- [未着手] 個人情報を除外する構造化ログと診断情報exportを実装する
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
+- [未着手] LLM / STT / persistence / migrationのintegration testを追加する
+- [未着手] coverage閾値、dependency audit、Dependabot、SBOMをCIへ追加する
+- [未着手] PRIVACY、ethics、consent、screen-share safety文書を追加する
+- [未着手] Tauri Updater、CHANGELOG、rollback手順を整備する
 - [未着手] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
+
+## P2: 公開後改善
+
+- [未着手] SQLite migrationと全文検索へ移行する
+- [未着手] speaker diarizationとシステム音声入力を追加する
+- [未着手] 実機性能に基づくモデル自動選択を追加する
+- [未着手] アクセシビリティとキーボード操作を監査する
+- [未着手] 多言語化、timezone、日時形式を正規化する
 
 ## 完了
 
+- [完了] 本番リリース準備を監査し、P0 / P1 / P2の受け入れ条件を文書化した
+- [完了] My Knowledge入力例、禁止情報、AI整理promptを文書化した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
@@ -35,4 +74,6 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] Playwright で主要 CRUD と relation 編集の E2E テストを追加する
+- [次回] Consent永続化を廃止し、Share Safe Modeと空overlay表示を安全要件どおりに直す
+- [次回] 保存ファイルの`0600`化、原子的書込み、エラー伝播を実装する
+- [次回] OllamaセットアップとLLM clientのADR・interface・テストを作る
