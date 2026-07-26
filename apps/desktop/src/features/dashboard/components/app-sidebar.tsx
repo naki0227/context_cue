@@ -1,5 +1,5 @@
 import { type PageId, sidebarItems } from '@/features/dashboard/lib/content';
-import { isDemoMode } from '@/lib/config/launch-mode';
+import { isDemoMode, isNewMode } from '@/lib/config/launch-mode';
 
 type AppSidebarProps = {
   activePage: PageId;
@@ -55,7 +55,13 @@ export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
         <div className="user-avatar user-avatar-v2" />
         <div>
           <strong>User</strong>
-          <p>{isDemoMode ? 'Demo Workspace' : 'Open Source Edition'}</p>
+          <p>
+            {isDemoMode
+              ? 'Demo Workspace'
+              : isNewMode
+                ? 'New Workspace'
+                : 'Open Source Edition'}
+          </p>
         </div>
       </div>
     </aside>

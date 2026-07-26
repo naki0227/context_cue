@@ -63,7 +63,9 @@ export type DashboardController = {
   toggleShareSafeMode: () => Promise<void>;
 };
 
-export function useDashboardController(): DashboardController {
+export function useDashboardController(
+  runtimeLaunchModeMatches: boolean,
+): DashboardController {
   const {
     appState,
     consent,
@@ -98,6 +100,10 @@ export function useDashboardController(): DashboardController {
   }, [setAppState]);
 
   useEffect(() => {
+    if (!runtimeLaunchModeMatches) {
+      return;
+    }
+
     invokeCommand('get_workspace_state')
       .then((snapshot) => {
         replaceWorkspace(workspaceSnapshotSchema.parse(snapshot));
@@ -106,7 +112,7 @@ export function useDashboardController(): DashboardController {
       .catch(() => {
         setWorkspaceLoaded(true);
       });
-  }, [replaceWorkspace]);
+  }, [replaceWorkspace, runtimeLaunchModeMatches]);
 
   useEffect(() => {
     if (!workspaceLoaded) {

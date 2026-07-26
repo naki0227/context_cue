@@ -3,7 +3,18 @@ use std::path::PathBuf;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LaunchMode {
     Demo,
-    User,
+    New,
+    Resume,
+}
+
+impl LaunchMode {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Demo => "demo",
+            Self::New => "new",
+            Self::Resume => "resume",
+        }
+    }
 }
 
 pub fn launch_mode() -> LaunchMode {
@@ -13,7 +24,8 @@ pub fn launch_mode() -> LaunchMode {
 fn parse_launch_mode(value: Option<&str>) -> LaunchMode {
     match value {
         Some("demo") => LaunchMode::Demo,
-        _ => LaunchMode::User,
+        Some("new") => LaunchMode::New,
+        _ => LaunchMode::Resume,
     }
 }
 
@@ -35,7 +47,7 @@ pub fn app_data_dir() -> PathBuf {
     let mut path = dirs::data_local_dir().unwrap_or_else(std::env::temp_dir);
     path.push(match launch_mode() {
         LaunchMode::Demo => "how-to-talk-demo",
-        LaunchMode::User => "how-to-talk",
+        LaunchMode::New | LaunchMode::Resume => "how-to-talk",
     });
     path
 }
@@ -51,13 +63,26 @@ mod tests {
     use super::{LaunchMode, parse_launch_mode};
 
     #[test]
-    fn unknown_launch_mode_uses_user_storage() {
-        assert_eq!(parse_launch_mode(None), LaunchMode::User);
-        assert_eq!(parse_launch_mode(Some("unexpected")), LaunchMode::User);
+    fn unknown_launch_mode_resumes_user_storage() {
+        assert_eq!(parse_launch_mode(None), LaunchMode::Resume);
+        assert_eq!(parse_launch_mode(Some("unexpected")), LaunchMode::Resume);
+        assert_eq!(parse_launch_mode(Some("user")), LaunchMode::Resume);
     }
 
     #[test]
     fn demo_launch_mode_is_explicit() {
         assert_eq!(parse_launch_mode(Some("demo")), LaunchMode::Demo);
+    }
+
+    #[test]
+    fn new_launch_mode_is_explicit() {
+        assert_eq!(parse_launch_mode(Some("new")), LaunchMode::New);
+    }
+
+    #[test]
+    fn launch_mode_has_stable_wire_values() {
+        assert_eq!(LaunchMode::Demo.as_str(), "demo");
+        assert_eq!(LaunchMode::New.as_str(), "new");
+        assert_eq!(LaunchMode::Resume.as_str(), "resume");
     }
 }

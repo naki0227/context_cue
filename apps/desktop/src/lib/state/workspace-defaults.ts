@@ -18,7 +18,3 @@ export function createInitialWorkspace(
 ): WorkspaceCollections {
   return mode === 'demo' ? createSeedWorkspace() : createEmptyWorkspace();
 }
-
-export function workspacePersistKey(mode: LaunchMode = launchMode) {
-  return `context-cue-workspace-v3-${mode}`;
-}

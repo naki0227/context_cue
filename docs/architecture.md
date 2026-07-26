@@ -23,7 +23,7 @@ MVP の最優先は以下の 4 点とする。
 | UI 状態管理 | Zustand | グローバル状態が小さく、Tauri IPC と組み合わせやすい |
 | バリデーション | Zod | LLM JSON、設定、コマンド入出力の検証に使う |
 | Rust バックエンド | Rust stable | 音声処理、ファイル検索、保存制御、Tauri コマンドを集約する |
-| 保存設定 | Zustand persist + Rust ローカルファイル保存 | UI 設定と実データを責務分離して永続化できる |
+| 保存設定 | UI 設定は Zustand persist、実データは Rust ローカルJSON | 実データの正本をRustへ一本化し、WebViewキャッシュからの巻き戻りを防ぐ |
 | グローバルショートカット | Tauri Global Shortcut plugin | Share Safe Mode の即時切り替えに必要 |
 | ファイルアクセス | 原則 Rust 側で実装 | 個人メモ・保存制御を frontend に直接持たせないため |
 | LLM 接続 | Ollama HTTP API | ローカル LLM 前提に最も自然 |

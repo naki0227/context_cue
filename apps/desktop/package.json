@@ -11,7 +11,9 @@
     "test": "vitest run && vitest run --config vitest.user.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "tauri": "tauri",
-    "tauri:dev:user": "CONTEXT_CUE_LAUNCH_MODE=user VITE_CONTEXT_CUE_LAUNCH_MODE=user tauri dev",
+    "tauri:dev:new": "CONTEXT_CUE_LAUNCH_MODE=new VITE_CONTEXT_CUE_LAUNCH_MODE=new tauri dev",
+    "tauri:dev:resume": "CONTEXT_CUE_LAUNCH_MODE=resume VITE_CONTEXT_CUE_LAUNCH_MODE=resume tauri dev",
+    "tauri:dev:user": "CONTEXT_CUE_LAUNCH_MODE=resume VITE_CONTEXT_CUE_LAUNCH_MODE=resume tauri dev",
     "tauri:dev:demo": "CONTEXT_CUE_LAUNCH_MODE=demo VITE_CONTEXT_CUE_LAUNCH_MODE=demo tauri dev"
   },
   "dependencies": {

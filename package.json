@@ -13,7 +13,9 @@
     "test": "corepack pnpm --filter desktop test",
     "lint": "corepack pnpm --filter desktop lint",
     "typecheck": "corepack pnpm --filter desktop typecheck",
-    "tauri:dev": "corepack pnpm tauri:dev:user",
+    "tauri:dev": "corepack pnpm tauri:dev:resume",
+    "tauri:dev:new": "corepack pnpm --filter desktop tauri:dev:new",
+    "tauri:dev:resume": "corepack pnpm --filter desktop tauri:dev:resume",
     "tauri:dev:user": "corepack pnpm --filter desktop tauri:dev:user",
     "tauri:dev:demo": "corepack pnpm --filter desktop tauri:dev:demo",
     "tauri:build": "corepack pnpm --filter desktop tauri build"

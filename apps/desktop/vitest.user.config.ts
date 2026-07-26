@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   define: {
-    'import.meta.env.VITE_CONTEXT_CUE_LAUNCH_MODE': JSON.stringify('user'),
+    'import.meta.env.VITE_CONTEXT_CUE_LAUNCH_MODE': JSON.stringify('new'),
   },
   plugins: [react()],
   resolve: {

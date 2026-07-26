@@ -1,19 +1,21 @@
-import { parseLaunchMode } from '@/lib/config/launch-mode';
+import { parseLaunchMode, storageProfile } from '@/lib/config/launch-mode';
 import {
   createEmptyWorkspace,
   createInitialWorkspace,
-  workspacePersistKey,
 } from '@/lib/state/workspace-defaults';
 
 describe('launch mode', () => {
-  it('defaults to the user mode unless demo is explicit', () => {
-    expect(parseLaunchMode(undefined)).toBe('user');
-    expect(parseLaunchMode('unexpected')).toBe('user');
+  it('defaults to resume unless demo or new is explicit', () => {
+    expect(parseLaunchMode(undefined)).toBe('resume');
+    expect(parseLaunchMode('unexpected')).toBe('resume');
+    expect(parseLaunchMode('user')).toBe('resume');
     expect(parseLaunchMode('demo')).toBe('demo');
+    expect(parseLaunchMode('new')).toBe('new');
   });
 
-  it('starts user mode without sample records', () => {
-    expect(createInitialWorkspace('user')).toEqual(createEmptyWorkspace());
+  it('starts new and resume modes without bundled sample records', () => {
+    expect(createInitialWorkspace('new')).toEqual(createEmptyWorkspace());
+    expect(createInitialWorkspace('resume')).toEqual(createEmptyWorkspace());
   });
 
   it('starts demo mode with sample records', () => {
@@ -23,7 +25,8 @@ describe('launch mode', () => {
     expect(workspace.people.length).toBeGreaterThan(0);
   });
 
-  it('separates user and demo browser persistence keys', () => {
-    expect(workspacePersistKey('user')).not.toBe(workspacePersistKey('demo'));
+  it('shares user settings between new and resume but isolates demo', () => {
+    expect(storageProfile('new')).toBe(storageProfile('resume'));
+    expect(storageProfile('resume')).not.toBe(storageProfile('demo'));
   });
 });

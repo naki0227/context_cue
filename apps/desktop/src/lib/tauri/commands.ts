@@ -1,5 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import {
+  type LaunchMode,
+  launchMode,
+  parseLaunchMode,
+} from '@/lib/config/launch-mode';
+import {
   type AppState,
   appStateSchema,
   type ConsentState,
@@ -29,6 +34,17 @@ type ImportedProfileDocumentDraft = {
   title: string;
   content: string;
 };
+
+export async function getRuntimeLaunchMode(): Promise<LaunchMode> {
+  if (
+    !(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+  ) {
+    return launchMode;
+  }
+
+  const result = await invoke<string>('get_launch_mode');
+  return parseLaunchMode(result);
+}
 
 type CommandPayload = {
   consent?: ConsentState;

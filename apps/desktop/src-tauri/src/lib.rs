@@ -21,6 +21,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::get_launch_mode,
             commands::get_app_state,
             commands::get_workspace_state,
             commands::import_profile_documents,

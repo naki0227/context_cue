@@ -4,9 +4,15 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::{
     app::SharedState,
+    config,
     domain::profile_document::ProfileImportDraft,
     infrastructure::{mock_event_runner::MockEventRunner, window_manager},
 };
+
+#[tauri::command]
+pub fn get_launch_mode() -> String {
+    config::launch_mode().as_str().to_owned()
+}
 
 #[tauri::command]
 pub fn get_app_state(state: State<'_, SharedState>) -> AppState {

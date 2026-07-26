@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { App } from '@/App';
 import { resetMockAppState } from '@/lib/tauri/commands';
 
-describe('user launch', () => {
+describe('new user launch', () => {
   beforeEach(() => {
     resetMockAppState();
     window.history.replaceState({}, '', '/');
@@ -19,7 +19,7 @@ describe('user launch', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText('株式会社A カジュアル面談')).toBeNull();
-    expect(screen.getByText('Open Source Edition')).toBeInTheDocument();
+    expect(screen.getByText('New Workspace')).toBeInTheDocument();
     expect(screen.queryByText('Demo Workspace')).toBeNull();
     expect(screen.getByText('事前準備テンプレート 0 件')).toBeInTheDocument();
 
