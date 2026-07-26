@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   define: {
-    'import.meta.env.VITE_CONTEXT_CUE_LAUNCH_MODE': JSON.stringify('demo'),
+    'import.meta.env.VITE_CONTEXT_CUE_LAUNCH_MODE': JSON.stringify('user'),
   },
   plugins: [react()],
   resolve: {
@@ -13,10 +13,9 @@ export default defineConfig({
     },
   },
   test: {
-    exclude: ['./test/user-launch.test.tsx'],
-    globals: true,
-    include: ['./test/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
+    globals: true,
+    include: ['./test/user-launch.test.tsx'],
     setupFiles: ['./test/setup.ts'],
   },
 });

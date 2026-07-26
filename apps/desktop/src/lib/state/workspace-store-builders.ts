@@ -1,7 +1,4 @@
-import {
-  buildImportedKnowledgeContent,
-  createSeedWorkspace,
-} from '@/features/dashboard/lib/workspace-seed';
+import { buildImportedKnowledgeContent } from '@/features/dashboard/lib/workspace-seed';
 import type {
   KnowledgeRecord,
   PersonRecord,
@@ -11,8 +8,6 @@ import type {
   TemplateRecord,
 } from '@/features/dashboard/lib/workspace-types';
 import type { ImportedKnowledgeInput } from '@/lib/state/workspace-store-types';
-
-export const seedWorkspace = createSeedWorkspace();
 
 export function stampNow() {
   return new Date().toLocaleDateString('ja-JP');

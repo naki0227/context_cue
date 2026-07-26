@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "lint": "biome check src test vite.config.ts vitest.config.ts",
-    "test": "vitest run",
+    "lint": "biome check src test vite.config.ts vitest.config.ts vitest.user.config.ts",
+    "test": "vitest run && vitest run --config vitest.user.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:dev:user": "CONTEXT_CUE_LAUNCH_MODE=user VITE_CONTEXT_CUE_LAUNCH_MODE=user tauri dev",
+    "tauri:dev:demo": "CONTEXT_CUE_LAUNCH_MODE=demo VITE_CONTEXT_CUE_LAUNCH_MODE=demo tauri dev"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.8.0",

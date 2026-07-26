@@ -9,6 +9,10 @@ import {
 } from '@/features/dashboard/lib/workspace-normalize';
 import { createBrowserPersistStorage } from '@/lib/state/persist-storage';
 import {
+  createInitialWorkspace,
+  workspacePersistKey,
+} from '@/lib/state/workspace-defaults';
+import {
   buildImportedKnowledgeRecords,
   createKnowledgeRecord,
   createPersonRecord,
@@ -16,7 +20,6 @@ import {
   createReviewRecord,
   createSessionRecord,
   createTemplateRecord,
-  seedWorkspace,
 } from '@/lib/state/workspace-store-builders';
 import type { WorkspaceState } from '@/lib/state/workspace-store-types';
 import {
@@ -34,15 +37,17 @@ export type {
 } from '@/lib/state/workspace-store-types';
 export { createWorkspaceSnapshot } from '@/lib/state/workspace-store-utils';
 
+const initialWorkspace = createInitialWorkspace();
+
 export const useWorkspaceStore = create<WorkspaceState>()(
   persist(
     (set, get) => ({
-      sessions: seedWorkspace.sessions,
-      people: seedWorkspace.people,
-      projects: seedWorkspace.projects,
-      reviews: seedWorkspace.reviews,
-      knowledgeItems: seedWorkspace.knowledgeItems,
-      templates: seedWorkspace.templates,
+      sessions: initialWorkspace.sessions,
+      people: initialWorkspace.people,
+      projects: initialWorkspace.projects,
+      reviews: initialWorkspace.reviews,
+      knowledgeItems: initialWorkspace.knowledgeItems,
+      templates: initialWorkspace.templates,
 
       replaceWorkspace: (snapshot) =>
         set(
@@ -210,7 +215,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         ),
     }),
     {
-      name: 'context-cue-workspace-v2',
+      name: workspacePersistKey(),
       storage: createBrowserPersistStorage(),
     },
   ),

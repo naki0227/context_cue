@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { launchMode } from '@/lib/config/launch-mode';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
 import { createBrowserPersistStorage } from '@/lib/state/persist-storage';
 
@@ -186,7 +187,7 @@ export const useAppStore = create<StoreState>()(
         })),
     }),
     {
-      name: 'context-cue-ui-v1',
+      name: `context-cue-ui-v2-${launchMode}`,
       partialize: (state) => ({
         consent: state.consent,
         overlayPreferences: state.overlayPreferences,

@@ -30,8 +30,13 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
    `corepack pnpm test`
 4. Rust のテストを実行する  
    `cargo test`
-5. デスクトップアプリを起動する  
-   `corepack pnpm --filter desktop tauri dev`
+5. デスクトップアプリを起動する
+   - 通常起動（空のユーザーデータ）: `corepack pnpm tauri:dev:user`
+   - デモ起動（シードデータ入り）: `corepack pnpm tauri:dev:demo`
+
+通常起動とデモ起動は、ダッシュボード・個人ナレッジ・同意状態・
+オーバーレイ設定を別々のローカル保存領域に保持します。配布用ビルドと
+起動モード未指定時は通常起動となり、サンプル情報は自動投入されません。
 
 ## 一般ユーザー向け配布
 

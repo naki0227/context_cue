@@ -10,6 +10,7 @@
 
 ## 完了
 
+- [完了] 通常ユーザー起動とシード入りデモ起動を分離し、保存領域もモード別にした
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
 - [完了] Review の一覧・詳細を feature component に分離した

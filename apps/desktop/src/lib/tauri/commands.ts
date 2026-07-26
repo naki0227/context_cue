@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core';
-import { createSeedWorkspace } from '@/features/dashboard/lib/workspace-seed';
 import {
   type AppState,
   appStateSchema,
@@ -9,6 +8,7 @@ import {
   type WorkspaceSnapshot,
   workspaceSnapshotSchema,
 } from '@/lib/schemas/workspace-state';
+import { createInitialWorkspace } from '@/lib/state/workspace-defaults';
 
 type CommandName =
   | 'get_app_state'
@@ -74,11 +74,13 @@ function createMockAppState() {
 }
 
 let mockAppState = createMockAppState();
-let mockWorkspaceState = workspaceSnapshotSchema.parse(createSeedWorkspace());
+let mockWorkspaceState = workspaceSnapshotSchema.parse(
+  createInitialWorkspace(),
+);
 
 export function resetMockAppState() {
   mockAppState = createMockAppState();
-  mockWorkspaceState = workspaceSnapshotSchema.parse(createSeedWorkspace());
+  mockWorkspaceState = workspaceSnapshotSchema.parse(createInitialWorkspace());
   mockOverlayVisibility.top = true;
   mockOverlayVisibility.side = true;
 }

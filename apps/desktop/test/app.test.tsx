@@ -13,6 +13,8 @@ describe('App', () => {
     render(<App />);
     const user = userEvent.setup();
 
+    expect(await screen.findByText('Demo Workspace')).toBeInTheDocument();
+
     await user.click(
       await screen.findByRole('button', {
         name: /Overlay Settings/i,
