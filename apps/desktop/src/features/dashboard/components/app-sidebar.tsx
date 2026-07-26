@@ -1,5 +1,7 @@
 import { type PageId, sidebarItems } from '@/features/dashboard/lib/content';
+import { getUserDisplayName } from '@/features/dashboard/lib/knowledge-profile';
 import { isDemoMode, isNewMode } from '@/lib/config/launch-mode';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 type AppSidebarProps = {
   activePage: PageId;
@@ -7,6 +9,9 @@ type AppSidebarProps = {
 };
 
 export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
+  const displayName = useWorkspaceStore((state) =>
+    getUserDisplayName(state.knowledgeItems),
+  );
   function navIconClass(page: PageId) {
     switch (page) {
       case 'home':
@@ -51,10 +56,14 @@ export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
         ))}
       </nav>
 
-      <div className="sidebar-user">
+      <button
+        className="sidebar-user sidebar-user-button"
+        onClick={() => onChangePage('knowledge')}
+        type="button"
+      >
         <div className="user-avatar user-avatar-v2" />
         <div>
-          <strong>User</strong>
+          <strong>{displayName}</strong>
           <p>
             {isDemoMode
               ? 'Demo Workspace'
@@ -63,7 +72,7 @@ export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
                 : 'Open Source Edition'}
           </p>
         </div>
-      </div>
+      </button>
     </aside>
   );
 }

@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import { KnowledgeOnboardingCard } from '@/features/dashboard/components/knowledge/knowledge-onboarding-card';
 import type { DashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
 import {
   linesToText,
   textToLines,
 } from '@/features/dashboard/lib/editor-utils';
+import {
+  readUserProfile,
+  USER_PROFILE_ID,
+} from '@/features/dashboard/lib/knowledge-profile';
 import type { KnowledgeRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
@@ -57,9 +62,15 @@ export function KnowledgePage({
   const importedItems = knowledgeItems.filter(
     (item) => item.source !== 'manual',
   );
+  const userProfile = readUserProfile(knowledgeItems);
 
   function addDraftItem() {
     const id = addKnowledgeItem();
+    setSelectedId(id);
+  }
+
+  function addOnboardingItem(item: Partial<KnowledgeRecord>) {
+    const id = addKnowledgeItem(item);
     setSelectedId(id);
   }
 
@@ -128,6 +139,18 @@ export function KnowledgePage({
           </button>
         </div>
       </div>
+
+      <KnowledgeOnboardingCard
+        initialProfile={userProfile}
+        key={
+          knowledgeItems.find((item) => item.id === USER_PROFILE_ID)?.updatedAt
+        }
+        onAddExample={addOnboardingItem}
+        onSave={(item) => {
+          const id = addKnowledgeItem(item);
+          setSelectedId(id);
+        }}
+      />
 
       <div className="split-grid knowledge-grid">
         <article className="soft-card">
