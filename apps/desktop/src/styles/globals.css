@@ -320,6 +320,29 @@ button:disabled {
   gap: 12px;
 }
 
+.runtime-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 11px 14px;
+  border: 1px solid rgba(194, 63, 63, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 241, 239, 0.92);
+  color: #8e2e2e;
+  font-size: 0.86rem;
+}
+
+.runtime-error-banner button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .page-header {
   padding: 8px 8px 0;
 }

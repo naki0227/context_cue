@@ -1,8 +1,12 @@
 use std::{error::Error, fmt};
 
-#[derive(Debug, Clone)]
+use crate::infrastructure::persistence::PersistenceError;
+
+#[derive(Debug)]
 pub enum AppError {
     ConsentIncomplete,
+    Persistence(PersistenceError),
+    StateUnavailable,
     SystemClockUnavailable,
     UnknownOverlayTarget(String),
     OverlayWindowNotFound(String),
@@ -12,6 +16,8 @@ impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ConsentIncomplete => write!(f, "consent requirements are incomplete"),
+            Self::Persistence(error) => error.fmt(f),
+            Self::StateUnavailable => write!(f, "application state is temporarily unavailable"),
             Self::SystemClockUnavailable => write!(f, "system clock is unavailable"),
             Self::UnknownOverlayTarget(target) => {
                 write!(f, "unknown overlay target: {target}")
@@ -24,3 +30,9 @@ impl fmt::Display for AppError {
 }
 
 impl Error for AppError {}
+
+impl From<PersistenceError> for AppError {
+    fn from(error: PersistenceError) -> Self {
+        Self::Persistence(error)
+    }
+}

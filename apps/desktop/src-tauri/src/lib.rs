@@ -16,7 +16,7 @@ pub fn run() {
         .manage(app::SharedState::default())
         .setup(|app| {
             let shared = app.state::<app::SharedState>().inner().clone();
-            shared.bootstrap_profiles();
+            shared.bootstrap_profiles()?;
             infrastructure::window_manager::build_overlay_windows(app.handle())?;
             Ok(())
         })

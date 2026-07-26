@@ -1,31 +1,20 @@
 import {
   type ChangeEvent,
   type RefObject,
+  useCallback,
   useEffect,
-  useRef,
   useState,
 } from 'react';
-import {
-  formatPreparedness,
-  type PageId,
-} from '@/features/dashboard/lib/content';
-import {
-  isImportableKnowledgeFile,
-  MAX_IMPORT_FILE_SIZE,
-  readFileText,
-  stripExtension,
-} from '@/features/dashboard/lib/file-import';
+import { useKnowledgeImport } from '@/features/dashboard/hooks/use-knowledge-import';
+import { useWorkspacePersistence } from '@/features/dashboard/hooks/use-workspace-persistence';
+import type { PageId } from '@/features/dashboard/lib/content';
+import { buildOverlayViewModel } from '@/features/overlay/lib/overlay-view-model';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
-import { workspaceSnapshotSchema } from '@/lib/schemas/workspace-state';
 import {
   type OverlayPreferences,
   type OverlaySectionKey,
   useAppStore,
 } from '@/lib/state/app-store';
-import {
-  createWorkspaceSnapshot,
-  useWorkspaceStore,
-} from '@/lib/state/workspace-store';
 import { invokeCommand, setOverlayVisibility } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
 
@@ -38,6 +27,7 @@ export type DashboardController = {
   fileInputRef: RefObject<HTMLInputElement | null>;
   flowPoints: string[];
   knowledgeImportNotice: string;
+  runtimeError: string;
   memoItems: string[];
   nextTalkCandidates: string[];
   overlayTopic: string;
@@ -47,6 +37,7 @@ export type DashboardController = {
   topOverlayVisible: boolean;
   transcriptPreview: AppState['transcript'];
   setActivePage: (page: PageId) => void;
+  clearRuntimeError: () => void;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
   setOverlayPreference: <Key extends keyof OverlayPreferences>(
     key: Key,
@@ -76,79 +67,44 @@ export function useDashboardController(
     setAppState,
     toggleOverlaySection,
   } = useAppStore();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [knowledgeImportNotice, setKnowledgeImportNotice] = useState('');
+  const [runtimeError, setRuntimeError] = useState('');
   const [topOverlayVisible, setTopOverlayVisible] = useState(false);
   const [sideOverlayVisible, setSideOverlayVisible] = useState(false);
   const [activePage, setActivePage] = useState<PageId>('home');
-  const [workspaceLoaded, setWorkspaceLoaded] = useState(false);
-  const syncImportedKnowledgeItems = useWorkspaceStore(
-    (state) => state.syncImportedKnowledgeItems,
-  );
-  const removeKnowledgeItem = useWorkspaceStore(
-    (state) => state.removeKnowledgeItem,
-  );
-  const replaceWorkspace = useWorkspaceStore((state) => state.replaceWorkspace);
+  const reportRuntimeError = useCallback((message: string) => {
+    setRuntimeError(message);
+  }, []);
+
+  useWorkspacePersistence({
+    enabled: runtimeLaunchModeMatches,
+    onError: reportRuntimeError,
+  });
+  const knowledgeImport = useKnowledgeImport(reportRuntimeError);
 
   useEffect(() => {
     invokeCommand('get_app_state')
       .then((state) => setAppState(state))
-      .catch(() => undefined);
+      .catch(() => {
+        reportRuntimeError(
+          'アプリの状態を読み込めませんでした。再起動してください。',
+        );
+      });
 
     return attachAppEvents(useAppStore.getState());
-  }, [setAppState]);
-
-  useEffect(() => {
-    if (!runtimeLaunchModeMatches) {
-      return;
-    }
-
-    invokeCommand('get_workspace_state')
-      .then((snapshot) => {
-        replaceWorkspace(workspaceSnapshotSchema.parse(snapshot));
-        setWorkspaceLoaded(true);
-      })
-      .catch(() => {
-        setWorkspaceLoaded(true);
-      });
-  }, [replaceWorkspace, runtimeLaunchModeMatches]);
-
-  useEffect(() => {
-    if (!workspaceLoaded) {
-      return;
-    }
-
-    const unsubscribe = useWorkspaceStore.subscribe((state) => {
-      const snapshot = createWorkspaceSnapshot(state);
-      invokeCommand('save_workspace_state', {
-        workspaceState: snapshot,
-      }).catch(() => undefined);
-    });
-
-    return unsubscribe;
-  }, [workspaceLoaded]);
+  }, [reportRuntimeError, setAppState]);
 
   useEffect(() => {
     const shouldShow = appState.session.status === 'running';
 
-    setOverlayVisibility('top', shouldShow).catch(() => undefined);
-    setOverlayVisibility('side', shouldShow).catch(() => undefined);
+    setOverlayVisibility('top', shouldShow).catch(() => {
+      reportRuntimeError('上部オーバーレイの表示を変更できませんでした。');
+    });
+    setOverlayVisibility('side', shouldShow).catch(() => {
+      reportRuntimeError('右側オーバーレイの表示を変更できませんでした。');
+    });
     setTopOverlayVisible(shouldShow);
     setSideOverlayVisible(shouldShow);
-  }, [appState.session.status]);
-
-  useEffect(() => {
-    syncImportedKnowledgeItems(
-      appState.importedDocuments.map((document) => ({
-        documentId: document.id,
-        source:
-          document.sourceType === 'サンプル'
-            ? 'imported-sample'
-            : 'imported-file',
-        title: document.title,
-      })),
-    );
-  }, [appState.importedDocuments, syncImportedKnowledgeItems]);
+  }, [appState.session.status, reportRuntimeError]);
 
   const canStart =
     consent.participantConsent &&
@@ -156,140 +112,47 @@ export function useDashboardController(
     consent.shareSafeUnderstood &&
     appState.session.status !== 'running';
 
-  const transcriptPreview = appState.transcript.slice(-4);
-  const preparedness = formatPreparedness(appState.importedDocuments.length);
-  const overlayTopic =
-    appState.contextCue.topic === 'まだ会話は始まっていません'
-      ? '会話を待っています'
-      : appState.contextCue.topic;
-  const flowPoints = [
-    appState.contextCue.intent,
-    ...appState.rollingSummary.importantPoints,
-  ].filter((value, index, array) => value && array.indexOf(value) === index);
-  const nextTalkCandidates = appState.contextCue.suggestedPoints;
-  const confirmItems = appState.contextCue.questionsToAsk;
-  const memoItems = appState.contextCue.relatedNotes;
-
-  async function importLocalFiles(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []);
-    const importableFiles = files.filter(isImportableKnowledgeFile);
-    const oversizedFiles = importableFiles.filter(
-      (file) => file.size > MAX_IMPORT_FILE_SIZE,
-    );
-
-    if (files.length === 0) {
-      return;
-    }
-
-    if (importableFiles.length === 0) {
-      setKnowledgeImportNotice('.md または .txt ファイルを選択してください。');
-      event.target.value = '';
-      return;
-    }
-
-    if (oversizedFiles.length > 0) {
-      setKnowledgeImportNotice('1ファイル 512KB 以内で追加してください。');
-      event.target.value = '';
-      return;
-    }
-
-    const documents = await Promise.all(
-      importableFiles.map(async (file) => ({
-        content: await readFileText(file),
-        title: stripExtension(file.name),
-      })),
-    );
-
-    try {
-      const previousCount = appState.importedDocuments.length;
-      const state = await invokeCommand('import_profile_documents_from_files', {
-        documents,
-      });
-      setAppState(state);
-      syncImportedKnowledgeItems(
-        state.importedDocuments.map((document) => {
-          const sourceDocument = documents.find(
-            (candidate) => candidate.title === document.title,
-          );
-
-          return {
-            documentId: document.id,
-            source: 'imported-file' as const,
-            title: document.title,
-            content: sourceDocument?.content,
-          };
-        }),
-      );
-      setKnowledgeImportNotice(
-        `${state.importedDocuments.length - previousCount}件のファイルを追加しました。`,
-      );
-    } catch {
-      setKnowledgeImportNotice(
-        'ファイルの読込に失敗しました。もう一度お試しください。',
-      );
-    }
-
-    event.target.value = '';
-  }
-
-  async function importSampleKnowledge() {
-    const state = await invokeCommand('import_profile_documents');
-    setAppState(state);
-    syncImportedKnowledgeItems(
-      state.importedDocuments.map((document) => ({
-        documentId: document.id,
-        source: 'imported-sample' as const,
-        title: document.title,
-      })),
-    );
-    setKnowledgeImportNotice('サンプル個人ナレッジを読み込みました。');
-  }
-
-  async function removeProfileDocument(documentId: string) {
-    const state = await invokeCommand('remove_profile_document', {
-      documentId,
-    });
-    setAppState(state);
-    const knowledgeItems = useWorkspaceStore.getState().knowledgeItems;
-    const target = knowledgeItems.find(
-      (item) => item.sourceDocumentId === documentId,
-    );
-    if (target) {
-      removeKnowledgeItem(target.id);
-    }
-  }
-
-  async function clearProfileDocuments() {
-    const state = await invokeCommand('clear_profile_documents');
-    setAppState(state);
-    for (const item of useWorkspaceStore
-      .getState()
-      .knowledgeItems.filter((entry) => entry.source !== 'manual')) {
-      removeKnowledgeItem(item.id);
-    }
-    setKnowledgeImportNotice('追加済みの個人ナレッジを削除しました。');
-  }
+  const {
+    confirmItems,
+    flowPoints,
+    memoItems,
+    nextTalkCandidates,
+    overlayTopic,
+    preparedness,
+    transcriptPreview,
+  } = buildOverlayViewModel(appState);
 
   async function startSession() {
-    const state = await invokeCommand('start_session', { consent });
-    setAppState(state);
+    await runSafely(async () => {
+      const state = await invokeCommand('start_session', { consent });
+      setAppState(state);
+    }, 'セッションを開始できませんでした。同意状態と保存先を確認してください。');
   }
 
   async function stopSession() {
-    const state = await invokeCommand('stop_session');
-    setAppState(state);
-    resetConsent();
+    await runSafely(async () => {
+      const state = await invokeCommand('stop_session');
+      setAppState(state);
+      resetConsent();
+    }, 'セッションを停止できませんでした。');
   }
 
   async function toggleShareSafeMode() {
-    const state = await invokeCommand('toggle_share_safe_mode');
-    setAppState(state);
+    await runSafely(async () => {
+      const state = await invokeCommand('toggle_share_safe_mode');
+      setAppState(state);
+    }, '画面共有保護を切り替えられませんでした。');
   }
 
   async function toggleOverlay(overlay: 'top' | 'side') {
     const visible = overlay === 'top' ? topOverlayVisible : sideOverlayVisible;
     const nextVisible = !visible;
-    await setOverlayVisibility(overlay, nextVisible);
+    try {
+      await setOverlayVisibility(overlay, nextVisible);
+    } catch {
+      reportRuntimeError('オーバーレイの表示を切り替えられませんでした。');
+      return;
+    }
 
     if (overlay === 'top') {
       setTopOverlayVisible(nextVisible);
@@ -299,24 +162,34 @@ export function useDashboardController(
     setSideOverlayVisible(nextVisible);
   }
 
+  async function runSafely(action: () => Promise<void>, message: string) {
+    try {
+      await action();
+    } catch {
+      reportRuntimeError(message);
+    }
+  }
+
   return {
     activePage,
     appState,
     canStart,
-    clearProfileDocuments,
+    clearProfileDocuments: knowledgeImport.clearProfileDocuments,
+    clearRuntimeError: () => setRuntimeError(''),
     confirmItems,
     consent,
-    fileInputRef,
+    fileInputRef: knowledgeImport.fileInputRef,
     flowPoints,
-    importLocalFiles,
-    importSampleKnowledge,
-    knowledgeImportNotice,
+    importLocalFiles: knowledgeImport.importLocalFiles,
+    importSampleKnowledge: knowledgeImport.importSampleKnowledge,
+    knowledgeImportNotice: knowledgeImport.knowledgeImportNotice,
     memoItems,
     nextTalkCandidates,
     overlayTopic,
     overlayPreferences,
     preparedness,
-    removeProfileDocument,
+    removeProfileDocument: knowledgeImport.removeProfileDocument,
+    runtimeError,
     setActivePage,
     setConsentField,
     setOverlayPreference,

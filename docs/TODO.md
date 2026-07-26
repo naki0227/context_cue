@@ -14,9 +14,9 @@
 - [完了] Consentをセッション単位にし、本文なしの同意監査記録を追加する
 - [完了] Share Safe Modeでoverlay本文を確実に非表示にする
 - [完了] 空のoverlayからハードコードされた面接会話を削除する
-- [未着手] 保存ファイルを`0600`、原子的書込み、schema version付きにする
-- [未着手] Rust側workspace schema検証と入力サイズ上限を追加する
-- [未着手] backup保持上限、全データ削除、export、破損復旧を実装する
+- [完了] 保存ファイルを`0600`、原子的書込み、schema version付きにする
+- [完了] Rust側workspace schema検証と入力サイズ上限を追加する
+- [未着手] 全データ削除とユーザー指定先へのexportを実装する
 - [未着手] 音声、transcript、summary、AI出力の保存ポリシーを実装する
 - [未着手] セッション終了後summaryとReview生成を実データへ接続する
 - [未着手] mainとoverlayのTauri capabilityを分離し、CSPを設定する
@@ -29,14 +29,14 @@
 - [未着手] AI整理前preview、差分承認、出典・確度・機密度を実装する
 - [未着手] セッションごとの参照ナレッジ選択を実装する
 - [未着手] 設定画面の表示位置、hotkey、起動時最小化を実動作へ接続する
-- [未着手] 保存・IPC・overlay・event失敗のエラーUIと再試行を実装する
+- [進行中] 保存・IPC・overlay・event失敗のエラーUIと再試行を実装する
 - [未着手] 個人情報を除外する構造化ログと診断情報exportを実装する
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
 - [未着手] LLM / STT / persistence / migrationのintegration testを追加する
 - [未着手] coverage閾値とSBOM生成をCIへ追加する
 - [未着手] PRIVACY、ethics、consent、screen-share safety文書を追加する
 - [未着手] Tauri Updater、CHANGELOG、rollback手順を整備する
-- [未着手] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
+- [完了] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
 
 ## P2: 公開後改善
 
@@ -54,6 +54,9 @@
 - [完了] PostCSS、esbuild、quick-xmlの既知脆弱性を修正版へ更新した
 - [完了] Consentを非永続化し、セッションID・確認時刻・ポリシー版だけを監査記録にした
 - [完了] Share Safe Mode専用遮蔽UIと安全なoverlay空状態を実装した
+- [完了] workspaceを0600・原子的書込み・10MiB上限・schema検証付きへ変更した
+- [完了] backupを5件に制限し、破損時の自動復旧を追加した
+- [完了] 保存失敗のエラー表示と250ms遅延保存を追加した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
@@ -78,5 +81,5 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] 保存ファイルの`0600`化、原子的書込み、エラー伝播を実装する
+- [次回] 全データ削除とexportを実装する
 - [次回] OllamaセットアップとLLM clientのADR・interface・テストを作る

@@ -69,6 +69,14 @@ export function DashboardShell({ controller }: DashboardShellProps) {
         />
 
         <div className="dashboard-main">
+          {controller.runtimeError ? (
+            <aside className="runtime-error-banner" role="alert">
+              <span>{controller.runtimeError}</span>
+              <button onClick={controller.clearRuntimeError} type="button">
+                閉じる
+              </button>
+            </aside>
+          ) : null}
           {renderPage(controller, controller.activePage)}
         </div>
       </section>

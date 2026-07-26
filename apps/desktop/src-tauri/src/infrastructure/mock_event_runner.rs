@@ -16,12 +16,14 @@ impl MockEventRunner {
             ];
 
             for sample in samples {
-                if state.current_status() != "running" {
+                if !matches!(state.current_status().as_deref(), Ok("running")) {
                     break;
                 }
 
                 sleep(Duration::from_secs(2)).await;
-                let (chunk, summary, cue, adaptive) = state.push_mock_chunk(sample);
+                let Ok((chunk, summary, cue, adaptive)) = state.push_mock_chunk(sample) else {
+                    break;
+                };
                 let _ = app.emit("transcript-updated", chunk);
                 let _ = app.emit("rolling-summary-updated", summary);
                 let _ = app.emit("context-cue-updated", cue);
