@@ -14,6 +14,7 @@ use crate::{
     infrastructure::{
         audio_capture::SegmentHandler, mock_event_runner::MockEventRunner, window_manager,
     },
+    live_transcript::process_live_transcript,
     llm_runtime::LlmRuntime,
     repository::llm_repository::ProgressReporter,
     repository::stt_repository::SttProgressReporter,
@@ -225,14 +226,7 @@ pub fn start_stt_capture(
             if text.trim().is_empty() {
                 return;
             }
-            let Ok((chunk, summary, cue, adaptive)) = shared.push_transcript_chunk(&text, "マイク")
-            else {
-                return;
-            };
-            let _ = app.emit("transcript-updated", chunk);
-            let _ = app.emit("rolling-summary-updated", summary);
-            let _ = app.emit("context-cue-updated", cue);
-            let _ = app.emit("question-score-updated", adaptive);
+            process_live_transcript(app, shared, text, "マイク").await;
         });
     });
     runtime

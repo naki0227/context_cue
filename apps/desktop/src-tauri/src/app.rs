@@ -24,8 +24,7 @@ use crate::{
             remove_profile_document,
         },
         session_usecase::{
-            push_mock_chunk, push_transcript_chunk, start_session, stop_session,
-            toggle_share_safe_mode,
+            push_transcript_chunk, start_session, stop_session, toggle_share_safe_mode,
         },
     },
 };
@@ -93,23 +92,6 @@ impl SharedState {
         let mut state = self.lock()?;
         toggle_share_safe_mode(&mut state.app_state);
         Ok(state.snapshot())
-    }
-
-    pub fn push_mock_chunk(
-        &self,
-        text: &str,
-    ) -> Result<
-        (
-            TranscriptChunk,
-            RollingSummary,
-            ContextCue,
-            AdaptiveInferenceState,
-        ),
-        AppError,
-    > {
-        let mut state = self.lock()?;
-        let documents = state.documents.clone();
-        Ok(push_mock_chunk(&mut state.app_state, &documents, text))
     }
 
     pub fn push_transcript_chunk(

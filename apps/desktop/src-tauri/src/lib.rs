@@ -4,6 +4,7 @@ mod config;
 mod domain;
 mod error;
 mod infrastructure;
+mod live_transcript;
 mod llm_runtime;
 mod repository;
 mod stt_runtime;
