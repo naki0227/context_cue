@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "description": "How to Talk / Context Cue monorepo",
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "pnpm@11.17.0",
   "workspaces": [
     "apps/*"
   ],
@@ -13,6 +13,8 @@
     "test": "corepack pnpm --filter desktop test",
     "lint": "corepack pnpm --filter desktop lint",
     "typecheck": "corepack pnpm --filter desktop typecheck",
+    "audit:js": "corepack pnpm audit --audit-level high",
+    "audit:rust": "cargo audit",
     "tauri:dev": "corepack pnpm tauri:dev:resume",
     "tauri:dev:new": "corepack pnpm --filter desktop tauri:dev:new",
     "tauri:dev:resume": "corepack pnpm --filter desktop tauri:dev:resume",

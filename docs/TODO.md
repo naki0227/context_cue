@@ -33,7 +33,7 @@
 - [未着手] 個人情報を除外する構造化ログと診断情報exportを実装する
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
 - [未着手] LLM / STT / persistence / migrationのintegration testを追加する
-- [未着手] coverage閾値、dependency audit、Dependabot、SBOMをCIへ追加する
+- [未着手] coverage閾値とSBOM生成をCIへ追加する
 - [未着手] PRIVACY、ethics、consent、screen-share safety文書を追加する
 - [未着手] Tauri Updater、CHANGELOG、rollback手順を整備する
 - [未着手] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
@@ -50,6 +50,8 @@
 
 - [完了] 本番リリース準備を監査し、P0 / P1 / P2の受け入れ条件を文書化した
 - [完了] My Knowledge入力例、禁止情報、AI整理promptを文書化した
+- [完了] pnpm audit / cargo-auditをCIへ追加し、Dependabotを有効化した
+- [完了] PostCSS、esbuild、quick-xmlの既知脆弱性を修正版へ更新した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
