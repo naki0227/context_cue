@@ -49,6 +49,8 @@ describe('new user launch', () => {
       (await screen.findAllByText('基本プロフィール')).length,
     ).toBeGreaterThan(0);
     expect(screen.getByText('伊吹')).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('機密度'), '機密');
+    expect(screen.getByLabelText('機密度')).toHaveValue('機密');
 
     await user.click(screen.getByRole('button', { name: /Home/i }));
     expect(

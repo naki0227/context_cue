@@ -112,6 +112,9 @@ export function createKnowledgeRecord(
     updatedAt: item?.updatedAt ?? stampNow(),
     source: item?.source ?? 'manual',
     sourceDocumentId: item?.sourceDocumentId,
+    sourceLabel: item?.sourceLabel ?? '本人入力',
+    confidence: item?.confidence ?? '未確認',
+    sensitivity: item?.sensitivity ?? '個人',
     content: item?.content ?? ['内容を入力してください。'],
   } satisfies KnowledgeRecord;
 }
@@ -160,6 +163,9 @@ export function buildImportedKnowledgeRecords(
       tag: item.source === 'imported-sample' ? 'サンプル' : 'ローカルファイル',
       updatedAt: stampNow(),
       source: item.source,
+      sourceLabel: existing?.sourceLabel ?? item.title,
+      confidence: existing?.confidence ?? '未確認',
+      sensitivity: existing?.sensitivity ?? '個人',
       content:
         item.content || !existing
           ? buildImportedKnowledgeContent(item.title, item.content)

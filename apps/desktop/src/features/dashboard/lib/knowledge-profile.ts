@@ -53,6 +53,9 @@ export function buildUserProfileRecord(
     tag: '基本情報',
     updatedAt,
     source: 'manual',
+    sourceLabel: '本人入力',
+    confidence: '確認済み',
+    sensitivity: '個人',
     content: (Object.keys(FIELD_LABELS) as (keyof UserProfileInput)[]).map(
       (key) => `${FIELD_LABELS[key]}: ${normalizeField(input[key])}`,
     ),

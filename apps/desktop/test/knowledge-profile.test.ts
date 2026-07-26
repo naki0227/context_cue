@@ -23,6 +23,8 @@ describe('knowledge user profile', () => {
       usageScenes: '会議、1on1',
     });
     expect(getUserDisplayName([record])).toBe('伊吹');
+    expect(record.confidence).toBe('確認済み');
+    expect(record.sensitivity).toBe('個人');
   });
 
   it('uses a non-identifying fallback when no profile exists', () => {

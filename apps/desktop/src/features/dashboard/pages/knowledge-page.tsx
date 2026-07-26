@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { KnowledgeDetailEditor } from '@/features/dashboard/components/knowledge/knowledge-detail-editor';
 import { KnowledgeOnboardingCard } from '@/features/dashboard/components/knowledge/knowledge-onboarding-card';
 import type { DashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
-import {
-  linesToText,
-  textToLines,
-} from '@/features/dashboard/lib/editor-utils';
 import {
   readUserProfile,
   USER_PROFILE_ID,
@@ -207,67 +204,12 @@ export function KnowledgePage({
         </article>
 
         {selectedItem ? (
-          <article className="soft-card detail-editor-card">
-            <div className="detail-editor-head">
-              <div className="detail-header">
-                <h3>{selectedItem.title}</h3>
-                <p>{selectedItem.tag}</p>
-              </div>
-              <button
-                className="outline-button"
-                onClick={() => void deleteKnowledge()}
-                type="button"
-              >
-                削除
-              </button>
-            </div>
-
-            <div className="detail-editor-grid">
-              <label className="span-2">
-                <span>タイトル</span>
-                <input
-                  value={selectedItem.title}
-                  onChange={(event) =>
-                    patchKnowledge('title', event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                <span>タグ</span>
-                <input
-                  list="knowledge-tags"
-                  value={selectedItem.tag}
-                  onChange={(event) =>
-                    patchKnowledge('tag', event.target.value)
-                  }
-                />
-                <datalist id="knowledge-tags">
-                  {tags.map((tag) => (
-                    <option key={tag} value={tag} />
-                  ))}
-                </datalist>
-              </label>
-              <label>
-                <span>更新日</span>
-                <input
-                  value={selectedItem.updatedAt}
-                  onChange={(event) =>
-                    patchKnowledge('updatedAt', event.target.value)
-                  }
-                />
-              </label>
-              <label className="span-2">
-                <span>内容</span>
-                <textarea
-                  rows={12}
-                  value={linesToText(selectedItem.content)}
-                  onChange={(event) =>
-                    patchKnowledge('content', textToLines(event.target.value))
-                  }
-                />
-              </label>
-            </div>
-          </article>
+          <KnowledgeDetailEditor
+            item={selectedItem}
+            onDelete={() => void deleteKnowledge()}
+            onPatch={patchKnowledge}
+            tags={tags}
+          />
         ) : null}
       </div>
     </div>
