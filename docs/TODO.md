@@ -48,6 +48,7 @@
 
 ## 完了
 
+- [完了] Rust 1.97で追加されたClippy lintに対応し、依存監査を含むCIを復旧した
 - [完了] 本番リリース準備を監査し、P0 / P1 / P2の受け入れ条件を文書化した
 - [完了] My Knowledge入力例、禁止情報、AI整理promptを文書化した
 - [完了] pnpm audit / cargo-auditをCIへ追加し、Dependabotを有効化した
