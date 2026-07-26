@@ -189,6 +189,22 @@ impl SharedState {
         Ok(self.lock()?.dashboard_state.clone())
     }
 
+    pub fn context_cue(&self) -> Result<ContextCue, AppError> {
+        Ok(self.lock()?.app_state.context_cue.clone())
+    }
+
+    pub fn set_context_cue(&self, cue: ContextCue) -> Result<AppState, AppError> {
+        let mut state = self.lock()?;
+        state.app_state.context_cue = cue;
+        Ok(state.snapshot())
+    }
+
+    pub fn set_ollama_ready(&self, ready: bool) -> Result<AppState, AppError> {
+        let mut state = self.lock()?;
+        state.app_state.connections.ollama_ready = ready;
+        Ok(state.snapshot())
+    }
+
     pub fn save_workspace_snapshot(&self, workspace_state: Value) -> Result<Value, AppError> {
         let mut state = self.lock()?;
         persist_workspace(

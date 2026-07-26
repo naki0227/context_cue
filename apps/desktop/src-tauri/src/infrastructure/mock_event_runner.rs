@@ -1,7 +1,11 @@
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::time::{Duration, sleep};
 
-use crate::app::SharedState;
+use crate::{
+    app::SharedState,
+    domain::llm::{CueGenerationRequest, RetrievedNote},
+    llm_runtime::LlmRuntime,
+};
 
 pub struct MockEventRunner;
 
@@ -25,9 +29,39 @@ impl MockEventRunner {
                     break;
                 };
                 let _ = app.emit("transcript-updated", chunk);
-                let _ = app.emit("rolling-summary-updated", summary);
-                let _ = app.emit("context-cue-updated", cue);
-                let _ = app.emit("question-score-updated", adaptive);
+                let _ = app.emit("rolling-summary-updated", summary.clone());
+                let _ = app.emit("question-score-updated", adaptive.clone());
+
+                let final_cue = if adaptive.mode == "deep" {
+                    let request = CueGenerationRequest {
+                        transcript_recent: sample.to_owned(),
+                        rolling_summary: summary,
+                        question_likelihood: adaptive.question_score,
+                        detected_intent_hint: cue.intent.clone(),
+                        retrieved_notes: cue
+                            .related_notes
+                            .iter()
+                            .map(|note| RetrievedNote {
+                                title: "参照ナレッジ".to_owned(),
+                                content: note.clone(),
+                            })
+                            .collect(),
+                        mode: "conversation".to_owned(),
+                    };
+                    let outcome = app
+                        .state::<LlmRuntime>()
+                        .generate(request, cue.clone())
+                        .await;
+                    if let Some(warning) = outcome.warning {
+                        let _ = app.emit("llm-warning", warning);
+                    }
+                    outcome.cue
+                } else {
+                    cue
+                };
+
+                let _ = state.set_context_cue(final_cue.clone());
+                let _ = app.emit("context-cue-updated", final_cue);
             }
         });
     }

@@ -235,6 +235,8 @@ describe('App', () => {
     expect(
       await screen.findByRole('button', { name: 'すべて書き出す' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('ローカルAI')).toBeInTheDocument();
+    expect(screen.getByText('停止中')).toBeInTheDocument();
     await user.click(
       screen.getByRole('button', {
         name: 'すべて削除',

@@ -1,13 +1,18 @@
 use context_cue_contracts::{AppState, ConsentInput};
 use serde_json::Value;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 use tauri::{AppHandle, Emitter, State};
 
 use crate::{
     app::SharedState,
     config,
-    domain::profile_document::ProfileImportDraft,
+    domain::{
+        llm::{CueGenerationOutcome, CueGenerationRequest, OllamaStatus, PullProgress},
+        profile_document::ProfileImportDraft,
+    },
     infrastructure::{mock_event_runner::MockEventRunner, window_manager},
+    llm_runtime::LlmRuntime,
+    repository::llm_repository::ProgressReporter,
 };
 
 #[tauri::command]
@@ -85,6 +90,67 @@ pub fn export_workspace(state: State<'_, SharedState>, destination: String) -> R
 #[tauri::command]
 pub fn delete_all_data(state: State<'_, SharedState>) -> Result<AppState, String> {
     state.delete_all_data().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn check_ollama_status(
+    state: State<'_, SharedState>,
+    runtime: State<'_, LlmRuntime>,
+) -> Result<OllamaStatus, String> {
+    let status = runtime
+        .check_status()
+        .await
+        .map_err(|error| error.to_string())?;
+    state
+        .set_ollama_ready(status.running && status.recommended_model_installed)
+        .map_err(|error| error.to_string())?;
+    Ok(status)
+}
+
+#[tauri::command]
+pub async fn pull_recommended_model(
+    app: AppHandle,
+    state: State<'_, SharedState>,
+    runtime: State<'_, LlmRuntime>,
+) -> Result<OllamaStatus, String> {
+    let progress_app = app.clone();
+    let reporter: ProgressReporter = Arc::new(move |progress: PullProgress| {
+        let _ = progress_app.emit("ollama-pull-progress", progress);
+    });
+    runtime
+        .pull_model(reporter)
+        .await
+        .map_err(|error| error.to_string())?;
+    let status = runtime
+        .check_status()
+        .await
+        .map_err(|error| error.to_string())?;
+    state
+        .set_ollama_ready(status.running && status.recommended_model_installed)
+        .map_err(|error| error.to_string())?;
+    Ok(status)
+}
+
+#[tauri::command]
+pub fn cancel_model_pull(runtime: State<'_, LlmRuntime>) -> Result<(), String> {
+    runtime.cancel_pull().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn generate_context_cue(
+    app: AppHandle,
+    state: State<'_, SharedState>,
+    runtime: State<'_, LlmRuntime>,
+    request: CueGenerationRequest,
+) -> Result<CueGenerationOutcome, String> {
+    let previous_cue = state.context_cue().map_err(|error| error.to_string())?;
+    let outcome = runtime.generate(request, previous_cue).await;
+    state
+        .set_context_cue(outcome.cue.clone())
+        .map_err(|error| error.to_string())?;
+    app.emit("context-cue-updated", outcome.cue.clone())
+        .map_err(|error| error.to_string())?;
+    Ok(outcome)
 }
 
 #[tauri::command]

@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { useDataManagement } from '@/features/dashboard/hooks/use-data-management';
 import { useKnowledgeImport } from '@/features/dashboard/hooks/use-knowledge-import';
+import { useOllamaRuntime } from '@/features/dashboard/hooks/use-ollama-runtime';
 import { useWorkspacePersistence } from '@/features/dashboard/hooks/use-workspace-persistence';
 import type { PageId } from '@/features/dashboard/lib/content';
 import { buildOverlayViewModel } from '@/features/overlay/lib/overlay-view-model';
@@ -32,6 +33,7 @@ export type DashboardController = {
   runtimeError: string;
   memoItems: string[];
   nextTalkCandidates: string[];
+  ollama: ReturnType<typeof useOllamaRuntime>;
   overlayTopic: string;
   overlayPreferences: OverlayPreferences;
   preparedness: string;
@@ -42,6 +44,9 @@ export type DashboardController = {
   clearRuntimeError: () => void;
   deleteAllLocalData: () => Promise<void>;
   exportAllData: () => Promise<void>;
+  ollamaCancelPull: () => Promise<void>;
+  ollamaPullModel: () => Promise<void>;
+  ollamaRefresh: () => Promise<void>;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
   setOverlayPreference: <Key extends keyof OverlayPreferences>(
     key: Key,
@@ -85,6 +90,7 @@ export function useDashboardController(
   });
   const knowledgeImport = useKnowledgeImport(reportRuntimeError);
   const dataManagement = useDataManagement(reportRuntimeError);
+  const ollama = useOllamaRuntime(reportRuntimeError);
 
   useEffect(() => {
     invokeCommand('get_app_state')
@@ -193,6 +199,10 @@ export function useDashboardController(
     knowledgeImportNotice: knowledgeImport.knowledgeImportNotice,
     memoItems,
     nextTalkCandidates,
+    ollama,
+    ollamaCancelPull: ollama.cancelPull,
+    ollamaPullModel: ollama.pullModel,
+    ollamaRefresh: ollama.refreshStatus,
     overlayTopic,
     overlayPreferences,
     preparedness,

@@ -2,6 +2,7 @@ import { SettingsBehaviorCard } from '@/features/dashboard/components/settings/s
 import { SettingsDataCard } from '@/features/dashboard/components/settings/settings-data-card';
 import { SettingsDesignCard } from '@/features/dashboard/components/settings/settings-design-card';
 import { SettingsDisplayCard } from '@/features/dashboard/components/settings/settings-display-card';
+import { SettingsLlmCard } from '@/features/dashboard/components/settings/settings-llm-card';
 import { SettingsMiscCard } from '@/features/dashboard/components/settings/settings-misc-card';
 import { SettingsRuntimeCard } from '@/features/dashboard/components/settings/settings-runtime-card';
 import type { SettingsPageProps } from '@/features/dashboard/components/settings/settings-types';
@@ -24,6 +25,12 @@ export function SettingsPage(props: SettingsPageProps) {
           <SettingsMiscCard
             overlayPreferences={props.overlayPreferences}
             setOverlayPreference={props.setOverlayPreference}
+          />
+          <SettingsLlmCard
+            ollama={props.ollama}
+            ollamaCancelPull={props.ollamaCancelPull}
+            ollamaPullModel={props.ollamaPullModel}
+            ollamaRefresh={props.ollamaRefresh}
           />
           <SettingsDataCard
             dataActionNotice={props.dataActionNotice}

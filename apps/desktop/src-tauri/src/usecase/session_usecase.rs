@@ -22,8 +22,8 @@ pub fn default_app_state() -> AppState {
             consent_confirmed_at_unix_ms: None,
         },
         connections: ConnectionState {
-            ollama_ready: true,
-            stt_ready: true,
+            ollama_ready: false,
+            stt_ready: false,
         },
         adaptive_inference: AdaptiveInferenceState {
             mode: "light".to_owned(),

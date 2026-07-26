@@ -8,9 +8,9 @@
 
 - [未着手] マイク入力、権限、デバイス選択、VADを実装する
 - [未着手] whisper.cpp adapterと日本語リアルタイムSTTを実装する
-- [未着手] Ollama検出、起動状態、モデル一覧を実データ化する
-- [未着手] `gemma4:e2b`取得進捗を表示する初回セットアップを実装する
-- [未着手] LLM prompt、JSON schema、timeout、cancel、retry、fallbackを実装する
+- [完了] Ollama検出、起動状態、モデル一覧を実データ化する
+- [完了] `gemma4:e2b`取得進捗を表示する初回セットアップを実装する
+- [完了] LLM prompt、JSON schema、timeout、cancel、retry、fallbackを実装する
 - [完了] Consentをセッション単位にし、本文なしの同意監査記録を追加する
 - [完了] Share Safe Modeでoverlay本文を確実に非表示にする
 - [完了] 空のoverlayからハードコードされた面接会話を削除する
@@ -60,6 +60,9 @@
 - [完了] 全データのJSON書き出しと、workspace・backup・一時ファイルの完全削除を追加した
 - [完了] main/overlayのTauri capabilityを分離し、WebViewのCSPを設定した
 - [完了] macOS release buildで`.app`とDMGの生成を確認した
+- [完了] Ollama状態確認、モデル一覧、`gemma4:e2b`取得進捗・中止を設定画面へ接続した
+- [完了] 質問検出時のLLM生成、JSON Schema、入力上限、1回retry、直前cue fallbackを実装した
+- [完了] 実`gemma4:e2b`で構造化出力smoke testを実施した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
@@ -84,5 +87,5 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] OllamaセットアップとLLM clientのADR・interface・テストを作る
 - [次回] マイク入力とSTT adapterのADR・interface・テストを作る
+- [次回] セッション保存ポリシーとReview自動生成を接続する

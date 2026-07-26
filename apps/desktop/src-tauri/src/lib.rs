@@ -4,6 +4,7 @@ mod config;
 mod domain;
 mod error;
 mod infrastructure;
+mod llm_runtime;
 mod repository;
 mod usecase;
 
@@ -15,6 +16,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(app::SharedState::default())
+        .manage(llm_runtime::LlmRuntime::default())
         .setup(|app| {
             let shared = app.state::<app::SharedState>().inner().clone();
             shared.bootstrap_profiles()?;
@@ -31,6 +33,10 @@ pub fn run() {
             commands::clear_profile_documents,
             commands::export_workspace,
             commands::delete_all_data,
+            commands::check_ollama_status,
+            commands::pull_recommended_model,
+            commands::cancel_model_pull,
+            commands::generate_context_cue,
             commands::save_workspace_state,
             commands::start_session,
             commands::stop_session,

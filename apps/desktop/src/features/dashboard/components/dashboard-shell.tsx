@@ -48,6 +48,10 @@ function renderPage(controller: DashboardController, activePage: PageId) {
           dataActionNotice={controller.dataActionNotice}
           deleteAllLocalData={controller.deleteAllLocalData}
           exportAllData={controller.exportAllData}
+          ollama={controller.ollama}
+          ollamaCancelPull={controller.ollamaCancelPull}
+          ollamaPullModel={controller.ollamaPullModel}
+          ollamaRefresh={controller.ollamaRefresh}
           overlayPreferences={controller.overlayPreferences}
           setConsentField={controller.setConsentField}
           setOverlayPreference={controller.setOverlayPreference}
