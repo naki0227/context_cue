@@ -10,12 +10,6 @@ import {
   type ConsentState,
 } from '@/lib/schemas/app-state';
 import {
-  type CueGenerationRequest,
-  cueGenerationOutcomeSchema,
-  type OllamaStatus,
-  ollamaStatusSchema,
-} from '@/lib/schemas/llm';
-import {
   type WorkspaceSnapshot,
   workspaceSnapshotSchema,
 } from '@/lib/schemas/workspace-state';
@@ -269,35 +263,6 @@ export async function deleteAllData(): Promise<AppState> {
   }
   const result = await invoke<AppState>('delete_all_data');
   return appStateSchema.parse(result);
-}
-
-export async function checkOllamaStatus(): Promise<OllamaStatus> {
-  if (
-    !(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
-  ) {
-    return ollamaStatusSchema.parse({
-      running: false,
-      models: [],
-      recommendedModel: 'gemma4:e2b',
-      recommendedModelInstalled: false,
-      message: 'デスクトップアプリでOllamaの状態を確認できます。',
-    });
-  }
-  return ollamaStatusSchema.parse(await invoke('check_ollama_status'));
-}
-
-export async function pullRecommendedModel(): Promise<OllamaStatus> {
-  return ollamaStatusSchema.parse(await invoke('pull_recommended_model'));
-}
-
-export async function cancelModelPull(): Promise<void> {
-  await invoke('cancel_model_pull');
-}
-
-export async function generateContextCue(request: CueGenerationRequest) {
-  return cueGenerationOutcomeSchema.parse(
-    await invoke('generate_context_cue', { request }),
-  );
 }
 
 export async function invokeCommand(

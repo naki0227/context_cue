@@ -84,12 +84,26 @@ pub fn push_mock_chunk(
     ContextCue,
     AdaptiveInferenceState,
 ) {
+    push_transcript_chunk(app_state, documents, text, "モック音声")
+}
+
+pub fn push_transcript_chunk(
+    app_state: &mut AppState,
+    documents: &[OwnedProfileDocument],
+    text: &str,
+    source: &str,
+) -> (
+    TranscriptChunk,
+    RollingSummary,
+    ContextCue,
+    AdaptiveInferenceState,
+) {
     let question = question_score(text);
     let intent = classify_intent(text).to_owned();
 
     let chunk = TranscriptChunk {
         id: Uuid::new_v4().to_string(),
-        source: "モック音声".to_owned(),
+        source: source.to_owned(),
         text: text.to_owned(),
     };
 

@@ -23,7 +23,10 @@ use crate::{
             clear_profile_documents, import_profile_documents, import_profile_documents_from_files,
             remove_profile_document,
         },
-        session_usecase::{push_mock_chunk, start_session, stop_session, toggle_share_safe_mode},
+        session_usecase::{
+            push_mock_chunk, push_transcript_chunk, start_session, stop_session,
+            toggle_share_safe_mode,
+        },
     },
 };
 
@@ -107,6 +110,29 @@ impl SharedState {
         let mut state = self.lock()?;
         let documents = state.documents.clone();
         Ok(push_mock_chunk(&mut state.app_state, &documents, text))
+    }
+
+    pub fn push_transcript_chunk(
+        &self,
+        text: &str,
+        source: &str,
+    ) -> Result<
+        (
+            TranscriptChunk,
+            RollingSummary,
+            ContextCue,
+            AdaptiveInferenceState,
+        ),
+        AppError,
+    > {
+        let mut state = self.lock()?;
+        let documents = state.documents.clone();
+        Ok(push_transcript_chunk(
+            &mut state.app_state,
+            &documents,
+            text,
+            source,
+        ))
     }
 
     pub fn bootstrap_profiles(&self) -> Result<(), AppError> {
@@ -202,6 +228,12 @@ impl SharedState {
     pub fn set_ollama_ready(&self, ready: bool) -> Result<AppState, AppError> {
         let mut state = self.lock()?;
         state.app_state.connections.ollama_ready = ready;
+        Ok(state.snapshot())
+    }
+
+    pub fn set_stt_ready(&self, ready: bool) -> Result<AppState, AppError> {
+        let mut state = self.lock()?;
+        state.app_state.connections.stt_ready = ready;
         Ok(state.snapshot())
     }
 

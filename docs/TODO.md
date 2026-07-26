@@ -2,12 +2,12 @@
 
 ## 進行中
 
-- なし
+- [進行中] 音声、transcript、summary、AI出力の保存ポリシーを実装する
 
 ## P0: 本番ブロッカー
 
-- [未着手] マイク入力、権限、デバイス選択、VADを実装する
-- [未着手] whisper.cpp adapterと日本語リアルタイムSTTを実装する
+- [完了] マイク入力、権限、デバイス選択、VADを実装する
+- [完了] whisper.cpp adapterと日本語リアルタイムSTTを実装する
 - [完了] Ollama検出、起動状態、モデル一覧を実データ化する
 - [完了] `gemma4:e2b`取得進捗を表示する初回セットアップを実装する
 - [完了] LLM prompt、JSON schema、timeout、cancel、retry、fallbackを実装する
@@ -17,7 +17,7 @@
 - [完了] 保存ファイルを`0600`、原子的書込み、schema version付きにする
 - [完了] Rust側workspace schema検証と入力サイズ上限を追加する
 - [完了] 全データ削除とユーザー指定先へのexportを実装する
-- [未着手] 音声、transcript、summary、AI出力の保存ポリシーを実装する
+- [進行中] 音声、transcript、summary、AI出力の保存ポリシーを実装する
 - [未着手] セッション終了後summaryとReview生成を実データへ接続する
 - [完了] mainとoverlayのTauri capabilityを分離し、CSPを設定する
 - [未着手] 正式アイコン、macOS署名・公証、Windows署名を設定する
@@ -63,6 +63,9 @@
 - [完了] Ollama状態確認、モデル一覧、`gemma4:e2b`取得進捗・中止を設定画面へ接続した
 - [完了] 質問検出時のLLM生成、JSON Schema、入力上限、1回retry、直前cue fallbackを実装した
 - [完了] 実`gemma4:e2b`で構造化出力smoke testを実施した
+- [完了] マイク入力、16kHz変換、VAD、入力デバイス選択を実装した
+- [完了] 公式Whisper base q5_1の取得・検証・日本語推論を実装した
+- [完了] 実WhisperモデルのSHA-1照合と推論smoke testを実施した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
@@ -87,5 +90,5 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] マイク入力とSTT adapterのADR・interface・テストを作る
 - [次回] セッション保存ポリシーとReview自動生成を接続する
+- [次回] User基本情報とMy Knowledge onboardingを実装する

@@ -8,6 +8,7 @@ import {
 import { useDataManagement } from '@/features/dashboard/hooks/use-data-management';
 import { useKnowledgeImport } from '@/features/dashboard/hooks/use-knowledge-import';
 import { useOllamaRuntime } from '@/features/dashboard/hooks/use-ollama-runtime';
+import { useSttRuntime } from '@/features/dashboard/hooks/use-stt-runtime';
 import { useWorkspacePersistence } from '@/features/dashboard/hooks/use-workspace-persistence';
 import type { PageId } from '@/features/dashboard/lib/content';
 import { buildOverlayViewModel } from '@/features/overlay/lib/overlay-view-model';
@@ -38,6 +39,7 @@ export type DashboardController = {
   overlayPreferences: OverlayPreferences;
   preparedness: string;
   sideOverlayVisible: boolean;
+  stt: ReturnType<typeof useSttRuntime>;
   topOverlayVisible: boolean;
   transcriptPreview: AppState['transcript'];
   setActivePage: (page: PageId) => void;
@@ -47,6 +49,9 @@ export type DashboardController = {
   ollamaCancelPull: () => Promise<void>;
   ollamaPullModel: () => Promise<void>;
   ollamaRefresh: () => Promise<void>;
+  sttCancelDownload: () => Promise<void>;
+  sttDownloadModel: () => Promise<void>;
+  sttRefresh: () => Promise<void>;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
   setOverlayPreference: <Key extends keyof OverlayPreferences>(
     key: Key,
@@ -91,6 +96,7 @@ export function useDashboardController(
   const knowledgeImport = useKnowledgeImport(reportRuntimeError);
   const dataManagement = useDataManagement(reportRuntimeError);
   const ollama = useOllamaRuntime(reportRuntimeError);
+  const stt = useSttRuntime(reportRuntimeError);
 
   useEffect(() => {
     invokeCommand('get_app_state')
@@ -137,11 +143,13 @@ export function useDashboardController(
     await runSafely(async () => {
       const state = await invokeCommand('start_session', { consent });
       setAppState(state);
+      await stt.startCapture();
     }, 'セッションを開始できませんでした。同意状態と保存先を確認してください。');
   }
 
   async function stopSession() {
     await runSafely(async () => {
+      await stt.stopCapture();
       const state = await invokeCommand('stop_session');
       setAppState(state);
       resetConsent();
@@ -213,6 +221,10 @@ export function useDashboardController(
     setOverlayPreference,
     sideOverlayVisible,
     startSession,
+    stt,
+    sttCancelDownload: stt.cancelDownload,
+    sttDownloadModel: stt.downloadModel,
+    sttRefresh: stt.refreshStatus,
     stopSession,
     toggleOverlay,
     toggleOverlaySection,

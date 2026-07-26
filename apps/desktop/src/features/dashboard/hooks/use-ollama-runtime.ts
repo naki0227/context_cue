@@ -10,7 +10,7 @@ import {
   cancelModelPull,
   checkOllamaStatus,
   pullRecommendedModel,
-} from '@/lib/tauri/commands';
+} from '@/lib/tauri/runtime-commands';
 
 const initialStatus: OllamaStatus = {
   running: false,

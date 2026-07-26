@@ -6,6 +6,7 @@ mod error;
 mod infrastructure;
 mod llm_runtime;
 mod repository;
+mod stt_runtime;
 mod usecase;
 
 use tauri::Manager;
@@ -17,6 +18,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(app::SharedState::default())
         .manage(llm_runtime::LlmRuntime::default())
+        .manage(stt_runtime::SttRuntime::default())
         .setup(|app| {
             let shared = app.state::<app::SharedState>().inner().clone();
             shared.bootstrap_profiles()?;
@@ -37,6 +39,11 @@ pub fn run() {
             commands::pull_recommended_model,
             commands::cancel_model_pull,
             commands::generate_context_cue,
+            commands::check_stt_status,
+            commands::download_stt_model,
+            commands::cancel_stt_model_download,
+            commands::start_stt_capture,
+            commands::stop_stt_capture,
             commands::save_workspace_state,
             commands::start_session,
             commands::stop_session,

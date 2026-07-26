@@ -9,10 +9,15 @@ use crate::{
     domain::{
         llm::{CueGenerationOutcome, CueGenerationRequest, OllamaStatus, PullProgress},
         profile_document::ProfileImportDraft,
+        stt::{SttModelProgress, SttStatus},
     },
-    infrastructure::{mock_event_runner::MockEventRunner, window_manager},
+    infrastructure::{
+        audio_capture::SegmentHandler, mock_event_runner::MockEventRunner, window_manager,
+    },
     llm_runtime::LlmRuntime,
     repository::llm_repository::ProgressReporter,
+    repository::stt_repository::SttProgressReporter,
+    stt_runtime::SttRuntime,
 };
 
 #[tauri::command]
@@ -151,6 +156,93 @@ pub async fn generate_context_cue(
     app.emit("context-cue-updated", outcome.cue.clone())
         .map_err(|error| error.to_string())?;
     Ok(outcome)
+}
+
+#[tauri::command]
+pub fn check_stt_status(
+    state: State<'_, SharedState>,
+    runtime: State<'_, SttRuntime>,
+) -> Result<SttStatus, String> {
+    let status = runtime.status().map_err(|error| error.to_string())?;
+    state
+        .set_stt_ready(status.model_installed)
+        .map_err(|error| error.to_string())?;
+    Ok(status)
+}
+
+#[tauri::command]
+pub async fn download_stt_model(
+    app: AppHandle,
+    state: State<'_, SharedState>,
+    runtime: State<'_, SttRuntime>,
+) -> Result<SttStatus, String> {
+    let progress_app = app.clone();
+    let reporter: SttProgressReporter = Arc::new(move |progress: SttModelProgress| {
+        let _ = progress_app.emit("stt-model-progress", progress);
+    });
+    runtime
+        .download_model(reporter)
+        .await
+        .map_err(|error| error.to_string())?;
+    let status = runtime.status().map_err(|error| error.to_string())?;
+    state
+        .set_stt_ready(status.model_installed)
+        .map_err(|error| error.to_string())?;
+    Ok(status)
+}
+
+#[tauri::command]
+pub fn cancel_stt_model_download(runtime: State<'_, SttRuntime>) -> Result<(), String> {
+    runtime.cancel_download().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn start_stt_capture(
+    app: AppHandle,
+    state: State<'_, SharedState>,
+    runtime: State<'_, SttRuntime>,
+    device_id: Option<String>,
+) -> Result<SttStatus, String> {
+    let repository = runtime.repository();
+    let gate = runtime.transcription_gate();
+    let shared = state.inner().clone();
+    let handler: SegmentHandler = Arc::new(move |samples| {
+        let repository = Arc::clone(&repository);
+        let gate = Arc::clone(&gate);
+        let app = app.clone();
+        let shared = shared.clone();
+        tauri::async_runtime::spawn(async move {
+            let Ok(_permit) = gate.acquire_owned().await else {
+                return;
+            };
+            let Ok(text) = repository.transcribe(samples).await else {
+                let _ = app.emit(
+                    "stt-warning",
+                    "音声を文字起こしできませんでした。次の区間から再試行します。",
+                );
+                return;
+            };
+            if text.trim().is_empty() {
+                return;
+            }
+            let Ok((chunk, summary, cue, adaptive)) = shared.push_transcript_chunk(&text, "マイク")
+            else {
+                return;
+            };
+            let _ = app.emit("transcript-updated", chunk);
+            let _ = app.emit("rolling-summary-updated", summary);
+            let _ = app.emit("context-cue-updated", cue);
+            let _ = app.emit("question-score-updated", adaptive);
+        });
+    });
+    runtime
+        .start_capture(device_id.as_deref(), handler)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn stop_stt_capture(runtime: State<'_, SttRuntime>) -> Result<SttStatus, String> {
+    runtime.stop_capture().map_err(|error| error.to_string())
 }
 
 #[tauri::command]

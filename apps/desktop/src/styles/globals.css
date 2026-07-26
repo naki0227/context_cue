@@ -407,6 +407,20 @@ button:disabled {
   font-weight: 750;
 }
 
+.settings-device-field {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.settings-device-select {
+  width: 100%;
+  color: var(--ink);
+}
+
 .model-pull-progress {
   display: grid;
   gap: 8px;

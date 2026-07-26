@@ -26,6 +26,9 @@
   "bundle": {
     "active": true,
     "targets": ["dmg", "app", "nsis", "msi", "appimage", "deb", "rpm"],
-    "icon": []
+    "icon": [],
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }

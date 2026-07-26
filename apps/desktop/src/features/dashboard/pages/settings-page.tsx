@@ -5,6 +5,7 @@ import { SettingsDisplayCard } from '@/features/dashboard/components/settings/se
 import { SettingsLlmCard } from '@/features/dashboard/components/settings/settings-llm-card';
 import { SettingsMiscCard } from '@/features/dashboard/components/settings/settings-misc-card';
 import { SettingsRuntimeCard } from '@/features/dashboard/components/settings/settings-runtime-card';
+import { SettingsSttCard } from '@/features/dashboard/components/settings/settings-stt-card';
 import type { SettingsPageProps } from '@/features/dashboard/components/settings/settings-types';
 
 export function SettingsPage(props: SettingsPageProps) {
@@ -31,6 +32,12 @@ export function SettingsPage(props: SettingsPageProps) {
             ollamaCancelPull={props.ollamaCancelPull}
             ollamaPullModel={props.ollamaPullModel}
             ollamaRefresh={props.ollamaRefresh}
+          />
+          <SettingsSttCard
+            stt={props.stt}
+            sttCancelDownload={props.sttCancelDownload}
+            sttDownloadModel={props.sttDownloadModel}
+            sttRefresh={props.sttRefresh}
           />
           <SettingsDataCard
             dataActionNotice={props.dataActionNotice}
