@@ -7,6 +7,7 @@
 ## 未着手
 
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
+- [未着手] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
 
 ## 完了
 

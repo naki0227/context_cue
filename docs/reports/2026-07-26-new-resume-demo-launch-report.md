@@ -94,7 +94,13 @@
 - `cargo build --workspace`
 - `corepack pnpm tauri:dev:new`
 - `corepack pnpm tauri:dev:resume`
+- `corepack pnpm tauri:dev:demo`
 - `jq` による本人用JSONとバックアップの件数確認
+
+実起動では、本人用領域に現行JSONがない空状態を維持したまま、デモ専用JSONに
+セッション8件・人物8件・プロジェクト3件が保存されていることを確認した。
+最後に `resume` で本人用ワークスペースを起動し、デモデータが表示されないことを
+確認した。
 
 すべて成功。Frontendは19件、Rustは13件のテストが通過した。実起動では
 `new`が既存本人用JSONを3件目のバックアップへ退避し、`resume`は
@@ -110,6 +116,8 @@ Rustのfmt、clippy、check、test、build。
 
 macOSの画面収録権限がないため、自動スクリーンショット比較は実行できない。
 起動ログ、保存JSON、モード別UIテストで代替確認している。
+既存の `use-dashboard-controller.ts` は351行で300行基準を超えているため、
+起動モード修正とは分けて責務分割する。
 
 ## 次にやること
 
