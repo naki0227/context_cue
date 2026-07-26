@@ -68,8 +68,10 @@ function createMockAppState() {
     session: {
       status: 'idle',
       shareSafeMode: false,
+      sessionId: null,
+      consentConfirmedAtUnixMs: null,
     },
-    connections: { ollamaReady: true, sttReady: true },
+    connections: { ollamaReady: false, sttReady: false },
     adaptiveInference: { mode: 'light', questionScore: 0 },
     rollingSummary: {
       currentTopic: 'セッション開始を待っています',
@@ -122,14 +124,23 @@ function invokeMockCommand(
   if (command === 'start_session') {
     mockAppState = {
       ...mockAppState,
-      session: { ...mockAppState.session, status: 'running' },
+      session: {
+        ...mockAppState.session,
+        status: 'running',
+        sessionId: 'mock-session',
+        consentConfirmedAtUnixMs: Date.now(),
+      },
     };
   }
 
   if (command === 'stop_session') {
     mockAppState = {
       ...mockAppState,
-      session: { ...mockAppState.session, status: 'stopped' },
+      session: {
+        ...mockAppState.session,
+        status: 'stopped',
+        shareSafeMode: false,
+      },
     };
   }
 

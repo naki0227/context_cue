@@ -13,13 +13,30 @@ use crate::{
     usecase::session_usecase::default_app_state,
 };
 
+const CURRENT_SCHEMA_VERSION: u32 = 3;
+
+fn current_schema_version() -> u32 {
+    CURRENT_SCHEMA_VERSION
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConsentAuditRecord {
+    pub session_id: String,
+    pub confirmed_at_unix_ms: u64,
+    pub policy_version: String,
+}
+
 #[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistedWorkspace {
+    #[serde(default = "current_schema_version")]
+    pub schema_version: u32,
     pub documents: Vec<OwnedProfileDocument>,
     #[serde(default)]
     pub dashboard_state: Value,
-    pub share_safe_mode: bool,
+    #[serde(default)]
+    pub consent_audit: Vec<ConsentAuditRecord>,
 }
 
 pub fn load_workspace() -> PersistedWorkspace {
@@ -35,10 +52,10 @@ pub fn load_workspace() -> PersistedWorkspace {
 pub fn save_workspace(
     documents: &[OwnedProfileDocument],
     dashboard_state: &Value,
-    share_safe_mode: bool,
+    consent_audit: &[ConsentAuditRecord],
 ) {
     let path = persisted_state_file();
-    save_workspace_to(&path, documents, dashboard_state, share_safe_mode);
+    save_workspace_to(&path, documents, dashboard_state, consent_audit);
 }
 
 fn load_workspace_from(path: &Path) -> Option<PersistedWorkspace> {
@@ -50,7 +67,7 @@ fn save_workspace_to(
     path: &Path,
     documents: &[OwnedProfileDocument],
     dashboard_state: &Value,
-    share_safe_mode: bool,
+    consent_audit: &[ConsentAuditRecord],
 ) {
     let Some(parent) = path.parent() else {
         return;
@@ -61,9 +78,10 @@ fn save_workspace_to(
     }
 
     let workspace = PersistedWorkspace {
+        schema_version: CURRENT_SCHEMA_VERSION,
         documents: documents.to_vec(),
         dashboard_state: dashboard_state.clone(),
-        share_safe_mode,
+        consent_audit: consent_audit.to_vec(),
     };
 
     let Ok(serialized) = serde_json::to_string_pretty(&workspace) else {
@@ -102,6 +120,7 @@ fn archive_workspace(path: &Path) -> io::Result<Option<PathBuf>> {
 fn empty_user_workspace() -> PersistedWorkspace {
     PersistedWorkspace {
         documents: Vec::new(),
+        schema_version: CURRENT_SCHEMA_VERSION,
         dashboard_state: json!({
             "sessions": [],
             "people": [],
@@ -110,16 +129,12 @@ fn empty_user_workspace() -> PersistedWorkspace {
             "knowledgeItems": [],
             "templates": [],
         }),
-        share_safe_mode: false,
+        consent_audit: Vec::new(),
     }
 }
 
-pub fn restore_app_state(
-    documents: &[OwnedProfileDocument],
-    share_safe_mode: bool,
-) -> context_cue_contracts::AppState {
+pub fn restore_app_state(documents: &[OwnedProfileDocument]) -> context_cue_contracts::AppState {
     let mut app_state = default_app_state();
-    app_state.session.share_safe_mode = share_safe_mode;
     app_state.imported_documents = documents
         .iter()
         .map(OwnedProfileDocument::to_imported_document)
@@ -130,7 +145,8 @@ pub fn restore_app_state(
 #[cfg(test)]
 mod tests {
     use super::{
-        empty_user_workspace, load_workspace_from, save_workspace_to, start_new_workspace,
+        ConsentAuditRecord, empty_user_workspace, load_workspace_from, save_workspace_to,
+        start_new_workspace,
     };
     use crate::domain::profile_document::OwnedProfileDocument;
     use serde_json::json;
@@ -150,13 +166,14 @@ mod tests {
                 source_type: "ローカルファイル".to_owned(),
             }],
             &json!({ "sessions": [] }),
-            true,
+            &[],
         );
 
         let loaded = load_workspace_from(&path).ok_or("workspace was not saved")?;
         assert_eq!(loaded.documents.len(), 1);
         assert_eq!(loaded.dashboard_state, json!({ "sessions": [] }));
-        assert!(loaded.share_safe_mode);
+        assert_eq!(loaded.schema_version, 3);
+        assert!(loaded.consent_audit.is_empty());
         Ok(())
     }
 
@@ -164,7 +181,7 @@ mod tests {
     fn new_workspace_archives_previous_data() -> Result<(), Box<dyn Error>> {
         let temp_dir = tempfile::tempdir()?;
         let path = temp_dir.path().join("workspace-state-v2.json");
-        save_workspace_to(&path, &[], &json!({ "sessions": ["seed"] }), false);
+        save_workspace_to(&path, &[], &json!({ "sessions": ["seed"] }), &[]);
 
         let workspace = start_new_workspace(&path);
         let backups = fs::read_dir(temp_dir.path())?
@@ -187,6 +204,26 @@ mod tests {
         let archived = load_workspace_from(&backups[0].path())
             .ok_or("archived workspace could not be loaded")?;
         assert_eq!(archived.dashboard_state, json!({ "sessions": ["seed"] }));
+        Ok(())
+    }
+
+    #[test]
+    fn consent_audit_does_not_store_checkbox_values() -> Result<(), Box<dyn Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let path = temp_dir.path().join("workspace-state-v2.json");
+        let audit = [ConsentAuditRecord {
+            session_id: "session-1".to_owned(),
+            confirmed_at_unix_ms: 1_234,
+            policy_version: "consent-v1".to_owned(),
+        }];
+
+        save_workspace_to(&path, &[], &json!({ "sessions": [] }), &audit);
+
+        let content = fs::read_to_string(path)?;
+        assert!(content.contains("\"sessionId\": \"session-1\""));
+        assert!(!content.contains("participantConsent"));
+        assert!(!content.contains("noCovertUse"));
+        assert!(!content.contains("shareSafeUnderstood"));
         Ok(())
     }
 }

@@ -1,5 +1,6 @@
 import { DashboardShell } from '@/features/dashboard/components/dashboard-shell';
 import { useDashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
+import { OverlayPrivacyShield } from '@/features/overlay/components/overlay-privacy-shield';
 import { SideOverlayWindow } from '@/features/overlay/components/side-overlay-window';
 import { TopOverlayWindow } from '@/features/overlay/components/top-overlay-window';
 import { useWindowView } from '@/features/overlay/hooks/use-window-view';
@@ -25,6 +26,10 @@ export function App() {
   }
 
   if (topOverlayWindow) {
+    if (controller.appState.session.shareSafeMode) {
+      return <OverlayPrivacyShield kind="top" />;
+    }
+
     return (
       <TopOverlayWindow
         confirmItems={controller.confirmItems}
@@ -39,6 +44,10 @@ export function App() {
   }
 
   if (sideOverlayWindow) {
+    if (controller.appState.session.shareSafeMode) {
+      return <OverlayPrivacyShield kind="side" />;
+    }
+
     return (
       <SideOverlayWindow
         listeningBarIds={listeningBarIds}

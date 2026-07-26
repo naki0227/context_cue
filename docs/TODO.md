@@ -11,9 +11,9 @@
 - [未着手] Ollama検出、起動状態、モデル一覧を実データ化する
 - [未着手] `gemma4:e2b`取得進捗を表示する初回セットアップを実装する
 - [未着手] LLM prompt、JSON schema、timeout、cancel、retry、fallbackを実装する
-- [未着手] Consentをセッション単位にし、本文なしの同意監査記録を追加する
-- [未着手] Share Safe Modeでoverlay本文を確実に非表示にする
-- [未着手] 空のoverlayからハードコードされた面接会話を削除する
+- [完了] Consentをセッション単位にし、本文なしの同意監査記録を追加する
+- [完了] Share Safe Modeでoverlay本文を確実に非表示にする
+- [完了] 空のoverlayからハードコードされた面接会話を削除する
 - [未着手] 保存ファイルを`0600`、原子的書込み、schema version付きにする
 - [未着手] Rust側workspace schema検証と入力サイズ上限を追加する
 - [未着手] backup保持上限、全データ削除、export、破損復旧を実装する
@@ -52,6 +52,8 @@
 - [完了] My Knowledge入力例、禁止情報、AI整理promptを文書化した
 - [完了] pnpm audit / cargo-auditをCIへ追加し、Dependabotを有効化した
 - [完了] PostCSS、esbuild、quick-xmlの既知脆弱性を修正版へ更新した
+- [完了] Consentを非永続化し、セッションID・確認時刻・ポリシー版だけを監査記録にした
+- [完了] Share Safe Mode専用遮蔽UIと安全なoverlay空状態を実装した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
@@ -76,6 +78,5 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] Consent永続化を廃止し、Share Safe Modeと空overlay表示を安全要件どおりに直す
 - [次回] 保存ファイルの`0600`化、原子的書込み、エラー伝播を実装する
 - [次回] OllamaセットアップとLLM clientのADR・interface・テストを作る

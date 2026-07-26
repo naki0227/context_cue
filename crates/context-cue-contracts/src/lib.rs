@@ -40,6 +40,8 @@ pub struct ContextCue {
 pub struct SessionState {
     pub status: String,
     pub share_safe_mode: bool,
+    pub session_id: Option<String>,
+    pub consent_confirmed_at_unix_ms: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -18,6 +18,8 @@ pub fn default_app_state() -> AppState {
         session: SessionState {
             status: "idle".to_owned(),
             share_safe_mode: false,
+            session_id: None,
+            consent_confirmed_at_unix_ms: None,
         },
         connections: ConnectionState {
             ollama_ready: true,
@@ -45,17 +47,25 @@ pub fn default_app_state() -> AppState {
     }
 }
 
-pub fn start_session(app_state: &mut AppState, consent: ConsentInput) -> Result<(), AppError> {
+pub fn start_session(
+    app_state: &mut AppState,
+    consent: ConsentInput,
+    session_id: String,
+    confirmed_at_unix_ms: u64,
+) -> Result<(), AppError> {
     if !(consent.participant_consent && consent.no_covert_use && consent.share_safe_understood) {
         return Err(AppError::ConsentIncomplete);
     }
 
     app_state.session.status = "running".to_owned();
+    app_state.session.session_id = Some(session_id);
+    app_state.session.consent_confirmed_at_unix_ms = Some(confirmed_at_unix_ms);
     Ok(())
 }
 
 pub fn stop_session(app_state: &mut AppState) {
     app_state.session.status = "stopped".to_owned();
+    app_state.session.share_safe_mode = false;
     app_state.adaptive_inference.mode = "light".to_owned();
     app_state.adaptive_inference.question_score = 0.0;
 }
@@ -153,4 +163,47 @@ pub fn push_mock_chunk(
         app_state.context_cue.clone(),
         app_state.adaptive_inference.clone(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{default_app_state, start_session, stop_session};
+    use context_cue_contracts::ConsentInput;
+
+    fn complete_consent() -> ConsentInput {
+        ConsentInput {
+            participant_consent: true,
+            no_covert_use: true,
+            share_safe_understood: true,
+        }
+    }
+
+    #[test]
+    fn session_start_records_only_session_metadata() {
+        let mut state = default_app_state();
+
+        let result = start_session(
+            &mut state,
+            complete_consent(),
+            "session-1".to_owned(),
+            1_234,
+        );
+
+        assert!(result.is_ok());
+        assert_eq!(state.session.status, "running");
+        assert_eq!(state.session.session_id.as_deref(), Some("session-1"));
+        assert_eq!(state.session.consent_confirmed_at_unix_ms, Some(1_234));
+    }
+
+    #[test]
+    fn session_stop_disables_share_safe_mode() {
+        let mut state = default_app_state();
+        state.session.status = "running".to_owned();
+        state.session.share_safe_mode = true;
+
+        stop_session(&mut state);
+
+        assert_eq!(state.session.status, "stopped");
+        assert!(!state.session.share_safe_mode);
+    }
 }

@@ -71,10 +71,9 @@ export function useDashboardController(
     consent,
     overlayPreferences,
     setConsentField,
+    resetConsent,
     setOverlayPreference,
     setAppState,
-    startSessionLocally,
-    stopSessionLocally,
     toggleOverlaySection,
   } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -161,32 +160,15 @@ export function useDashboardController(
   const preparedness = formatPreparedness(appState.importedDocuments.length);
   const overlayTopic =
     appState.contextCue.topic === 'まだ会話は始まっていません'
-      ? 'ガクチカについて詳しく教えてください'
+      ? '会話を待っています'
       : appState.contextCue.topic;
   const flowPoints = [
     appState.contextCue.intent,
     ...appState.rollingSummary.importantPoints,
   ].filter((value, index, array) => value && array.indexOf(value) === index);
-  const nextTalkCandidates =
-    appState.contextCue.suggestedPoints.length > 0
-      ? appState.contextCue.suggestedPoints
-      : [
-          '結論から話す（PREP法）',
-          '数字を入れて具体的に話す',
-          '再現性や学びを最後に伝える',
-        ];
-  const confirmItems =
-    appState.contextCue.questionsToAsk.length > 0
-      ? appState.contextCue.questionsToAsk
-      : [
-          'なぜその施策を選んだのか？',
-          'チーム内での役割は？',
-          '大変だったことは？',
-        ];
-  const memoItems =
-    appState.contextCue.relatedNotes.length > 0
-      ? appState.contextCue.relatedNotes
-      : ['数字を入れる', '誇張NG'];
+  const nextTalkCandidates = appState.contextCue.suggestedPoints;
+  const confirmItems = appState.contextCue.questionsToAsk;
+  const memoItems = appState.contextCue.relatedNotes;
 
   async function importLocalFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -289,15 +271,14 @@ export function useDashboardController(
   }
 
   async function startSession() {
-    startSessionLocally();
     const state = await invokeCommand('start_session', { consent });
     setAppState(state);
   }
 
   async function stopSession() {
-    stopSessionLocally();
     const state = await invokeCommand('stop_session');
     setAppState(state);
+    resetConsent();
   }
 
   async function toggleShareSafeMode() {

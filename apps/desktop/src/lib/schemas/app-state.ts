@@ -31,6 +31,8 @@ export const appStateSchema = z.object({
   session: z.object({
     status: z.enum(['idle', 'running', 'stopped']),
     shareSafeMode: z.boolean(),
+    sessionId: z.string().nullable(),
+    consentConfirmedAtUnixMs: z.number().int().nonnegative().nullable(),
   }),
   connections: z.object({
     ollamaReady: z.boolean(),

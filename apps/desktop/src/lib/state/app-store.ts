@@ -38,10 +38,12 @@ const defaultState: AppState = {
   session: {
     status: 'idle',
     shareSafeMode: false,
+    sessionId: null,
+    consentConfirmedAtUnixMs: null,
   },
   connections: {
-    ollamaReady: true,
-    sttReady: true,
+    ollamaReady: false,
+    sttReady: false,
   },
   adaptiveInference: {
     mode: 'light',
@@ -108,6 +110,7 @@ type StoreState = {
   ) => void;
   pushTranscriptChunk: (chunk: AppState['transcript'][number]) => void;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
+  resetConsent: () => void;
   setOverlayPreference: <Key extends keyof OverlayPreferences>(
     key: Key,
     value: OverlayPreferences[Key],
@@ -148,6 +151,7 @@ export const useAppStore = create<StoreState>()(
             [field]: value,
           },
         })),
+      resetConsent: () => set({ consent: defaultConsent }),
       setOverlayPreference: (key, value) =>
         set((state) => ({
           overlayPreferences: {
@@ -177,11 +181,13 @@ export const useAppStore = create<StoreState>()(
         })),
       stopSessionLocally: () =>
         set((state) => ({
+          consent: defaultConsent,
           appState: {
             ...state.appState,
             session: {
               ...state.appState.session,
               status: 'stopped',
+              shareSafeMode: false,
             },
           },
         })),
@@ -189,8 +195,12 @@ export const useAppStore = create<StoreState>()(
     {
       name: `context-cue-ui-v3-${storageProfile()}`,
       partialize: (state) => ({
-        consent: state.consent,
         overlayPreferences: state.overlayPreferences,
+      }),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState as Partial<StoreState>),
+        consent: defaultConsent,
       }),
       skipHydration: isNewMode,
       storage: createBrowserPersistStorage(),

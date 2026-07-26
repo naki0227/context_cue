@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use context_cue_contracts::{
     AdaptiveInferenceState, AppState, ConsentInput, ContextCue, RollingSummary, TranscriptChunk,
@@ -8,7 +11,9 @@ use serde_json::Value;
 use crate::{
     domain::profile_document::{OwnedProfileDocument, ProfileImportDraft},
     error::AppError,
-    infrastructure::persistence::{load_workspace, restore_app_state, save_workspace},
+    infrastructure::persistence::{
+        ConsentAuditRecord, load_workspace, restore_app_state, save_workspace,
+    },
     repository::profile_repository::load_profile_documents,
     usecase::{
         profile_usecase::{
@@ -39,7 +44,37 @@ impl SharedState {
 
     pub fn start(&self, consent: ConsentInput) -> Result<(), AppError> {
         let mut state = self.inner.lock().expect("shared state poisoned");
-        start_session(&mut state.app_state, consent)
+        let confirmed_at_unix_ms = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|_| AppError::SystemClockUnavailable)?
+            .as_millis()
+            .try_into()
+            .map_err(|_| AppError::SystemClockUnavailable)?;
+        let session_id = uuid::Uuid::new_v4().to_string();
+
+        start_session(
+            &mut state.app_state,
+            consent,
+            session_id.clone(),
+            confirmed_at_unix_ms,
+        )?;
+        state.consent_audit.push(ConsentAuditRecord {
+            session_id,
+            confirmed_at_unix_ms,
+            policy_version: "consent-v1".to_owned(),
+        });
+        state.consent_audit = state
+            .consent_audit
+            .iter()
+            .rev()
+            .take(1_000)
+            .cloned()
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+        persist_workspace(&state);
+        Ok(())
     }
 
     pub fn stop(&self) {
@@ -50,7 +85,6 @@ impl SharedState {
     pub fn toggle_share_safe_mode(&self) -> AppState {
         let mut state = self.inner.lock().expect("shared state poisoned");
         toggle_share_safe_mode(&mut state.app_state);
-        persist_workspace(&state);
         state.snapshot()
     }
 
@@ -141,6 +175,7 @@ struct InnerState {
     dashboard_state: Value,
     documents: Vec<OwnedProfileDocument>,
     seed_documents: Vec<OwnedProfileDocument>,
+    consent_audit: Vec<ConsentAuditRecord>,
 }
 
 impl Default for InnerState {
@@ -148,10 +183,11 @@ impl Default for InnerState {
         let persisted = load_workspace();
 
         Self {
-            app_state: restore_app_state(&persisted.documents, persisted.share_safe_mode),
+            app_state: restore_app_state(&persisted.documents),
             dashboard_state: persisted.dashboard_state,
             documents: persisted.documents,
             seed_documents: Vec::new(),
+            consent_audit: persisted.consent_audit,
         }
     }
 }
@@ -166,7 +202,7 @@ fn persist_workspace(state: &InnerState) {
     save_workspace(
         &state.documents,
         &state.dashboard_state,
-        state.app_state.session.share_safe_mode,
+        &state.consent_audit,
     );
 }
 

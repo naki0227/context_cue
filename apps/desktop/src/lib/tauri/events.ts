@@ -29,6 +29,15 @@ export function attachAppEvents(store: StoreState) {
     );
 
     unlisteners.push(
+      await listen('share-safe-mode-changed', (event) => {
+        const parsed = appStateSchema.pick({ session: true }).parse({
+          session: event.payload,
+        });
+        store.patchSession(parsed.session);
+      }),
+    );
+
+    unlisteners.push(
       await listen('rolling-summary-updated', (event) => {
         store.patchRollingSummary(rollingSummarySchema.parse(event.payload));
       }),

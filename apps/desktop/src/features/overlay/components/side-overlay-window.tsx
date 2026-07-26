@@ -64,20 +64,9 @@ export function SideOverlayWindow({
 
         <div className="dock-feed">
           {!showTranscript || transcriptPreview.length === 0 ? (
-            <>
-              <p className="speaker-line">
-                <span className="speaker-name other">相手</span>
-                学生時代に力を入れたことについて教えてください。
-              </p>
-              <p className="speaker-line">
-                <span className="speaker-name you">あなた</span>
-                はい、大学時代にUSJでのアルバイトに力を入れました。
-              </p>
-              <p className="speaker-line">
-                <span className="speaker-name other">相手</span>
-                なるほど、具体的にどのような課題があったのですか？
-              </p>
-            </>
+            <p className="overlay-empty-state">
+              セッションを開始すると、ここに文字起こしが表示されます。
+            </p>
           ) : (
             transcriptPreview.map((chunk, index) => (
               <p className="speaker-line" key={chunk.id}>
