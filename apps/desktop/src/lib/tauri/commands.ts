@@ -242,6 +242,29 @@ export async function setOverlayVisibility(
   });
 }
 
+export async function exportWorkspace(destination: string): Promise<void> {
+  if (
+    !(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+  ) {
+    return;
+  }
+  await invoke('export_workspace', { destination });
+}
+
+export async function deleteAllData(): Promise<AppState> {
+  if (
+    !(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+  ) {
+    resetMockAppState();
+    mockWorkspaceState = workspaceSnapshotSchema.parse(
+      createInitialWorkspace('resume'),
+    );
+    return appStateSchema.parse(mockAppState);
+  }
+  const result = await invoke<AppState>('delete_all_data');
+  return appStateSchema.parse(result);
+}
+
 export async function invokeCommand(
   command: CommandName,
   payload?: CommandPayload,

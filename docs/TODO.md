@@ -16,10 +16,10 @@
 - [完了] 空のoverlayからハードコードされた面接会話を削除する
 - [完了] 保存ファイルを`0600`、原子的書込み、schema version付きにする
 - [完了] Rust側workspace schema検証と入力サイズ上限を追加する
-- [未着手] 全データ削除とユーザー指定先へのexportを実装する
+- [完了] 全データ削除とユーザー指定先へのexportを実装する
 - [未着手] 音声、transcript、summary、AI出力の保存ポリシーを実装する
 - [未着手] セッション終了後summaryとReview生成を実データへ接続する
-- [未着手] mainとoverlayのTauri capabilityを分離し、CSPを設定する
+- [完了] mainとoverlayのTauri capabilityを分離し、CSPを設定する
 - [未着手] 正式アイコン、macOS署名・公証、Windows署名を設定する
 - [未着手] 3 OSで初回Releaseとインストールsmoke testを実施する
 
@@ -57,6 +57,9 @@
 - [完了] workspaceを0600・原子的書込み・10MiB上限・schema検証付きへ変更した
 - [完了] backupを5件に制限し、破損時の自動復旧を追加した
 - [完了] 保存失敗のエラー表示と250ms遅延保存を追加した
+- [完了] 全データのJSON書き出しと、workspace・backup・一時ファイルの完全削除を追加した
+- [完了] main/overlayのTauri capabilityを分離し、WebViewのCSPを設定した
+- [完了] macOS release buildで`.app`とDMGの生成を確認した
 - [完了] 新規・再開・デモの3起動を追加し、本人用領域は新規/再開で共有、デモだけ分離した
 - [完了] 全ダッシュボード画面を作業ツール寄りの UI 密度・文言・背景に調整した
 - [完了] 共通 RelationSelector を追加し、Sessions / Projects / Review の関係編集 UI を選択式にそろえた
@@ -81,5 +84,5 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] 全データ削除とexportを実装する
 - [次回] OllamaセットアップとLLM clientのADR・interface・テストを作る
+- [次回] マイク入力とSTT adapterのADR・interface・テストを作る

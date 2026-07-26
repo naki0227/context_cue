@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { useDataManagement } from '@/features/dashboard/hooks/use-data-management';
 import { useKnowledgeImport } from '@/features/dashboard/hooks/use-knowledge-import';
 import { useWorkspacePersistence } from '@/features/dashboard/hooks/use-workspace-persistence';
 import type { PageId } from '@/features/dashboard/lib/content';
@@ -24,6 +25,7 @@ export type DashboardController = {
   canStart: boolean;
   confirmItems: string[];
   consent: ConsentState;
+  dataActionNotice: string;
   fileInputRef: RefObject<HTMLInputElement | null>;
   flowPoints: string[];
   knowledgeImportNotice: string;
@@ -38,6 +40,8 @@ export type DashboardController = {
   transcriptPreview: AppState['transcript'];
   setActivePage: (page: PageId) => void;
   clearRuntimeError: () => void;
+  deleteAllLocalData: () => Promise<void>;
+  exportAllData: () => Promise<void>;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
   setOverlayPreference: <Key extends keyof OverlayPreferences>(
     key: Key,
@@ -80,6 +84,7 @@ export function useDashboardController(
     onError: reportRuntimeError,
   });
   const knowledgeImport = useKnowledgeImport(reportRuntimeError);
+  const dataManagement = useDataManagement(reportRuntimeError);
 
   useEffect(() => {
     invokeCommand('get_app_state')
@@ -178,8 +183,11 @@ export function useDashboardController(
     clearRuntimeError: () => setRuntimeError(''),
     confirmItems,
     consent,
+    dataActionNotice: dataManagement.dataActionNotice,
+    deleteAllLocalData: dataManagement.deleteAllLocalData,
     fileInputRef: knowledgeImport.fileInputRef,
     flowPoints,
+    exportAllData: dataManagement.exportAllData,
     importLocalFiles: knowledgeImport.importLocalFiles,
     importSampleKnowledge: knowledgeImport.importSampleKnowledge,
     knowledgeImportNotice: knowledgeImport.knowledgeImportNotice,

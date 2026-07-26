@@ -45,6 +45,9 @@ function renderPage(controller: DashboardController, activePage: PageId) {
           canStart={controller.canStart}
           clearProfileDocuments={controller.clearProfileDocuments}
           consent={controller.consent}
+          dataActionNotice={controller.dataActionNotice}
+          deleteAllLocalData={controller.deleteAllLocalData}
+          exportAllData={controller.exportAllData}
           overlayPreferences={controller.overlayPreferences}
           setConsentField={controller.setConsentField}
           setOverlayPreference={controller.setOverlayPreference}

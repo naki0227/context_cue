@@ -12,6 +12,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(app::SharedState::default())
         .setup(|app| {
@@ -28,6 +29,8 @@ pub fn run() {
             commands::import_profile_documents_from_files,
             commands::remove_profile_document,
             commands::clear_profile_documents,
+            commands::export_workspace,
+            commands::delete_all_data,
             commands::save_workspace_state,
             commands::start_session,
             commands::stop_session,

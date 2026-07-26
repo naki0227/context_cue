@@ -221,6 +221,32 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('deletes all local workspace data from settings', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /Overlay Settings/i,
+      }),
+    );
+
+    expect(
+      await screen.findByRole('button', { name: 'すべて書き出す' }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', {
+        name: 'すべて削除',
+      }),
+    );
+
+    expect(
+      await screen.findByText('すべてのローカルデータを削除しました。'),
+    ).toBeInTheDocument();
+    confirm.mockRestore();
+  });
+
   it('renders top overlay window content on top overlay view', async () => {
     window.history.replaceState({}, '', '/?view=overlay-top');
     render(<App />);

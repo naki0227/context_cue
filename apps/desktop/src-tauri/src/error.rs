@@ -5,6 +5,7 @@ use crate::infrastructure::persistence::PersistenceError;
 #[derive(Debug)]
 pub enum AppError {
     ConsentIncomplete,
+    InvalidExportPath,
     Persistence(PersistenceError),
     StateUnavailable,
     SystemClockUnavailable,
@@ -16,6 +17,7 @@ impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ConsentIncomplete => write!(f, "consent requirements are incomplete"),
+            Self::InvalidExportPath => write!(f, "export destination must be an absolute path"),
             Self::Persistence(error) => error.fmt(f),
             Self::StateUnavailable => write!(f, "application state is temporarily unavailable"),
             Self::SystemClockUnavailable => write!(f, "system clock is unavailable"),

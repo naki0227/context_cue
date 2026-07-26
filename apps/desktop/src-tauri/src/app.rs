@@ -1,5 +1,5 @@
 use std::{
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex, MutexGuard},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -14,7 +14,8 @@ use crate::{
     domain::profile_document::{OwnedProfileDocument, ProfileImportDraft},
     error::AppError,
     infrastructure::persistence::{
-        ConsentAuditRecord, load_workspace, restore_app_state, save_workspace_at,
+        ConsentAuditRecord, delete_workspace_at, export_workspace_at, load_workspace,
+        restore_app_state, save_workspace_at,
     },
     repository::profile_repository::load_profile_documents,
     usecase::{
@@ -28,9 +29,6 @@ use crate::{
 
 #[cfg(test)]
 use crate::{config::LaunchMode, infrastructure::persistence::load_workspace_at};
-#[cfg(test)]
-use std::path::Path;
-
 #[derive(Clone)]
 pub struct SharedState {
     inner: Arc<Mutex<InnerState>>,
@@ -203,6 +201,27 @@ impl SharedState {
         Ok(state.dashboard_state.clone())
     }
 
+    pub fn export_workspace(&self, destination: &Path) -> Result<(), AppError> {
+        let state = self.lock()?;
+        export_workspace_at(
+            destination,
+            &state.documents,
+            &state.dashboard_state,
+            &state.consent_audit,
+        )?;
+        Ok(())
+    }
+
+    pub fn delete_all_data(&self) -> Result<AppState, AppError> {
+        let mut state = self.lock()?;
+        delete_workspace_at(&state.workspace_path)?;
+        state.documents.clear();
+        state.consent_audit.clear();
+        state.dashboard_state = crate::infrastructure::persistence::model::empty_dashboard_state();
+        state.app_state = restore_app_state(&[]);
+        Ok(state.snapshot())
+    }
+
     fn lock(&self) -> Result<MutexGuard<'_, InnerState>, AppError> {
         self.inner.lock().map_err(|_| AppError::StateUnavailable)
     }
@@ -280,7 +299,7 @@ mod tests {
     use super::SharedState;
     use crate::domain::profile_document::ProfileImportDraft;
     use context_cue_contracts::ConsentInput;
-    use std::error::Error;
+    use std::{error::Error, fs};
 
     fn test_state() -> Result<(tempfile::TempDir, SharedState), Box<dyn Error>> {
         let temp_dir = tempfile::tempdir()?;
@@ -319,6 +338,40 @@ mod tests {
             imported.imported_documents[0].source_type,
             "ローカルファイル"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn export_contains_current_documents_and_schema_version() -> Result<(), Box<dyn Error>> {
+        let (temp_dir, state) = test_state()?;
+        state.import_profile_documents_from_files(vec![ProfileImportDraft {
+            title: "自己紹介".to_owned(),
+            content: "外部へ書き出す内容".to_owned(),
+        }])?;
+        let destination = temp_dir.path().join("export.json");
+
+        state.export_workspace(&destination)?;
+
+        let content = fs::read_to_string(destination)?;
+        assert!(content.contains("\"schemaVersion\": 3"));
+        assert!(content.contains("\"title\": \"自己紹介\""));
+        assert!(content.contains("外部へ書き出す内容"));
+        Ok(())
+    }
+
+    #[test]
+    fn delete_all_data_clears_memory_and_workspace_files() -> Result<(), Box<dyn Error>> {
+        let (temp_dir, state) = test_state()?;
+        state.import_profile_documents_from_files(vec![ProfileImportDraft {
+            title: "削除対象".to_owned(),
+            content: "端末から消す内容".to_owned(),
+        }])?;
+
+        let snapshot = state.delete_all_data()?;
+
+        assert!(snapshot.imported_documents.is_empty());
+        assert_eq!(fs::read_dir(temp_dir.path())?.count(), 0);
+        assert!(state.workspace_snapshot()?.as_object().is_some());
         Ok(())
     }
 }

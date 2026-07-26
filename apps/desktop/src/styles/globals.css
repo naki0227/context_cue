@@ -343,6 +343,28 @@ button:disabled {
   white-space: nowrap;
 }
 
+.settings-card-description,
+.settings-action-notice {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.settings-data-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.danger-button {
+  border: 1px solid rgba(185, 50, 50, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 243, 242, 0.9);
+  color: #a23535;
+  font: inherit;
+  font-weight: 700;
+}
+
 .page-header {
   padding: 8px 8px 0;
 }

@@ -84,6 +84,26 @@ pub fn recover_latest_backup(path: &Path) -> Result<Option<PersistedWorkspace>, 
     Ok(None)
 }
 
+pub fn delete_workspace_files(path: &Path) -> Result<(), PersistenceError> {
+    let parent = path.parent().ok_or(PersistenceError::MissingParent)?;
+    if !parent.exists() {
+        return Ok(());
+    }
+
+    for entry in fs::read_dir(parent).map_err(PersistenceError::Read)? {
+        let entry = entry.map_err(PersistenceError::Read)?;
+        let file_name = entry.file_name();
+        let file_name = file_name.to_string_lossy();
+        let is_workspace_file = entry.path() == path
+            || file_name.starts_with("workspace-state-v2.backup-")
+            || file_name.starts_with(".workspace-");
+        if is_workspace_file {
+            fs::remove_file(entry.path()).map_err(PersistenceError::Write)?;
+        }
+    }
+    sync_directory(parent)
+}
+
 fn write_temp_file(path: &Path, content: &[u8]) -> Result<(), PersistenceError> {
     let mut options = OpenOptions::new();
     options.write(true).create_new(true);

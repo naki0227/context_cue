@@ -111,6 +111,7 @@ type StoreState = {
   pushTranscriptChunk: (chunk: AppState['transcript'][number]) => void;
   setConsentField: (field: keyof ConsentState, value: boolean) => void;
   resetConsent: () => void;
+  resetPreferences: () => void;
   setOverlayPreference: <Key extends keyof OverlayPreferences>(
     key: Key,
     value: OverlayPreferences[Key],
@@ -152,6 +153,11 @@ export const useAppStore = create<StoreState>()(
           },
         })),
       resetConsent: () => set({ consent: defaultConsent }),
+      resetPreferences: () =>
+        set({
+          consent: defaultConsent,
+          overlayPreferences: defaultOverlayPreferences,
+        }),
       setOverlayPreference: (key, value) =>
         set((state) => ({
           overlayPreferences: {

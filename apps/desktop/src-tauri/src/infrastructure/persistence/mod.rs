@@ -88,6 +88,19 @@ pub fn save_workspace_at(
     file_store::write_workspace(path, &workspace)
 }
 
+pub fn export_workspace_at(
+    destination: &Path,
+    documents: &[OwnedProfileDocument],
+    dashboard_state: &Value,
+    consent_audit: &[ConsentAuditRecord],
+) -> Result<(), PersistenceError> {
+    save_workspace_at(destination, documents, dashboard_state, consent_audit)
+}
+
+pub fn delete_workspace_at(path: &Path) -> Result<(), PersistenceError> {
+    file_store::delete_workspace_files(path)
+}
+
 pub fn restore_app_state(documents: &[OwnedProfileDocument]) -> context_cue_contracts::AppState {
     let mut app_state = default_app_state();
     app_state.imported_documents = documents
@@ -117,7 +130,10 @@ fn start_new_workspace(path: &Path) -> Result<PersistedWorkspace, PersistenceErr
 mod tests {
     use super::{
         ConsentAuditRecord,
-        file_store::{archive_workspace, read_workspace, recover_latest_backup, write_workspace},
+        file_store::{
+            archive_workspace, delete_workspace_files, read_workspace, recover_latest_backup,
+            write_workspace,
+        },
         model::PersistedWorkspace,
     };
     use std::{error::Error, fs};
@@ -195,6 +211,24 @@ mod tests {
             })
             .count();
         assert_eq!(backup_count, 5);
+        Ok(())
+    }
+
+    #[test]
+    fn full_delete_removes_workspace_backups_and_temporary_files() -> Result<(), Box<dyn Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let path = temp_dir.path().join("workspace-state-v2.json");
+        write_workspace(&path, &PersistedWorkspace::default())?;
+        archive_workspace(&path)?;
+        write_workspace(&path, &PersistedWorkspace::default())?;
+        fs::write(
+            temp_dir.path().join(".workspace-interrupted.tmp"),
+            b"partial",
+        )?;
+
+        delete_workspace_files(&path)?;
+
+        assert_eq!(fs::read_dir(temp_dir.path())?.count(), 0);
         Ok(())
     }
 }

@@ -1,4 +1,5 @@
 import { SettingsBehaviorCard } from '@/features/dashboard/components/settings/settings-behavior-card';
+import { SettingsDataCard } from '@/features/dashboard/components/settings/settings-data-card';
 import { SettingsDesignCard } from '@/features/dashboard/components/settings/settings-design-card';
 import { SettingsDisplayCard } from '@/features/dashboard/components/settings/settings-display-card';
 import { SettingsMiscCard } from '@/features/dashboard/components/settings/settings-misc-card';
@@ -23,6 +24,11 @@ export function SettingsPage(props: SettingsPageProps) {
           <SettingsMiscCard
             overlayPreferences={props.overlayPreferences}
             setOverlayPreference={props.setOverlayPreference}
+          />
+          <SettingsDataCard
+            dataActionNotice={props.dataActionNotice}
+            deleteAllLocalData={props.deleteAllLocalData}
+            exportAllData={props.exportAllData}
           />
         </div>
 

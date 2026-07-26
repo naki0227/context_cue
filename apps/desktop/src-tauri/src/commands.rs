@@ -1,5 +1,6 @@
 use context_cue_contracts::{AppState, ConsentInput};
 use serde_json::Value;
+use std::path::PathBuf;
 use tauri::{AppHandle, Emitter, State};
 
 use crate::{
@@ -68,6 +69,22 @@ pub fn clear_profile_documents(state: State<'_, SharedState>) -> Result<AppState
     state
         .clear_profile_documents()
         .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn export_workspace(state: State<'_, SharedState>, destination: String) -> Result<(), String> {
+    let destination = PathBuf::from(destination);
+    if !destination.is_absolute() {
+        return Err(crate::error::AppError::InvalidExportPath.to_string());
+    }
+    state
+        .export_workspace(&destination)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn delete_all_data(state: State<'_, SharedState>) -> Result<AppState, String> {
+    state.delete_all_data().map_err(|error| error.to_string())
 }
 
 #[tauri::command]
