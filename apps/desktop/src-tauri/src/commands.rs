@@ -257,7 +257,9 @@ pub async fn start_session(
     app.emit("session-status-changed", snapshot.session)
         .map_err(|error| error.to_string())?;
 
-    MockEventRunner::spawn(app, state.inner().clone());
+    if config::launch_mode() == config::LaunchMode::Demo {
+        MockEventRunner::spawn(app, state.inner().clone());
+    }
 
     state.snapshot().map_err(|error| error.to_string())
 }

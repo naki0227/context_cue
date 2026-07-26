@@ -2,7 +2,7 @@
 
 ## 進行中
 
-- [進行中] 音声、transcript、summary、AI出力の保存ポリシーを実装する
+- [進行中] User基本情報とMy Knowledge onboardingを実装する
 
 ## P0: 本番ブロッカー
 
@@ -17,15 +17,15 @@
 - [完了] 保存ファイルを`0600`、原子的書込み、schema version付きにする
 - [完了] Rust側workspace schema検証と入力サイズ上限を追加する
 - [完了] 全データ削除とユーザー指定先へのexportを実装する
-- [進行中] 音声、transcript、summary、AI出力の保存ポリシーを実装する
-- [未着手] セッション終了後summaryとReview生成を実データへ接続する
+- [完了] 音声、transcript、summary、AI出力の保存ポリシーを実装する
+- [完了] セッション終了後summaryとReview生成を実データへ接続する
 - [完了] mainとoverlayのTauri capabilityを分離し、CSPを設定する
 - [未着手] 正式アイコン、macOS署名・公証、Windows署名を設定する
 - [未着手] 3 OSで初回Releaseとインストールsmoke testを実施する
 
 ## P1: 公開前必須
 
-- [未着手] User基本情報とMy Knowledge onboardingを実装する
+- [進行中] User基本情報とMy Knowledge onboardingを実装する
 - [未着手] AI整理前preview、差分承認、出典・確度・機密度を実装する
 - [未着手] セッションごとの参照ナレッジ選択を実装する
 - [未着手] 設定画面の表示位置、hotkey、起動時最小化を実動作へ接続する
@@ -48,6 +48,10 @@
 
 ## 完了
 
+- [完了] 保存項目を既定OFFにし、選択した文字起こし・要約・AI出力だけをReviewへ保存するようにした
+- [完了] 全保存OFF時は推定トピックを含む会話本文をタイトルや種別にも残さないようにした
+- [完了] セッション停止時にRustメモリ上の文字起こし・要約・提案を消去するようにした
+- [完了] 本人用モードでデモイベントが混入しないようにした
 - [完了] Rust 1.97で追加されたClippy lintに対応し、依存監査を含むCIを復旧した
 - [完了] 本番リリース準備を監査し、P0 / P1 / P2の受け入れ条件を文書化した
 - [完了] My Knowledge入力例、禁止情報、AI整理promptを文書化した
@@ -86,10 +90,11 @@
 
 ## 要確認
 
+- [要確認] `cargo audit`の許可済み警告18件をTauri更新に合わせて定期的に再評価する
 - [要確認] `workspace-seed.ts` はサンプルデータ定義ファイルとして 300 行超を許容するか、分割するか
 - [要確認] People の `history` / `lastContactLabel` を将来的に完全導出へ寄せるか、手入力と併用するか
 
 ## 次回最初に着手するタスク
 
-- [次回] セッション保存ポリシーとReview自動生成を接続する
 - [次回] User基本情報とMy Knowledge onboardingを実装する
+- [次回] 実STT入力をLLM解析パイプラインへ接続する

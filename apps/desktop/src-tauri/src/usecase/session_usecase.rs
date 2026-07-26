@@ -68,6 +68,9 @@ pub fn stop_session(app_state: &mut AppState) {
     app_state.session.share_safe_mode = false;
     app_state.adaptive_inference.mode = "light".to_owned();
     app_state.adaptive_inference.question_score = 0.0;
+    app_state.transcript.clear();
+    app_state.rolling_summary = default_app_state().rolling_summary;
+    app_state.context_cue = default_app_state().context_cue;
 }
 
 pub fn toggle_share_safe_mode(app_state: &mut AppState) {
@@ -214,10 +217,22 @@ mod tests {
         let mut state = default_app_state();
         state.session.status = "running".to_owned();
         state.session.share_safe_mode = true;
+        state
+            .transcript
+            .push(context_cue_contracts::TranscriptChunk {
+                id: "chunk-1".to_owned(),
+                source: "マイク".to_owned(),
+                text: "保存しない会話".to_owned(),
+            });
 
         stop_session(&mut state);
 
         assert_eq!(state.session.status, "stopped");
         assert!(!state.session.share_safe_mode);
+        assert!(state.transcript.is_empty());
+        assert_eq!(
+            state.rolling_summary.current_topic,
+            "セッション開始を待っています"
+        );
     }
 }

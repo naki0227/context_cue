@@ -236,6 +236,13 @@ describe('App', () => {
       await screen.findByRole('button', { name: 'すべて書き出す' }),
     ).toBeInTheDocument();
     expect(screen.getByText('ローカルAI')).toBeInTheDocument();
+    expect(screen.getByText('ローカル音声認識')).toBeInTheDocument();
+    expect(screen.getByText('保存ポリシー')).toBeInTheDocument();
+    expect(screen.getByText(/生音声は常に保存しません/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '文字起こしを保存' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText(/約57 MB/i)).toBeInTheDocument();
     expect(screen.getByText('停止中')).toBeInTheDocument();
     await user.click(
       screen.getByRole('button', {

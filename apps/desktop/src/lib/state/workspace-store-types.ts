@@ -1,3 +1,4 @@
+import type { SessionArchive } from '@/features/dashboard/lib/session-archive';
 import type {
   KnowledgeRecord,
   PersonRecord,
@@ -23,6 +24,7 @@ export type WorkspaceState = {
   reviews: ReviewRecord[];
   sessions: SessionRecord[];
   templates: TemplateRecord[];
+  archiveCompletedSession: (archive: SessionArchive) => void;
   replaceWorkspace: (snapshot: WorkspaceSnapshot) => void;
   addKnowledgeItem: (item?: Partial<KnowledgeRecord>) => string;
   addPerson: (item?: Partial<PersonRecord>) => string;
