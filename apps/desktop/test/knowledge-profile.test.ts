@@ -8,6 +8,7 @@ describe('knowledge user profile', () => {
   it('round trips structured profile fields through a knowledge record', () => {
     const record = buildUserProfileRecord(
       {
+        avatarDataUrl: 'data:image/png;base64,YQ==',
         displayName: ' 伊吹 ',
         role: '大学生   / 個人開発者',
         activities: 'Web開発',
@@ -17,6 +18,7 @@ describe('knowledge user profile', () => {
     );
 
     expect(readUserProfile([record])).toEqual({
+      avatarDataUrl: 'data:image/png;base64,YQ==',
       displayName: '伊吹',
       role: '大学生 / 個人開発者',
       activities: 'Web開発',
@@ -29,5 +31,6 @@ describe('knowledge user profile', () => {
 
   it('uses a non-identifying fallback when no profile exists', () => {
     expect(getUserDisplayName([])).toBe('User');
+    expect(readUserProfile([]).avatarDataUrl).toBe('');
   });
 });

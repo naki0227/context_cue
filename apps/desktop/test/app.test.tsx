@@ -44,6 +44,7 @@ describe('App', () => {
         name: /My Knowledge/i,
       }),
     );
+    expect(screen.queryByTestId('user-avatar-input')).toBeNull();
 
     expect(
       await screen.findByText((content) =>

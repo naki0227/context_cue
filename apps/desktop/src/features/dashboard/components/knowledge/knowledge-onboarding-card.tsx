@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { UserAvatar } from '@/features/dashboard/components/user-avatar';
 import {
   buildUserProfileRecord,
   KNOWLEDGE_ORGANIZER_PROMPT,
   type UserProfileInput,
 } from '@/features/dashboard/lib/knowledge-profile';
+import { prepareAvatarImage } from '@/features/dashboard/lib/user-avatar';
 import type { KnowledgeRecord } from '@/features/dashboard/lib/workspace-types';
+import { isDemoMode } from '@/lib/config/launch-mode';
 
 type KnowledgeOnboardingCardProps = {
   initialProfile: UserProfileInput;
@@ -47,6 +50,9 @@ export function KnowledgeOnboardingCard({
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>(
     'idle',
   );
+  const [avatarError, setAvatarError] = useState('');
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   function patch(key: keyof UserProfileInput, value: string) {
     setProfile((current) => ({ ...current, [key]: value }));
@@ -58,6 +64,27 @@ export function KnowledgeOnboardingCard({
       setCopyStatus('copied');
     } catch {
       setCopyStatus('failed');
+    }
+  }
+
+  async function selectAvatar(file: File | undefined) {
+    if (!file) {
+      return;
+    }
+
+    setAvatarBusy(true);
+    setAvatarError('');
+    try {
+      patch('avatarDataUrl', await prepareAvatarImage(file));
+    } catch (error) {
+      setAvatarError(
+        error instanceof Error ? error.message : '画像を設定できませんでした。',
+      );
+    } finally {
+      setAvatarBusy(false);
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
     }
   }
 
@@ -83,6 +110,50 @@ export function KnowledgeOnboardingCard({
               : 'AI整理プロンプトをコピー'}
         </button>
       </div>
+
+      {!isDemoMode ? (
+        <div className="knowledge-avatar-editor">
+          <UserAvatar
+            className="knowledge-profile-avatar"
+            imageDataUrl={profile.avatarDataUrl}
+          />
+          <div>
+            <strong>プロフィール画像</strong>
+            <p>端末内に保存され、バックアップとJSON書き出しにも含まれます。</p>
+            <div className="knowledge-avatar-actions">
+              <button
+                className="secondary-button"
+                disabled={avatarBusy}
+                onClick={() => avatarInputRef.current?.click()}
+                type="button"
+              >
+                {avatarBusy ? '画像を処理中...' : '画像を選択'}
+              </button>
+              {profile.avatarDataUrl ? (
+                <button
+                  className="text-link"
+                  onClick={() => patch('avatarDataUrl', '')}
+                  type="button"
+                >
+                  画像を削除
+                </button>
+              ) : null}
+            </div>
+            {avatarError ? (
+              <p className="form-error" role="alert">
+                {avatarError}
+              </p>
+            ) : null}
+          </div>
+          <input
+            accept="image/png,image/jpeg,image/webp"
+            data-testid="user-avatar-input"
+            onChange={(event) => void selectAvatar(event.target.files?.[0])}
+            ref={avatarInputRef}
+            type="file"
+          />
+        </div>
+      ) : null}
 
       <div className="knowledge-profile-fields">
         <label>

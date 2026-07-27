@@ -1,15 +1,19 @@
+import { normalizeAvatarDataUrl } from '@/features/dashboard/lib/user-avatar';
 import type { KnowledgeRecord } from '@/features/dashboard/lib/workspace-types';
 
 export const USER_PROFILE_ID = 'knowledge-user-profile';
 
 export type UserProfileInput = {
   activities: string;
+  avatarDataUrl: string;
   displayName: string;
   role: string;
   usageScenes: string;
 };
 
-const FIELD_LABELS: Record<keyof UserProfileInput, string> = {
+type UserProfileTextKey = Exclude<keyof UserProfileInput, 'avatarDataUrl'>;
+
+const FIELD_LABELS: Record<UserProfileTextKey, string> = {
   displayName: '呼ばれたい名前',
   role: '現在の所属・役割',
   activities: '今取り組んでいること',
@@ -48,6 +52,7 @@ export function buildUserProfileRecord(
   updatedAt = new Date().toLocaleDateString('ja-JP'),
 ): KnowledgeRecord {
   return {
+    avatarDataUrl: normalizeAvatarDataUrl(input.avatarDataUrl) || undefined,
     id: USER_PROFILE_ID,
     title: '基本プロフィール',
     tag: '基本情報',
@@ -56,7 +61,7 @@ export function buildUserProfileRecord(
     sourceLabel: '本人入力',
     confidence: '確認済み',
     sensitivity: '個人',
-    content: (Object.keys(FIELD_LABELS) as (keyof UserProfileInput)[]).map(
+    content: (Object.keys(FIELD_LABELS) as UserProfileTextKey[]).map(
       (key) => `${FIELD_LABELS[key]}: ${normalizeField(input[key])}`,
     ),
   };
@@ -76,6 +81,7 @@ export function readUserProfile(
   );
 
   return {
+    avatarDataUrl: normalizeAvatarDataUrl(profile?.avatarDataUrl),
     displayName: entries.get(FIELD_LABELS.displayName) ?? '',
     role: entries.get(FIELD_LABELS.role) ?? '',
     activities: entries.get(FIELD_LABELS.activities) ?? '',

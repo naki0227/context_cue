@@ -130,6 +130,7 @@ export type KnowledgeConfidence = '確認済み' | '概算' | '未確認';
 export type KnowledgeSensitivity = '一般' | '個人' | '機密';
 
 export type KnowledgeRecord = {
+  avatarDataUrl?: string;
   confidence?: KnowledgeConfidence;
   content: string[];
   id: string;

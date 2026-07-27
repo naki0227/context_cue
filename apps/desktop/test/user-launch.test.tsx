@@ -35,6 +35,10 @@ describe('new user launch', () => {
     await user.click(
       await screen.findByRole('button', { name: /My Knowledge/i }),
     );
+    expect(screen.getByTestId('user-avatar-input')).toHaveAttribute(
+      'accept',
+      'image/png,image/jpeg,image/webp',
+    );
     await user.type(
       screen.getByRole('textbox', { name: '呼ばれたい名前' }),
       '伊吹',

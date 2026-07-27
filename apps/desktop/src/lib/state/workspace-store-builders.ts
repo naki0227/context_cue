@@ -106,6 +106,7 @@ export function createKnowledgeRecord(
   count: number,
 ) {
   return {
+    avatarDataUrl: item?.avatarDataUrl,
     id: item?.id ?? `knowledge-${crypto.randomUUID()}`,
     title: item?.title ?? `新しいナレッジ ${count + 1}`,
     tag: item?.tag ?? '下書き',

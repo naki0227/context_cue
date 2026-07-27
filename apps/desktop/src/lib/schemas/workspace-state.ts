@@ -98,6 +98,11 @@ export const reviewRecordSchema = z.object({
 });
 
 export const knowledgeRecordSchema = z.object({
+  avatarDataUrl: z
+    .string()
+    .max(800_000)
+    .regex(/^data:image\/(?:jpeg|png|webp);base64,[a-zA-Z0-9+/=]+$/)
+    .optional(),
   confidence: z.enum(['確認済み', '概算', '未確認']).optional(),
   content: z.array(z.string()),
   id: z.string(),

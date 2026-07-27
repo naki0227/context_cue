@@ -1,5 +1,9 @@
+import { UserAvatar } from '@/features/dashboard/components/user-avatar';
 import { type PageId, sidebarItems } from '@/features/dashboard/lib/content';
-import { getUserDisplayName } from '@/features/dashboard/lib/knowledge-profile';
+import {
+  getUserDisplayName,
+  readUserProfile,
+} from '@/features/dashboard/lib/knowledge-profile';
 import { isDemoMode, isNewMode } from '@/lib/config/launch-mode';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
@@ -11,6 +15,9 @@ type AppSidebarProps = {
 export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
   const displayName = useWorkspaceStore((state) =>
     getUserDisplayName(state.knowledgeItems),
+  );
+  const avatarDataUrl = useWorkspaceStore(
+    (state) => readUserProfile(state.knowledgeItems).avatarDataUrl,
   );
   function navIconClass(page: PageId) {
     switch (page) {
@@ -61,7 +68,7 @@ export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
         onClick={() => onChangePage('knowledge')}
         type="button"
       >
-        <div className="user-avatar user-avatar-v2" />
+        <UserAvatar imageDataUrl={isDemoMode ? '' : avatarDataUrl} />
         <div>
           <strong>{displayName}</strong>
           <p>
