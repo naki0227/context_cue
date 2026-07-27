@@ -36,6 +36,7 @@
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
 - [未着手] LLM / STT / persistence / migrationのintegration testを追加する
 - [未着手] coverage閾値とSBOM生成をCIへ追加する
+- [未着手] GitHub ActionsをNode.js 24対応版へ更新し、非推奨警告を解消する
 - [未着手] PRIVACY、ethics、consent、screen-share safety文書を追加する
 - [未着手] Tauri Updater、CHANGELOG、rollback手順を整備する
 - [完了] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする

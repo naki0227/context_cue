@@ -58,15 +58,17 @@ TypeScriptによる`@/*` alias解決。実行時のVite alias、Rust、保存デ
 
 JavaScript依存監査、lint、typecheck、unit test、build、Rust依存監査、fmt、clippy、check、test、build。
 
-## 未解決の課題
+GitHub Actionsの`main` run `30245242653`は、JavaScript 26秒、Rust 5分13秒で成功した。Dependabot PR #3のrun `30245612101`も、JavaScript 26秒、Rust 5分42秒、GitGuardian 8秒ですべて成功した。
 
-Dependabot PR #3にはTypeScript以外にも複数のmajor更新が含まれるため、PRを最新mainへ同期した後に全チェックを再確認する。
+## 未解決の課題
 
 `cargo audit`の許可済み警告18件は、Tauri/Linux系の推移依存に含まれる保守終了crateとunsound警告である。今回のCI失敗原因ではないが、Tauri更新時に解消状況を継続確認する。
 
+GitHub ActionsからNode.js 20非推奨警告が出ている。CIは成功しているが、`actions/checkout`と`actions/setup-node`をNode.js 24対応版へ更新する。
+
 ## 次にやること
 
-修正をmainへpushし、Dependabot PR #3を更新してCIを再実行する。
+Dependabot PR #3をレビューして更新内容を取り込む。別作業としてGitHub ActionsのNode.js 24対応を行う。
 
 ## 次回最初に見るべきファイル
 
@@ -76,4 +78,4 @@ Dependabot PR #3にはTypeScript以外にも複数のmajor更新が含まれる�
 
 ## 引き継ぎ事項
 
-TypeScript 7以降では`baseUrl`を再導入しない。pathsの参照先は相対パスで記述する。
+TypeScript 7以降では`baseUrl`を再導入しない。pathsの参照先は相対パスで記述する。PR #3は最新mainへrebase済みで、全チェックが成功している。
