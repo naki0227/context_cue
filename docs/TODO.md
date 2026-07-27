@@ -20,7 +20,8 @@
 - [完了] 音声、transcript、summary、AI出力の保存ポリシーを実装する
 - [完了] セッション終了後summaryとReview生成を実データへ接続する
 - [完了] mainとoverlayのTauri capabilityを分離し、CSPを設定する
-- [未着手] 正式アイコン、macOS署名・公証、Windows署名を設定する
+- [完了] 正式アプリアイコンを設定する
+- [未着手] macOS署名・公証、Windows署名を設定する
 - [未着手] 3 OSで初回Releaseとインストールsmoke testを実施する
 
 ## P1: 公開前必須
@@ -49,6 +50,7 @@
 
 ## 完了
 
+- [完了] 人物画像を使わない正式アプリアイコンを生成し、各OS向け素材とTauri bundle設定へ反映した
 - [完了] Knowledge項目へ出典・確度・機密度を追加し、既存データ互換を維持した
 - [完了] Knowledge詳細編集を専用コンポーネントへ分離した
 - [完了] 実Whisper文字起こしを質問検出とローカルLLM提案の共通パイプラインへ接続した
