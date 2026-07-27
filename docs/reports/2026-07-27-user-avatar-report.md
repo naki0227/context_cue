@@ -38,6 +38,7 @@
 - `apps/desktop/test/user-avatar.test.ts`
 - `apps/desktop/test/user-launch.test.tsx`
 - `docs/TODO.md`
+- `docs/reports/2026-07-27-user-avatar-report.md`
 
 ## 変更意図
 
@@ -62,17 +63,18 @@ My Knowledge、サイドバー、workspace schema、backup、JSON export、全�
 
 ## 実行した確認コマンド
 
-- `corepack pnpm lint`: 成功
-- `corepack pnpm typecheck`: 成功
-- `corepack pnpm test`: 36件成功
-- `corepack pnpm build`: 成功
+- `corepack pnpm --filter desktop lint`: 成功
+- `corepack pnpm --filter desktop typecheck`: 成功
+- `corepack pnpm --filter desktop test`: 36件成功
+- `corepack pnpm --filter desktop build`: 成功
 - `cargo fmt --all -- --check`: 成功
-- `cargo clippy --workspace --all-targets --all-features -- -D warnings`: 成功
-- `cargo check --workspace --all-targets --all-features`: 成功
-- `cargo test --workspace --all-features`: 29件成功、実機Whisperテスト1件は意図どおりignore
-- `cargo build --workspace --all-features`: 成功
+- `cargo clippy --workspace --all-targets -- -D warnings`: 成功
+- `cargo check --workspace`: 成功
+- `cargo test --workspace`: 29件成功、実機Whisperテスト1件は意図どおりignore
+- `cargo build --workspace`: 成功
 - `corepack pnpm audit --audit-level high`: 既知脆弱性0件
 - `cargo audit`: 成功、許可済み警告18件
+- Dependabot PR #2を最新`main`へ更新し、`js`・`rust`・GitGuardianの再実行成功を確認
 
 ## CIで確認される内容
 
