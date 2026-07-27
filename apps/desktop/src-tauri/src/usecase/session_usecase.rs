@@ -9,7 +9,11 @@ use context_cue_core::{
 use uuid::Uuid;
 
 use crate::{
-    domain::profile_document::OwnedProfileDocument, error::AppError,
+    domain::{
+        llm::{CueGenerationRequest, RetrievedNote},
+        profile_document::OwnedProfileDocument,
+    },
+    error::AppError,
     repository::profile_repository::rank_notes,
 };
 
@@ -68,23 +72,13 @@ pub fn stop_session(app_state: &mut AppState) {
     app_state.session.share_safe_mode = false;
     app_state.adaptive_inference.mode = "light".to_owned();
     app_state.adaptive_inference.question_score = 0.0;
+    app_state.transcript.clear();
+    app_state.rolling_summary = default_app_state().rolling_summary;
+    app_state.context_cue = default_app_state().context_cue;
 }
 
 pub fn toggle_share_safe_mode(app_state: &mut AppState) {
     app_state.session.share_safe_mode = !app_state.session.share_safe_mode;
-}
-
-pub fn push_mock_chunk(
-    app_state: &mut AppState,
-    documents: &[OwnedProfileDocument],
-    text: &str,
-) -> (
-    TranscriptChunk,
-    RollingSummary,
-    ContextCue,
-    AdaptiveInferenceState,
-) {
-    push_transcript_chunk(app_state, documents, text, "モック音声")
 }
 
 pub fn push_transcript_chunk(
@@ -179,9 +173,39 @@ pub fn push_transcript_chunk(
     )
 }
 
+pub fn build_cue_generation_request(
+    text: &str,
+    summary: RollingSummary,
+    cue: &ContextCue,
+    adaptive: &AdaptiveInferenceState,
+) -> Option<CueGenerationRequest> {
+    if adaptive.mode != "deep" {
+        return None;
+    }
+
+    Some(CueGenerationRequest {
+        transcript_recent: text.to_owned(),
+        rolling_summary: summary,
+        question_likelihood: adaptive.question_score,
+        detected_intent_hint: cue.intent.clone(),
+        retrieved_notes: cue
+            .related_notes
+            .iter()
+            .map(|note| RetrievedNote {
+                title: "参照ナレッジ".to_owned(),
+                content: note.clone(),
+            })
+            .collect(),
+        mode: "conversation".to_owned(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{default_app_state, start_session, stop_session};
+    use super::{
+        build_cue_generation_request, default_app_state, push_transcript_chunk, start_session,
+        stop_session,
+    };
     use context_cue_contracts::ConsentInput;
 
     fn complete_consent() -> ConsentInput {
@@ -214,10 +238,40 @@ mod tests {
         let mut state = default_app_state();
         state.session.status = "running".to_owned();
         state.session.share_safe_mode = true;
+        state
+            .transcript
+            .push(context_cue_contracts::TranscriptChunk {
+                id: "chunk-1".to_owned(),
+                source: "マイク".to_owned(),
+                text: "保存しない会話".to_owned(),
+            });
 
         stop_session(&mut state);
 
         assert_eq!(state.session.status, "stopped");
         assert!(!state.session.share_safe_mode);
+        assert!(state.transcript.is_empty());
+        assert_eq!(
+            state.rolling_summary.current_topic,
+            "セッション開始を待っています"
+        );
+    }
+
+    #[test]
+    fn only_questions_build_a_deep_generation_request() {
+        let mut state = default_app_state();
+        let question = "この変更は今回のリリース対象ですか？";
+        let (_, summary, cue, adaptive) =
+            push_transcript_chunk(&mut state, &[], question, "マイク");
+
+        let request = build_cue_generation_request(question, summary, &cue, &adaptive);
+
+        assert!(request.is_some());
+
+        let (_, summary, cue, adaptive) =
+            push_transcript_chunk(&mut state, &[], "方針を共有します", "マイク");
+        assert!(
+            build_cue_generation_request("方針を共有します", summary, &cue, &adaptive).is_none()
+        );
     }
 }

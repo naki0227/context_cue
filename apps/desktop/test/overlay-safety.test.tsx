@@ -11,6 +11,7 @@ describe('overlay safety', () => {
     const persisted = partialize?.(useAppStore.getState());
 
     expect(persisted).not.toHaveProperty('consent');
+    expect(persisted).not.toHaveProperty('appState');
   });
 
   it('does not render a fictional transcript in the empty state', () => {

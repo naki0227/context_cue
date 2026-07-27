@@ -34,6 +34,12 @@ export type OverlayPreferences = {
   theme: OverlayTheme;
 };
 
+export type SavePreferences = {
+  aiOutput: boolean;
+  summary: boolean;
+  transcript: boolean;
+};
+
 const defaultState: AppState = {
   session: {
     status: 'idle',
@@ -97,10 +103,17 @@ const defaultOverlayPreferences: OverlayPreferences = {
   theme: 'dark',
 };
 
+const defaultSavePreferences: SavePreferences = {
+  aiOutput: false,
+  summary: false,
+  transcript: false,
+};
+
 type StoreState = {
   appState: AppState;
   consent: ConsentState;
   overlayPreferences: OverlayPreferences;
+  savePreferences: SavePreferences;
   setAppState: (appState: AppState) => void;
   patchSession: (session: AppState['session']) => void;
   patchRollingSummary: (rollingSummary: AppState['rollingSummary']) => void;
@@ -116,6 +129,10 @@ type StoreState = {
     key: Key,
     value: OverlayPreferences[Key],
   ) => void;
+  setSavePreference: <Key extends keyof SavePreferences>(
+    key: Key,
+    value: SavePreferences[Key],
+  ) => void;
   toggleOverlaySection: (key: OverlaySectionKey) => void;
   startSessionLocally: () => void;
   stopSessionLocally: () => void;
@@ -127,6 +144,7 @@ export const useAppStore = create<StoreState>()(
       appState: defaultState,
       consent: defaultConsent,
       overlayPreferences: defaultOverlayPreferences,
+      savePreferences: defaultSavePreferences,
       setAppState: (appState) => set({ appState }),
       patchSession: (session) =>
         set((state) => ({ appState: { ...state.appState, session } })),
@@ -157,11 +175,19 @@ export const useAppStore = create<StoreState>()(
         set({
           consent: defaultConsent,
           overlayPreferences: defaultOverlayPreferences,
+          savePreferences: defaultSavePreferences,
         }),
       setOverlayPreference: (key, value) =>
         set((state) => ({
           overlayPreferences: {
             ...state.overlayPreferences,
+            [key]: value,
+          },
+        })),
+      setSavePreference: (key, value) =>
+        set((state) => ({
+          savePreferences: {
+            ...state.savePreferences,
             [key]: value,
           },
         })),
@@ -202,6 +228,7 @@ export const useAppStore = create<StoreState>()(
       name: `context-cue-ui-v3-${storageProfile()}`,
       partialize: (state) => ({
         overlayPreferences: state.overlayPreferences,
+        savePreferences: state.savePreferences,
       }),
       merge: (persistedState, currentState) => ({
         ...currentState,

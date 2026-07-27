@@ -3,6 +3,7 @@ import {
   formatPreparedness,
   type PageId,
 } from '@/features/dashboard/lib/content';
+import { getUserDisplayName } from '@/features/dashboard/lib/knowledge-profile';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
 type HomePageProps = {
@@ -14,6 +15,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
   const knowledgeItems = useWorkspaceStore((state) => state.knowledgeItems);
   const templates = useWorkspaceStore((state) => state.templates);
   const reviews = useWorkspaceStore((state) => state.reviews);
+  const displayName = getUserDisplayName(knowledgeItems);
 
   const nextSession = useMemo(() => {
     return (
@@ -76,7 +78,7 @@ export function HomePage({ onOpenPage }: HomePageProps) {
     <div className="page-layout home-page-v2">
       <header className="home-page-header">
         <div>
-          <h1>おはようございます、User さん</h1>
+          <h1>おはようございます、{displayName} さん</h1>
           <p>次の会話、準備、直近の記録をひとつの流れで見ます。</p>
         </div>
       </header>

@@ -11,13 +11,16 @@ import { useOllamaRuntime } from '@/features/dashboard/hooks/use-ollama-runtime'
 import { useSttRuntime } from '@/features/dashboard/hooks/use-stt-runtime';
 import { useWorkspacePersistence } from '@/features/dashboard/hooks/use-workspace-persistence';
 import type { PageId } from '@/features/dashboard/lib/content';
+import { buildSessionArchive } from '@/features/dashboard/lib/session-archive';
 import { buildOverlayViewModel } from '@/features/overlay/lib/overlay-view-model';
 import type { AppState, ConsentState } from '@/lib/schemas/app-state';
 import {
   type OverlayPreferences,
   type OverlaySectionKey,
+  type SavePreferences,
   useAppStore,
 } from '@/lib/state/app-store';
+import { useWorkspaceStore } from '@/lib/state/workspace-store';
 import { invokeCommand, setOverlayVisibility } from '@/lib/tauri/commands';
 import { attachAppEvents } from '@/lib/tauri/events';
 
@@ -38,6 +41,7 @@ export type DashboardController = {
   overlayTopic: string;
   overlayPreferences: OverlayPreferences;
   preparedness: string;
+  savePreferences: SavePreferences;
   sideOverlayVisible: boolean;
   stt: ReturnType<typeof useSttRuntime>;
   topOverlayVisible: boolean;
@@ -57,6 +61,10 @@ export type DashboardController = {
     key: Key,
     value: OverlayPreferences[Key],
   ) => void;
+  setSavePreference: <Key extends keyof SavePreferences>(
+    key: Key,
+    value: SavePreferences[Key],
+  ) => void;
   toggleOverlaySection: (key: OverlaySectionKey) => void;
   clearProfileDocuments: () => Promise<void>;
   importLocalFiles: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -75,9 +83,11 @@ export function useDashboardController(
     appState,
     consent,
     overlayPreferences,
+    savePreferences,
     setConsentField,
     resetConsent,
     setOverlayPreference,
+    setSavePreference,
     setAppState,
     toggleOverlaySection,
   } = useAppStore();
@@ -85,6 +95,9 @@ export function useDashboardController(
   const [topOverlayVisible, setTopOverlayVisible] = useState(false);
   const [sideOverlayVisible, setSideOverlayVisible] = useState(false);
   const [activePage, setActivePage] = useState<PageId>('home');
+  const archiveCompletedSession = useWorkspaceStore(
+    (state) => state.archiveCompletedSession,
+  );
   const reportRuntimeError = useCallback((message: string) => {
     setRuntimeError(message);
   }, []);
@@ -150,7 +163,14 @@ export function useDashboardController(
   async function stopSession() {
     await runSafely(async () => {
       await stt.stopCapture();
+      const completedState = useAppStore.getState().appState;
       const state = await invokeCommand('stop_session');
+      archiveCompletedSession(
+        buildSessionArchive({
+          appState: completedState,
+          savePreferences,
+        }),
+      );
       setAppState(state);
       resetConsent();
     }, 'セッションを停止できませんでした。');
@@ -214,11 +234,13 @@ export function useDashboardController(
     overlayTopic,
     overlayPreferences,
     preparedness,
+    savePreferences,
     removeProfileDocument: knowledgeImport.removeProfileDocument,
     runtimeError,
     setActivePage,
     setConsentField,
     setOverlayPreference,
+    setSavePreference,
     sideOverlayVisible,
     startSession,
     stt,

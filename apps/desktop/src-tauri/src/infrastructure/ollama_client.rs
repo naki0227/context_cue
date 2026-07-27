@@ -279,11 +279,12 @@ fn parse_progress_line(line: &[u8], report: &ProgressReporter) -> Result<(), Llm
     }
     let progress: PullResponse =
         serde_json::from_str(line).map_err(|_| LlmError::InvalidResponse)?;
-    let percent = if progress.total == 0 {
-        u8::from(progress.status == "success") * 100
-    } else {
-        ((progress.completed.saturating_mul(100) / progress.total).min(100)) as u8
-    };
+    let percent = progress
+        .completed
+        .saturating_mul(100)
+        .checked_div(progress.total)
+        .map(|value| value.min(100) as u8)
+        .unwrap_or_else(|| u8::from(progress.status == "success") * 100);
     report(PullProgress {
         done: progress.status == "success",
         status: progress.status,

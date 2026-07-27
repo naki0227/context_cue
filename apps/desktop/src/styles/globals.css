@@ -507,6 +507,184 @@ button:disabled {
   grid-template-columns: 1.2fr 0.8fr;
 }
 
+.knowledge-onboarding-card {
+  display: grid;
+  gap: 18px;
+  border-color: rgba(37, 99, 235, 0.18);
+  background:
+    linear-gradient(
+      115deg,
+      rgba(238, 246, 255, 0.92),
+      rgba(255, 255, 255, 0.96)
+    ),
+    var(--surface);
+}
+
+.knowledge-onboarding-intro,
+.knowledge-onboarding-actions,
+.knowledge-example-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.knowledge-onboarding-intro h2,
+.knowledge-onboarding-intro p {
+  margin: 0;
+}
+
+.knowledge-onboarding-intro p:not(.eyebrow) {
+  margin-top: 5px;
+  color: var(--ink-soft);
+}
+
+.knowledge-profile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.knowledge-avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(29, 44, 77, 0.11);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.knowledge-avatar-editor p {
+  margin: 3px 0 9px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.knowledge-avatar-editor input[type="file"] {
+  display: none;
+}
+
+.knowledge-avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.knowledge-profile-avatar {
+  width: 68px;
+  height: 68px;
+  font-size: 1.35rem;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.user-avatar-silhouette {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.user-avatar-silhouette::before,
+.user-avatar-silhouette::after {
+  position: absolute;
+  left: 50%;
+  content: "";
+  background: rgba(32, 48, 77, 0.48);
+  transform: translateX(-50%);
+}
+
+.user-avatar-silhouette::before {
+  top: 19%;
+  width: 31%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.user-avatar-silhouette::after {
+  bottom: -8%;
+  width: 68%;
+  height: 48%;
+  border-radius: 50% 50% 18% 18%;
+}
+
+.knowledge-profile-fields label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.knowledge-profile-fields input {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(29, 44, 77, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+}
+
+.knowledge-example-actions {
+  justify-content: flex-end;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+}
+
+.knowledge-prompt-preview {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.knowledge-prompt-preview summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.knowledge-prompt-preview pre {
+  max-height: 260px;
+  margin: 12px 0 0;
+  padding: 14px;
+  overflow: auto;
+  border-radius: 12px;
+  background: #0f1d34;
+  color: #e8efff;
+  font:
+    0.78rem / 1.65 "BIZ UDPGothic",
+    sans-serif;
+  white-space: pre-wrap;
+}
+
+.sidebar-user-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .knowledge-profile-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledge-onboarding-intro,
+  .knowledge-onboarding-actions,
+  .knowledge-example-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 .template-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

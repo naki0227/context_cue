@@ -42,6 +42,19 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   knowledgeItems: initialWorkspace.knowledgeItems,
   templates: initialWorkspace.templates,
 
+  archiveCompletedSession: ({ review, session }) =>
+    set((state) =>
+      applyWorkspacePatch(state, {
+        reviews: review
+          ? [review, ...state.reviews.filter((item) => item.id !== review.id)]
+          : state.reviews,
+        sessions: [
+          session,
+          ...state.sessions.filter((item) => item.id !== session.id),
+        ],
+      }),
+    ),
+
   replaceWorkspace: (snapshot) =>
     set(
       normalizeWorkspaceCollections(

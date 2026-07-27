@@ -126,12 +126,18 @@ export type ReviewRecord = {
 };
 
 export type KnowledgeSource = 'manual' | 'imported-sample' | 'imported-file';
+export type KnowledgeConfidence = '確認済み' | '概算' | '未確認';
+export type KnowledgeSensitivity = '一般' | '個人' | '機密';
 
 export type KnowledgeRecord = {
+  avatarDataUrl?: string;
+  confidence?: KnowledgeConfidence;
   content: string[];
   id: string;
+  sensitivity?: KnowledgeSensitivity;
   source: KnowledgeSource;
   sourceDocumentId?: string;
+  sourceLabel?: string;
   tag: string;
   title: string;
   updatedAt: string;

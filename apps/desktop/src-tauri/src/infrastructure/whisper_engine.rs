@@ -173,11 +173,11 @@ impl SttRepository for WhisperEngine {
 }
 
 fn progress(completed: u64, total: u64, done: bool) -> SttModelProgress {
-    let percent = if total == 0 {
-        u8::from(done) * 100
-    } else {
-        ((completed.saturating_mul(100) / total).min(100)) as u8
-    };
+    let percent = completed
+        .saturating_mul(100)
+        .checked_div(total)
+        .map(|value| value.min(100) as u8)
+        .unwrap_or_else(|| u8::from(done) * 100);
     SttModelProgress {
         completed_bytes: completed,
         total_bytes: total,

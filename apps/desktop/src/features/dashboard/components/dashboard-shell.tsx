@@ -53,8 +53,10 @@ function renderPage(controller: DashboardController, activePage: PageId) {
           ollamaPullModel={controller.ollamaPullModel}
           ollamaRefresh={controller.ollamaRefresh}
           overlayPreferences={controller.overlayPreferences}
+          savePreferences={controller.savePreferences}
           setConsentField={controller.setConsentField}
           setOverlayPreference={controller.setOverlayPreference}
+          setSavePreference={controller.setSavePreference}
           sideOverlayVisible={controller.sideOverlayVisible}
           startSession={controller.startSession}
           stt={controller.stt}

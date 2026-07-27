@@ -5,6 +5,7 @@ import { SettingsDisplayCard } from '@/features/dashboard/components/settings/se
 import { SettingsLlmCard } from '@/features/dashboard/components/settings/settings-llm-card';
 import { SettingsMiscCard } from '@/features/dashboard/components/settings/settings-misc-card';
 import { SettingsRuntimeCard } from '@/features/dashboard/components/settings/settings-runtime-card';
+import { SettingsSavePolicyCard } from '@/features/dashboard/components/settings/settings-save-policy-card';
 import { SettingsSttCard } from '@/features/dashboard/components/settings/settings-stt-card';
 import type { SettingsPageProps } from '@/features/dashboard/components/settings/settings-types';
 
@@ -26,6 +27,10 @@ export function SettingsPage(props: SettingsPageProps) {
           <SettingsMiscCard
             overlayPreferences={props.overlayPreferences}
             setOverlayPreference={props.setOverlayPreference}
+          />
+          <SettingsSavePolicyCard
+            savePreferences={props.savePreferences}
+            setSavePreference={props.setSavePreference}
           />
           <SettingsLlmCard
             ollama={props.ollama}

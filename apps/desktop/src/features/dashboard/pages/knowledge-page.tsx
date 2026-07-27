@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { KnowledgeDetailEditor } from '@/features/dashboard/components/knowledge/knowledge-detail-editor';
+import { KnowledgeOnboardingCard } from '@/features/dashboard/components/knowledge/knowledge-onboarding-card';
 import type { DashboardController } from '@/features/dashboard/hooks/use-dashboard-controller';
 import {
-  linesToText,
-  textToLines,
-} from '@/features/dashboard/lib/editor-utils';
+  readUserProfile,
+  USER_PROFILE_ID,
+} from '@/features/dashboard/lib/knowledge-profile';
 import type { KnowledgeRecord } from '@/features/dashboard/lib/workspace-types';
 import { useWorkspaceStore } from '@/lib/state/workspace-store';
 
@@ -57,9 +59,15 @@ export function KnowledgePage({
   const importedItems = knowledgeItems.filter(
     (item) => item.source !== 'manual',
   );
+  const userProfile = readUserProfile(knowledgeItems);
 
   function addDraftItem() {
     const id = addKnowledgeItem();
+    setSelectedId(id);
+  }
+
+  function addOnboardingItem(item: Partial<KnowledgeRecord>) {
+    const id = addKnowledgeItem(item);
     setSelectedId(id);
   }
 
@@ -129,6 +137,18 @@ export function KnowledgePage({
         </div>
       </div>
 
+      <KnowledgeOnboardingCard
+        initialProfile={userProfile}
+        key={
+          knowledgeItems.find((item) => item.id === USER_PROFILE_ID)?.updatedAt
+        }
+        onAddExample={addOnboardingItem}
+        onSave={(item) => {
+          const id = addKnowledgeItem(item);
+          setSelectedId(id);
+        }}
+      />
+
       <div className="split-grid knowledge-grid">
         <article className="soft-card">
           <div className="table-head table-four">
@@ -184,67 +204,12 @@ export function KnowledgePage({
         </article>
 
         {selectedItem ? (
-          <article className="soft-card detail-editor-card">
-            <div className="detail-editor-head">
-              <div className="detail-header">
-                <h3>{selectedItem.title}</h3>
-                <p>{selectedItem.tag}</p>
-              </div>
-              <button
-                className="outline-button"
-                onClick={() => void deleteKnowledge()}
-                type="button"
-              >
-                削除
-              </button>
-            </div>
-
-            <div className="detail-editor-grid">
-              <label className="span-2">
-                <span>タイトル</span>
-                <input
-                  value={selectedItem.title}
-                  onChange={(event) =>
-                    patchKnowledge('title', event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                <span>タグ</span>
-                <input
-                  list="knowledge-tags"
-                  value={selectedItem.tag}
-                  onChange={(event) =>
-                    patchKnowledge('tag', event.target.value)
-                  }
-                />
-                <datalist id="knowledge-tags">
-                  {tags.map((tag) => (
-                    <option key={tag} value={tag} />
-                  ))}
-                </datalist>
-              </label>
-              <label>
-                <span>更新日</span>
-                <input
-                  value={selectedItem.updatedAt}
-                  onChange={(event) =>
-                    patchKnowledge('updatedAt', event.target.value)
-                  }
-                />
-              </label>
-              <label className="span-2">
-                <span>内容</span>
-                <textarea
-                  rows={12}
-                  value={linesToText(selectedItem.content)}
-                  onChange={(event) =>
-                    patchKnowledge('content', textToLines(event.target.value))
-                  }
-                />
-              </label>
-            </div>
-          </article>
+          <KnowledgeDetailEditor
+            item={selectedItem}
+            onDelete={() => void deleteKnowledge()}
+            onPatch={patchKnowledge}
+            tags={tags}
+          />
         ) : null}
       </div>
     </div>
