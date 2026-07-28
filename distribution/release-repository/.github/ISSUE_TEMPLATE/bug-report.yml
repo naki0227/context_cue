@@ -1,0 +1,53 @@
+name: 不具合報告
+description: 個人情報を含めずに再現可能な不具合を報告します
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このIssueは公開されます。会話内容、録音、氏名、メールアドレス、token、端末の個人パスを記載しないでください。
+  - type: input
+    id: version
+    attributes:
+      label: How to Talkのバージョン
+      placeholder: 例 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - CLI
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した動作
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 個人情報を除去した再現手順
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 公開前の確認
+      options:
+        - label: 投稿内容と添付ファイルに個人情報・会話内容・秘密情報が含まれていないことを確認しました
+          required: true

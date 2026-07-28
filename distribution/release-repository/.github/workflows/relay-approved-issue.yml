@@ -1,0 +1,91 @@
+name: Relay approved issue
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  relay:
+    if: >-
+      github.event.label.name == 'relay-to-team' &&
+      !contains(github.event.issue.labels.*.name, 'relayed-internally')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Relay sanitized event payload
+        env:
+          SOURCE_TOKEN: ${{ secrets.SOURCE_ISSUE_TOKEN }}
+          SOURCE_OWNER: ${{ secrets.SOURCE_REPOSITORY_OWNER }}
+          SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY_NAME }}
+          PUBLIC_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PUBLIC_ISSUE_TITLE: ${{ github.event.issue.title }}
+          PUBLIC_ISSUE_BODY: ${{ github.event.issue.body }}
+          PUBLIC_ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          node <<'NODE'
+          const required = [
+            'SOURCE_TOKEN',
+            'SOURCE_OWNER',
+            'SOURCE_REPOSITORY',
+            'PUBLIC_ISSUE_NUMBER',
+            'PUBLIC_ISSUE_TITLE',
+            'PUBLIC_ISSUE_AUTHOR',
+          ];
+          if (required.some((name) => !process.env[name])) {
+            console.error('Issue relay configuration is incomplete.');
+            process.exit(1);
+          }
+
+          const publicUrl =
+            `https://github.com/enludus/How-to-talk/issues/${process.env.PUBLIC_ISSUE_NUMBER}`;
+          const title =
+            `[Public feedback #${process.env.PUBLIC_ISSUE_NUMBER}] ${process.env.PUBLIC_ISSUE_TITLE}`
+              .slice(0, 256);
+          const body = [
+            'Public feedback imported from the distribution support channel.',
+            '',
+            `Public issue: ${publicUrl}`,
+            `Reporter: @${process.env.PUBLIC_ISSUE_AUTHOR}`,
+            '',
+            '---',
+            '',
+            process.env.PUBLIC_ISSUE_BODY || '(No description provided.)',
+          ].join('\n').slice(0, 60_000);
+          const endpoint =
+            `https://api.github.com/repos/${encodeURIComponent(process.env.SOURCE_OWNER)}` +
+            `/${encodeURIComponent(process.env.SOURCE_REPOSITORY)}/issues`;
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/vnd.github+json',
+              Authorization: `Bearer ${process.env.SOURCE_TOKEN}`,
+              'X-GitHub-Api-Version': '2022-11-28',
+            },
+            body: JSON.stringify({ title, body, labels: ['public-feedback'] }),
+          });
+          if (!response.ok) {
+            console.error(`Issue relay failed with status ${response.status}.`);
+            process.exit(1);
+          }
+          NODE
+
+      - name: Mark public issue as relayed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/labels" \
+            -f name='relayed-internally' \
+            -f color='0b6e4f' \
+            -f description='Accepted into the private product tracker' \
+            >/dev/null 2>&1 || true
+          gh issue edit "$ISSUE_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --add-label 'relayed-internally'
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --body 'この報告を製品チームの非公開トラッカーへ登録しました。内部リンクや管理番号は公開しません。'

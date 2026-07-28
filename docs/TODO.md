@@ -23,10 +23,13 @@
 - [完了] 正式アプリアイコンを設定する
 - [未着手] macOS署名・公証、Windows署名を設定する
 - [未着手] 3 OSで初回Releaseとインストールsmoke testを実施する
+- [未着手] 公開前にGit author metadataをnoreply化し、非個人Organizationへremoteを移管する
+- [完了] `enludus/How-to-talk`へ匿名scaffold全8ファイルを反映し、remote監査を通した
+- [完了] 公開側へ`relay-to-team`ラベルを作成し、テストIssueの中継を確認した
 
 ## P1: 公開前必須
 
-- [未着手] ReleaseへOS別CLIバイナリを添付し、インストールsmoke testを追加する
+- [進行中] Releaseへ4ターゲットのCLIとchecksumを添付するworkflowを追加済み。初回draft Releaseで展開・実行smoke testを行う
 - [未着手] `globals.css`を共通要素と画面単位へ分割し、300行方針へ近づける
 - [完了] User基本情報とMy Knowledge onboardingを実装する
 - [進行中] AI整理前previewと差分承認を実装する
@@ -38,9 +41,12 @@
 - [未着手] Playwright による主要 CRUD フローの E2E テストを追加する
 - [未着手] LLM / STT / persistence / migrationのintegration testを追加する
 - [未着手] coverage閾値とSBOM生成をCIへ追加する
-- [未着手] GitHub ActionsをNode.js 24対応版へ更新し、非推奨警告を解消する
-- [未着手] PRIVACY、ethics、consent、screen-share safety文書を追加する
-- [未着手] Tauri Updater、CHANGELOG、rollback手順を整備する
+- [完了] GitHub ActionsをNode.js 24対応版へ更新し、lockfile固定とRelease quality gateを追加する
+- [完了] Privacy Notice、安全利用・同意、screen-share safety文書を追加する
+- [進行中] CHANGELOGとrollback手順は追加済み。Tauri Updaterと更新署名を実装する
+- [完了] 公開配布scaffold、詳細README、Issueテンプレート、一方向Issue relayを追加した
+- [完了] 公開配布scaffoldから開発元参照を拒否する専用監査と単体テストを追加した
+- [完了] 公開Issueへの承認ラベル付与から非公開トラッカー作成までの中継を実地確認した
 - [完了] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
 
 ## P2: 公開後改善
@@ -53,6 +59,12 @@
 
 ## 完了
 
+- [完了] 現行ファイルの既知の個人識別子を匿名化し、privacy auditと単体テストをCIへ追加した
+- [完了] Release前のversion/tag整合性、CI相当quality gate、4ターゲットCLI CRUD smoke、SHA-256添付をworkflowへ追加した
+- [完了] Privacy Notice、安全利用・同意ガイド、Security Policy、CHANGELOG、release checklist、公開identity ADRを整備した
+- [完了] Rust/C/C++のbuild pathをremapし、clean macOS bundle内の個人パスを0件にした
+- [完了] 配布bundleでサンプルKnowledgeをソースパスに依存せず読み込めるようcompile-time埋め込みへ変更した
+- [完了] RustSecのunsound警告がある`anyhow`を1.0.103へ更新した
 - [完了] インストール済み `how-to-talk 0.1.0` をhelp・SPEC・Schemaだけで確認し、隔離した一時領域でKnowledge CRUDと入力拒否をブラックボックス検証した
 - [完了] 操作別Schemaと既定値・エラー契約を公開し、初見Agentが全6リソースを隔離領域でCRUDできることを再検証した
 - [完了] AI Agent向けCLIでSessions / People / Projects / Reviews / Knowledge / TemplatesのCRUDを実装した
@@ -112,11 +124,18 @@
 
 ## 要確認
 
-- [要確認] `cargo audit`の許可済み警告18件をTauri更新に合わせて定期的に再評価する
+- [要確認] Git履歴のauthor metadataとremote URLに残る個人identityを、履歴書換えまたは非個人Organization移管のどちらで解消するか決める
+- [要確認] bundle identifier変更前の開発用workspaceは自動移行されないため、必要なデータを事前exportする
+- [要確認] 画像メタデータとRelease成果物・debug symbolを初回draft Release前に再監査する
+- [要確認] `cargo audit`の許可済み警告17件、特にLinux向け`glib 0.18.5`のunsound警告をTauri更新に合わせて再評価する
 - [要確認] `workspace-seed.ts` はサンプルデータ定義ファイルとして 300 行超を許容するか、分割するか
 - [要確認] People の `history` / `lastContactLabel` を将来的に完全導出へ寄せるか、手入力と併用するか
 
 ## 次回最初に着手するタスク
 
+- [次回] 開発側のrelease workflow変更をcommit・pushし、テストtagで公開側draft Releaseを検証する
+- [次回] Tauri updater署名鍵を生成・Secret登録し、`latest.json`とアプリ内更新を有効化する
+- [次回] 署名identityと公開先Organizationを決め、初回draft Releaseを4 OS/targetで実行する
+- [次回] SBOM生成と主要CRUD Playwright E2EをRelease gateへ追加する
 - [次回] My KnowledgeのAI整理preview・差分承認・メタデータを実装する
 - [次回] セッションごとの参照Knowledge選択を実装する

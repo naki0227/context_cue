@@ -1,0 +1,29 @@
+name: 機能提案
+description: How to Talkの改善案を提案します
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このIssueは公開されます。実在人物や実際の会話を例に使わないでください。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 解決したいこと
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する動作
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 公開前の確認
+      options:
+        - label: 投稿内容に個人情報・会話内容・秘密情報が含まれていないことを確認しました
+          required: true
