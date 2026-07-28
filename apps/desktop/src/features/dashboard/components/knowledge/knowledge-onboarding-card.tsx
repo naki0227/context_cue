@@ -161,7 +161,7 @@ export function KnowledgeOnboardingCard({
           <input
             maxLength={80}
             onChange={(event) => patch('displayName', event.target.value)}
-            placeholder="例: 伊吹"
+            placeholder="表示名を入力"
             value={profile.displayName}
           />
         </label>

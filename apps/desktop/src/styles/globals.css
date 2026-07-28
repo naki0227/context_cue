@@ -2649,6 +2649,42 @@ button:disabled {
   color: white;
 }
 
+.secondary-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid rgba(193, 207, 235, 0.92);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #31415f;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(36, 62, 120, 0.06);
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.secondary-button:hover:not(:disabled) {
+  border-color: rgba(90, 126, 222, 0.7);
+  background: #f7f9ff;
+  box-shadow: 0 10px 24px rgba(36, 62, 120, 0.1);
+  transform: translateY(-1px);
+}
+
+.secondary-button:active:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(36, 62, 120, 0.08);
+  transform: translateY(0);
+}
+
+.secondary-button:focus-visible {
+  outline: 3px solid rgba(63, 105, 255, 0.24);
+  outline-offset: 2px;
+}
+
 .icon-pair {
   display: flex;
   gap: 8px;

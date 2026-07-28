@@ -41,7 +41,7 @@ describe('new user launch', () => {
     );
     await user.type(
       screen.getByRole('textbox', { name: '呼ばれたい名前' }),
-      '伊吹',
+      'テスト利用者',
     );
     await user.type(
       screen.getByRole('textbox', { name: '現在の所属・役割' }),
@@ -52,14 +52,14 @@ describe('new user launch', () => {
     expect(
       (await screen.findAllByText('基本プロフィール')).length,
     ).toBeGreaterThan(0);
-    expect(screen.getByText('伊吹')).toBeInTheDocument();
+    expect(screen.getByText('テスト利用者')).toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText('機密度'), '機密');
     expect(screen.getByLabelText('機密度')).toHaveValue('機密');
 
     await user.click(screen.getByRole('button', { name: /Home/i }));
     expect(
       await screen.findByRole('heading', {
-        name: /おはようございます、伊吹 さん/i,
+        name: /おはようございます、テスト利用者 さん/i,
       }),
     ).toBeInTheDocument();
   });

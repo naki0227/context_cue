@@ -9,7 +9,7 @@ describe('knowledge user profile', () => {
     const record = buildUserProfileRecord(
       {
         avatarDataUrl: 'data:image/png;base64,YQ==',
-        displayName: ' 伊吹 ',
+        displayName: ' テスト利用者 ',
         role: '大学生   / 個人開発者',
         activities: 'Web開発',
         usageScenes: '会議、1on1',
@@ -19,12 +19,12 @@ describe('knowledge user profile', () => {
 
     expect(readUserProfile([record])).toEqual({
       avatarDataUrl: 'data:image/png;base64,YQ==',
-      displayName: '伊吹',
+      displayName: 'テスト利用者',
       role: '大学生 / 個人開発者',
       activities: 'Web開発',
       usageScenes: '会議、1on1',
     });
-    expect(getUserDisplayName([record])).toBe('伊吹');
+    expect(getUserDisplayName([record])).toBe('テスト利用者');
     expect(record.confidence).toBe('確認済み');
     expect(record.sensitivity).toBe('個人');
   });
