@@ -24,6 +24,7 @@ export function pickWorkspaceCollections(state: WorkspaceCollections) {
     projects: state.projects,
     reviews: state.reviews,
     knowledgeItems: state.knowledgeItems,
+    templateLibraryVersion: state.templateLibraryVersion,
     templates: state.templates,
   } satisfies WorkspaceCollections;
 }
@@ -51,6 +52,7 @@ export function replaceWorkspaceSnapshot(snapshot: WorkspaceSnapshot) {
     projects: snapshot.projects,
     reviews: snapshot.reviews,
     knowledgeItems: snapshot.knowledgeItems,
+    templateLibraryVersion: snapshot.templateLibraryVersion,
     templates: snapshot.templates,
   } as unknown as WorkspaceCollections;
 }

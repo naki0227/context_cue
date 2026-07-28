@@ -1,3 +1,7 @@
+import {
+  createStarterTemplates,
+  STARTER_TEMPLATE_LIBRARY_VERSION,
+} from '@/features/dashboard/lib/starter-templates';
 import { createSeedWorkspace } from '@/features/dashboard/lib/workspace-seed';
 import { type LaunchMode, launchMode } from '@/lib/config/launch-mode';
 import type { WorkspaceCollections } from '@/lib/state/workspace-store-types';
@@ -9,7 +13,8 @@ export function createEmptyWorkspace(): WorkspaceCollections {
     projects: [],
     reviews: [],
     knowledgeItems: [],
-    templates: [],
+    templateLibraryVersion: STARTER_TEMPLATE_LIBRARY_VERSION,
+    templates: createStarterTemplates(),
   };
 }
 

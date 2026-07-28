@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { migrateWorkspaceSnapshot } from '@/features/dashboard/lib/workspace-migrations';
 import { workspaceSnapshotSchema } from '@/lib/schemas/workspace-state';
 import {
   createWorkspaceSnapshot,
@@ -27,8 +28,22 @@ export function useWorkspacePersistence({
     }
 
     invokeCommand('get_workspace_state')
-      .then((snapshot) => {
-        replaceWorkspace(workspaceSnapshotSchema.parse(snapshot));
+      .then(async (snapshot) => {
+        const parsed = workspaceSnapshotSchema.parse(snapshot);
+        const migrated = migrateWorkspaceSnapshot(parsed);
+        replaceWorkspace(migrated);
+
+        if (migrated.templateLibraryVersion !== parsed.templateLibraryVersion) {
+          try {
+            await invokeCommand('save_workspace_state', {
+              workspaceState: migrated,
+            });
+          } catch {
+            onError(
+              '標準テンプレートを保存できませんでした。空き容量と保存先の権限を確認してください。',
+            );
+          }
+        }
       })
       .catch(() => {
         onError(

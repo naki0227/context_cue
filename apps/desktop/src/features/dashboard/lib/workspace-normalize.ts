@@ -15,6 +15,7 @@ type WorkspaceCollections = {
   projects: ProjectRecord[];
   reviews: ReviewRecord[];
   sessions: SessionRecord[];
+  templateLibraryVersion: number;
   templates: TemplateRecord[];
 };
 

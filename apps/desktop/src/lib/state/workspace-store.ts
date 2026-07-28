@@ -40,6 +40,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   projects: initialWorkspace.projects,
   reviews: initialWorkspace.reviews,
   knowledgeItems: initialWorkspace.knowledgeItems,
+  templateLibraryVersion: initialWorkspace.templateLibraryVersion,
   templates: initialWorkspace.templates,
 
   archiveCompletedSession: ({ review, session }) =>

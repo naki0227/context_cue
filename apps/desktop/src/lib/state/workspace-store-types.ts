@@ -23,6 +23,7 @@ export type WorkspaceState = {
   projects: ProjectRecord[];
   reviews: ReviewRecord[];
   sessions: SessionRecord[];
+  templateLibraryVersion: number;
   templates: TemplateRecord[];
   archiveCompletedSession: (archive: SessionArchive) => void;
   replaceWorkspace: (snapshot: WorkspaceSnapshot) => void;
@@ -55,5 +56,6 @@ export type WorkspaceCollections = Pick<
   | 'projects'
   | 'reviews'
   | 'knowledgeItems'
+  | 'templateLibraryVersion'
   | 'templates'
 >;

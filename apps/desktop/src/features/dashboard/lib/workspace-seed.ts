@@ -1,3 +1,4 @@
+import { STARTER_TEMPLATE_LIBRARY_VERSION } from '@/features/dashboard/lib/starter-templates';
 import type {
   KnowledgeRecord,
   PersonRecord,
@@ -589,6 +590,7 @@ export function createSeedWorkspace() {
     projects: projectSeeds,
     reviews: reviewSeeds,
     knowledgeItems: knowledgeSeeds,
+    templateLibraryVersion: STARTER_TEMPLATE_LIBRARY_VERSION,
     templates: templateSeeds,
   };
 }

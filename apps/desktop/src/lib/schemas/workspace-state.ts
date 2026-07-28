@@ -132,6 +132,7 @@ export const workspaceSnapshotSchema = z.object({
   projects: z.array(projectRecordSchema),
   reviews: z.array(reviewRecordSchema),
   sessions: z.array(sessionRecordSchema),
+  templateLibraryVersion: z.number().int().nonnegative().default(0),
   templates: z.array(templateRecordSchema),
 });
 

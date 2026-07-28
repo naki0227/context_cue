@@ -21,7 +21,13 @@ describe('new user launch', () => {
     expect(screen.queryByText('株式会社A カジュアル面談')).toBeNull();
     expect(screen.getByText('New Workspace')).toBeInTheDocument();
     expect(screen.queryByText('Demo Workspace')).toBeNull();
-    expect(screen.getByText('事前準備テンプレート 0 件')).toBeInTheDocument();
+    expect(screen.getByText('事前準備テンプレート 6 件')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Templates/i }));
+    expect(
+      (await screen.findAllByText('会話前ブリーフ')).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText('会議・議事メモ')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Sessions/i }));
     await user.click(
