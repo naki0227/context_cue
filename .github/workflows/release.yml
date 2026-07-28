@@ -5,11 +5,82 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag (for example, v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare pnpm
+        run: corepack prepare pnpm@11.17.0 --activate
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake clang libasound2-dev libglib2.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@cargo-audit
+
+      - name: Validate release metadata
+        run: pnpm release:check -- --tag "$RELEASE_TAG"
+
+      - name: Audit privacy and secrets
+        run: |
+          pnpm audit:privacy
+          pnpm audit:release-repository
+
+      - name: Validate frontend
+        run: |
+          pnpm audit --audit-level high
+          pnpm spec:check
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+          pnpm build
+
+      - name: Validate Rust workspace
+        run: |
+          cargo audit
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo check --workspace
+          cargo test --workspace
+          cargo build --workspace
+
   publish-tauri:
-    permissions:
-      contents: write
+    needs: quality-gate
     strategy:
       fail-fast: false
       matrix:
@@ -25,19 +96,34 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Remove local paths from Rust artifacts
+        shell: bash
+        run: |
+          CARGO_SOURCE_HOME="${CARGO_HOME:-$HOME/.cargo}"
+          echo "RUSTFLAGS=--remap-path-prefix=$GITHUB_WORKSPACE=. --remap-path-prefix=$CARGO_SOURCE_HOME=.cargo" >>"$GITHUB_ENV"
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            echo "CFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CXXFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_C_FLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_CXX_FLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+          fi
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
+          package-manager-cache: false
 
       - name: Enable Corepack
         run: corepack enable
 
       - name: Prepare pnpm
-        run: corepack prepare pnpm@10.15.1 --activate
+        run: corepack prepare pnpm@11.17.0 --activate
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -56,7 +142,7 @@ jobs:
       - name: Build and publish release assets
         uses: tauri-apps/tauri-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
@@ -68,14 +154,126 @@ jobs:
         with:
           projectPath: apps/desktop
           tauriScript: corepack pnpm tauri
-          tagName: ${{ github.ref_name }}
-          releaseName: "How to Talk ${{ github.ref_name }}"
+          owner: enludus
+          repo: How-to-talk
+          releaseCommitish: main
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: "How to Talk ${{ env.RELEASE_TAG }}"
           releaseBody: |
             非エンジニア向け配布ファイルです。
 
             お使いの OS に合わせてインストーラまたは配布ファイルをダウンロードしてください。
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: true
+          generateReleaseNotes: false
           uploadWorkflowArtifacts: true
           args: ${{ matrix.args }}
+
+  publish-cli:
+    needs: publish-tauri
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            binary: target/aarch64-apple-darwin/release/how-to-talk
+            archive: how-to-talk-aarch64-apple-darwin.tar.gz
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            binary: target/x86_64-apple-darwin/release/how-to-talk
+            archive: how-to-talk-x86_64-apple-darwin.tar.gz
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            binary: target/x86_64-unknown-linux-gnu/release/how-to-talk
+            archive: how-to-talk-x86_64-unknown-linux-gnu.tar.gz
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: target/x86_64-pc-windows-msvc/release/how-to-talk.exe
+            archive: how-to-talk-x86_64-pc-windows-msvc.zip
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Remove local paths from Rust artifacts
+        shell: bash
+        run: |
+          CARGO_SOURCE_HOME="${CARGO_HOME:-$HOME/.cargo}"
+          echo "RUSTFLAGS=--remap-path-prefix=$GITHUB_WORKSPACE=. --remap-path-prefix=$CARGO_SOURCE_HOME=.cargo" >>"$GITHUB_ENV"
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            echo "CFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CXXFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_C_FLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_CXX_FLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install Rust target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build CLI
+        run: cargo build --release --locked -p context-cue-cli --target ${{ matrix.target }}
+
+      - name: Smoke test CLI CRUD
+        shell: bash
+        run: |
+          CLI="${{ matrix.binary }}"
+          DATA_DIR="$RUNNER_TEMP/how-to-talk-cli-smoke"
+          mkdir -p "$DATA_DIR"
+          "$CLI" --version
+          "$CLI" spec >/dev/null
+          "$CLI" schema knowledge >/dev/null
+          CREATE_OUTPUT="$(printf '%s' '{"title":"release-smoke","content":["temporary"],"source":"release-workflow","tag":"smoke"}' | "$CLI" --data-dir "$DATA_DIR" create knowledge --data -)"
+          ITEM_ID="$(printf '%s' "$CREATE_OUTPUT" | node -e 'let value=""; process.stdin.on("data", chunk => value += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(value).data.id));')"
+          "$CLI" --data-dir "$DATA_DIR" get knowledge "$ITEM_ID" >/dev/null
+          printf '%s' '{"confidence":"確認済み"}' | "$CLI" --data-dir "$DATA_DIR" update knowledge "$ITEM_ID" --data - >/dev/null
+          "$CLI" --data-dir "$DATA_DIR" delete knowledge "$ITEM_ID" >/dev/null
+          "$CLI" --data-dir "$DATA_DIR" list knowledge | node -e 'let value=""; process.stdin.on("data", chunk => value += chunk); process.stdin.on("end", () => { if (JSON.parse(value).data.length !== 0) process.exit(1); });'
+
+      - name: Package CLI on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p release
+          cp "${{ matrix.binary }}" release/how-to-talk
+          tar -czf "release/${{ matrix.archive }}" -C release how-to-talk
+          if command -v sha256sum >/dev/null; then
+            sha256sum "release/${{ matrix.archive }}" >"release/${{ matrix.archive }}.sha256"
+          else
+            shasum -a 256 "release/${{ matrix.archive }}" >"release/${{ matrix.archive }}.sha256"
+          fi
+
+      - name: Package CLI on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item "${{ matrix.binary }}" release/how-to-talk.exe
+          Compress-Archive -Path release/how-to-talk.exe -DestinationPath "release/${{ matrix.archive }}"
+          $hash = (Get-FileHash "release/${{ matrix.archive }}" -Algorithm SHA256).Hash.ToLower()
+          "$hash  ${{ matrix.archive }}" | Set-Content "release/${{ matrix.archive }}.sha256"
+
+      - name: Upload CLI release assets
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+          GITHUB_REPOSITORY: enludus/How-to-talk
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "How to Talk ${{ env.RELEASE_TAG }}"
+          draft: true
+          generate_release_notes: false
+          files: |
+            release/${{ matrix.archive }}
+            release/${{ matrix.archive }}.sha256

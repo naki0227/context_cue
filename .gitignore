@@ -1,4 +1,5 @@
 node_modules
+.pnpm-store
 dist
 coverage
 target
@@ -7,4 +8,11 @@ apps/desktop/src-tauri/gen
 apps/desktop/src-tauri/target
 apps/desktop/dist
 *.log
-
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+workspace-state*.json
