@@ -14,14 +14,14 @@ describe('workspace normalization', () => {
       sessions: [
         {
           ...seed.sessions[0],
-          peopleIds: ['person-tanaka-ichiro', 'person-missing'],
+          peopleIds: ['person-recruiter-a', 'person-missing'],
           projectIds: ['project-company-a-consulting', 'project-missing'],
           reviewId: 'review-missing',
         },
       ],
     });
 
-    expect(snapshot.sessions[0]?.peopleIds).toEqual(['person-tanaka-ichiro']);
+    expect(snapshot.sessions[0]?.peopleIds).toEqual(['person-recruiter-a']);
     expect(snapshot.sessions[0]?.projectIds).toEqual([
       'project-company-a-consulting',
     ]);
@@ -47,7 +47,7 @@ describe('workspace normalization', () => {
 
     const withoutPerson = detachPersonRelations(
       baseSessions,
-      'person-tanaka-ichiro',
+      'person-recruiter-a',
     );
     expect(withoutPerson[0]?.peopleIds).toEqual([]);
 

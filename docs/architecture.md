@@ -2,7 +2,7 @@
 
 ## 1. 目的
 
-この文書は、[requirements.md](/Users/nagaseibuki/Documents/context_cue/docs/requirements.md) を実装に落とすための技術設計の確定案である。
+この文書は、[requirements.md](./requirements.md) を実装に落とすための技術設計の確定案である。
 
 MVP の最優先は以下の 4 点とする。
 

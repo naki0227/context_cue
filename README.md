@@ -24,7 +24,7 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 ## 起動方法
 
 1. Corepack で `pnpm` を有効化する  
-   `corepack enable && corepack prepare pnpm@10.15.1 --activate`
+   `corepack enable && corepack prepare pnpm@11.17.0 --activate`
 2. 依存をインストールする  
    `corepack pnpm install`
 3. フロントエンドのテストを実行する  
@@ -47,13 +47,16 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 
 ## 一般ユーザー向け配布
 
-非エンジニア向けには、GitHub から clone して起動する形ではなく、GitHub Releases からインストーラや配布ファイルをダウンロードして使う想定です。
+非エンジニア向けには、GitHubからcloneして起動する形ではなく、
+[公開配布ページ](https://github.com/enludus/How-to-talk)からインストーラや
+配布ファイルをダウンロードして使う想定です。
 
 - macOS: `.dmg`
 - Windows: `.msi` または `.exe`
 - Linux: `.AppImage` / `.deb` / `.rpm`
 
-配布フローの詳細は [配布手順](./docs/release.md) にまとめています。
+配布フローの詳細は[配布手順](./docs/release.md)にまとめています。公開配布ページには
+この開発リポジトリのソース、履歴、URL、commit情報を同期しません。
 
 ## ローカル保存とプライバシー
 
@@ -64,7 +67,8 @@ How to Talk はローカル実行を前提にしています。
 - 生音声は保存せず、文字起こし・要約・AI出力は既定で保存しません
 - 外部クラウドへ自動送信する構成は標準では有効にしていません
 
-詳細は [SECURITY.md](./SECURITY.md) を参照してください。
+詳細は [Privacy Notice](./PRIVACY.md)、[SECURITY.md](./SECURITY.md)、
+[安全利用・同意ガイド](./docs/safety-and-consent.md) を参照してください。
 
 ## 命名方針
 
@@ -80,8 +84,10 @@ How to Talk はローカル実行を前提にしています。
 - [アーキテクチャ設計](./docs/architecture.md)
 - [実装計画](./docs/implementation-plan.md)
 - [配布手順](./docs/release.md)
+- [リリースチェックリスト](./docs/release-checklist.md)
 - [本番リリース準備監査](./docs/production-readiness-audit.md)
 - [My Knowledge入力ガイド](./docs/my-knowledge-guide.md)
+- [変更履歴](./CHANGELOG.md)
 
 製品仕様書はアプリの`Documentation`からオフラインで閲覧できます。CLIでは
 `corepack pnpm spec`で全文、`corepack pnpm spec -- --list`で章一覧、

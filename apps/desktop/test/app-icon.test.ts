@@ -6,6 +6,7 @@ const tauriRoot = resolve(process.cwd(), 'src-tauri');
 const config = JSON.parse(
   readFileSync(resolve(tauriRoot, 'tauri.conf.json'), 'utf8'),
 ) as {
+  identifier: string;
   bundle: {
     icon: string[];
   };
@@ -21,6 +22,10 @@ function readPngSize(path: string) {
 }
 
 describe('application icon bundle', () => {
+  it('uses a release-safe application identifier', () => {
+    expect(config.identifier).toBe('app.contextcue.desktop');
+  });
+
   it('registers platform icons that exist', () => {
     expect(config.bundle.icon).toEqual([
       'icons/32x32.png',

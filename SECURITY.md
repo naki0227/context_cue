@@ -1,40 +1,66 @@
 # Security Policy
 
-Please do not open public issues for sensitive security findings.
+## Reporting a vulnerability
 
-Report vulnerabilities privately to the maintainers with:
+Do not open a public issue for a vulnerability, private data exposure, or a
+report containing conversation content.
 
-- affected version
-- reproduction steps
+Use the repository host's private Security Advisory feature. Include:
+
+- affected version and operating system
+- minimal reproduction steps using synthetic data
 - potential impact
 - any suggested mitigation
 
-## Local-first security assumptions
+Remove API keys, tokens, real transcripts, imported documents, names, and
+contact details before submitting a report.
 
-How to Talk is designed as a local-first desktop application.
+## Supported versions
 
-- profile notes and imported knowledge are stored on the local device
-- overlay preferences and dashboard drafts are stored locally
-- the default mock session flow does not upload transcripts to a remote service
-- participant consent is required before a session can be started
+No production version is currently supported. Version `0.1.x` is a private
+preview until the required release checklist is complete.
 
-## Stored data
+## Security architecture
 
-Current implementation stores the following on the local machine:
+How to Talk is local-first:
 
-- imported profile documents
-- Share Safe Mode state
-- overlay settings
-- dashboard draft items created from the UI
+- raw audio is not persisted
+- transcript, summary, and AI-output storage are off by default
+- workspace writes use schema validation, size limits, bounded backups, and
+  atomic replacement
+- workspace files use owner-only permissions where supported
+- the main and overlay windows have separate Tauri capabilities
+- the WebView uses a restrictive Content Security Policy
+- local inference is accessed through the local Ollama endpoint
 
-Current implementation does not persist full transcript history by default.
+The application does not claim to protect data from an administrator account,
+malware, operating-system capture tools, unencrypted device backups, or copies
+exported by the user. Device encryption and an up-to-date operating system are
+recommended.
 
-## Recommended production hardening
+## Secret and privacy controls
 
-Before broad distribution, maintainers should additionally verify:
+The repository CI checks tracked and candidate files for representative secret
+formats, non-reserved email addresses, user-specific absolute paths, phone and
+postal formats, and sensitive filenames.
 
-- macOS notarization and signing
-- Windows code signing
-- release artifact checksums
-- clear privacy notice for imported personal data
-- documented retention policy for any future transcript persistence
+This automated audit does not reliably identify every natural-language name,
+image metadata field, or secret format. Release review must also inspect:
+
+- Git author metadata and repository remote identity
+- image and document metadata
+- generated bundles and debug symbols
+- logs, diagnostics, screenshots, and release notes
+
+## Release requirements
+
+Broad distribution is blocked until:
+
+- macOS signing and notarization are verified
+- Windows code signing is verified
+- application and CLI artifacts pass supported-OS smoke tests
+- SHA-256 checksums and SBOMs are attached
+- Privacy Notice and consent guidance match runtime behavior
+- export, deletion, recovery, and save-off behavior are tested
+
+See `docs/release-checklist.md` for the full gate.

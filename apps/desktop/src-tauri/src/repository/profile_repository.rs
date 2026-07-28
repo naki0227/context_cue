@@ -1,36 +1,42 @@
-use std::{cmp::Reverse, fs};
+use std::cmp::Reverse;
 
 use context_cue_core::profile_search::{ProfileDocument, score_document};
 
-use crate::{config::profile_seed_dir, domain::profile_document::OwnedProfileDocument};
+use crate::domain::profile_document::OwnedProfileDocument;
+
+const PROFILE_SEEDS: [(&str, &str); 5] = [
+    (
+        "experiences",
+        include_str!("../../../../../profiles/sample/experiences.md"),
+    ),
+    (
+        "meetings",
+        include_str!("../../../../../profiles/sample/meetings.md"),
+    ),
+    (
+        "projects",
+        include_str!("../../../../../profiles/sample/projects.md"),
+    ),
+    (
+        "todos",
+        include_str!("../../../../../profiles/sample/todos.md"),
+    ),
+    (
+        "values",
+        include_str!("../../../../../profiles/sample/values.md"),
+    ),
+];
 
 pub fn load_profile_documents() -> Vec<OwnedProfileDocument> {
-    let base = profile_seed_dir();
-    let mut documents = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(base) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if !path.is_file() {
-                continue;
-            }
-
-            let Some(stem) = path.file_stem().and_then(|value| value.to_str()) else {
-                continue;
-            };
-            let Ok(content) = fs::read_to_string(&path) else {
-                continue;
-            };
-            documents.push(OwnedProfileDocument {
-                id: stem.to_owned(),
-                title: stem.to_owned(),
-                content,
-                source_type: "サンプル".to_owned(),
-            });
-        }
-    }
-
-    documents
+    PROFILE_SEEDS
+        .into_iter()
+        .map(|(title, content)| OwnedProfileDocument {
+            id: title.to_owned(),
+            title: title.to_owned(),
+            content: content.to_owned(),
+            source_type: "サンプル".to_owned(),
+        })
+        .collect()
 }
 
 pub fn upsert_document(documents: &mut Vec<OwnedProfileDocument>, candidate: OwnedProfileDocument) {
@@ -57,4 +63,21 @@ pub fn rank_notes(documents: &[OwnedProfileDocument], query: &str) -> Vec<String
         .take(3)
         .map(|(_, title)| title)
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::load_profile_documents;
+
+    #[test]
+    fn profile_seeds_are_embedded_for_release_builds() {
+        let documents = load_profile_documents();
+
+        assert_eq!(documents.len(), 5);
+        assert!(
+            documents
+                .iter()
+                .all(|document| !document.content.is_empty())
+        );
+    }
 }

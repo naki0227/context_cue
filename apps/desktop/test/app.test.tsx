@@ -104,7 +104,7 @@ describe('App', () => {
     );
 
     const personCheckbox = await screen.findByRole('checkbox', {
-      name: /佐藤 花子/i,
+      name: /開発メンターA/i,
     });
     expect(personCheckbox).not.toBeChecked();
 
