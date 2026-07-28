@@ -2,6 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/naki0227/context_cue/blob/main/docs/schemas/agent-cli.schema.json",
   "title": "How to Talk Agent CLI resources",
+  "x-spec-version": "1.0.0-draft",
+  "x-cli-compatible": "0.1.x",
   "type": "object",
   "$defs": {
     "session": {

@@ -53,6 +53,8 @@
 
 ## 完了
 
+- [完了] インストール済み `how-to-talk 0.1.0` をhelp・SPEC・Schemaだけで確認し、隔離した一時領域でKnowledge CRUDと入力拒否をブラックボックス検証した
+- [完了] 操作別Schemaと既定値・エラー契約を公開し、初見Agentが全6リソースを隔離領域でCRUDできることを再検証した
 - [完了] AI Agent向けCLIでSessions / People / Projects / Reviews / Knowledge / TemplatesのCRUDを実装した
 - [完了] GUIとCLIのローカル保存処理を共通crateへ集約し、同時書込みの排他制御を追加した
 - [完了] `docs/SPEC.md`を正本としてアプリ内検索・CLI全文・JSON Schemaから参照できるようにした

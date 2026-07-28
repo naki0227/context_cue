@@ -3,6 +3,7 @@ pub mod error;
 pub mod input;
 pub mod model;
 pub mod output;
+mod record_contract;
 pub mod repository;
 pub mod service;
 pub mod spec;
@@ -17,7 +18,10 @@ use repository::WorkspaceRepository;
 pub fn execute(cli: Cli) -> Result<serde_json::Value, CliError> {
     match cli.command {
         Command::Spec => Ok(success(spec::markdown())),
-        Command::Schema { resource } => Ok(success(spec::schema(resource))),
+        Command::Schema {
+            resource,
+            operation,
+        } => Ok(success(spec::schema(resource, operation))),
         Command::Path => {
             let path = WorkspaceRepository::resolve_path(cli.data_dir, cli.demo)?;
             Ok(success(path.to_string_lossy()))

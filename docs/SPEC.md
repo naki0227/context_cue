@@ -236,9 +236,15 @@ how-to-talk update knowledge KNOWLEDGE_ID --data '{"confidence":"確認済み"}'
 how-to-talk delete knowledge KNOWLEDGE_ID
 how-to-talk schema
 how-to-talk schema knowledge
+how-to-talk schema knowledge --operation create
+how-to-talk schema knowledge --operation update
+how-to-talk schema knowledge --operation response
+how-to-talk schema knowledge --operation list-response
 ```
 
 `--data-dir DIR`で保存ディレクトリを明示できる。`--demo`はデモ専用領域を選ぶ。両方の同時指定はできない。
+
+エージェントは書込み前に `how-to-talk --version`、`how-to-talk spec`、対象リソースの操作別Schemaを確認する。SPEC `1.0.0-draft` はCLI `0.1.x` と互換であり、操作別Schemaの `x-cli-version` と `x-spec-version` が実行中バイナリの契約を示す。
 
 ### 13.3 入出力契約
 
@@ -251,7 +257,11 @@ how-to-talk schema knowledge
 | `2` | JSONまたは型が不正 |
 | `3` | 対象なし、またはworkspace使用中 |
 
-`create`は省略項目へ安全な初期値を設定してIDを自動生成する。`update`はトップレベルの部分更新とし、配列やネスト値は項目単位で置換する。IDの変更、未知フィールド、型不一致、不正なworkspace構造は保存前に拒否する。
+`create`は省略項目へ安全な初期値を設定してIDを自動生成する。省略可能項目と実際の既定値は `schema <resource> --operation create` の各プロパティにある `default` を正本とする。`update`はトップレベルの部分更新とし、配列やネスト値は項目単位で置換する。変更可能項目は `--operation update` で取得し、IDの変更、空の更新、未知フィールド、型不一致、不正なworkspace構造は保存前に拒否する。
+
+`get`、`create`、`update`、`delete`の成功時 `data` は完全な1レコードである。`delete`の場合は削除されたレコードを返す。これらの成功・失敗envelopeは `schema <resource> --operation response`、`list`の配列envelopeは `--operation list-response` で取得できる。エラーSchemaは `code` の列挙と `x-error-exit-codes` による終了コード対応を含む。
+
+日時項目は現時点では表示用文字列であり、厳密な日時形式を強制しない。`startAt`にはISO 8601形式を推奨する。Schemaに `minLength` がない文字列は空文字を許可し、配列には個別の件数上限を設けない。ただし、1コレクション最大10,000件、workspace入力全体最大10MiB、Knowledgeの `avatarDataUrl` はJPEG・PNG・WebPのdata URLかつ800KB以下とする。
 
 関連レコードを削除した場合はSessionsの孤立参照を除去し、Projectsの関連セッション数と一覧をSessionsから再計算する。
 
@@ -261,7 +271,7 @@ how-to-talk schema knowledge
 
 CLI引数はシェル履歴へ残るため、個人情報を含む入力には `--file` または `--data -` を使う。APIキー、秘密鍵、パスワード、本人確認番号はKnowledgeにも保存しない。AI Agentには必要なリソースだけを読み書きさせ、実行ログへ本文を残さない設定を推奨する。
 
-正式なデータSchemaは `docs/schemas/agent-cli.schema.json` とする。全Schemaは `how-to-talk schema`、リソース単位では `how-to-talk schema <resource>` で機械可読JSONとして取得できる。
+正式な保存済みデータSchemaは `docs/schemas/agent-cli.schema.json` とする。全Schemaは `how-to-talk schema`、リソース単位では `how-to-talk schema <resource>` で取得できる。作成入力、部分更新入力、1件レスポンス、一覧レスポンスはそれぞれ `--operation create`、`update`、`response`、`list-response` を指定し、推測でpayloadを組み立てない。
 
 ## 14. 品質要件
 

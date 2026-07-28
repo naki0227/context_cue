@@ -25,6 +25,9 @@ pub enum Command {
     Schema {
         #[arg(value_enum)]
         resource: Option<Resource>,
+        /// 用途別のSchemaを表示します（resource指定時のみ）
+        #[arg(long, value_enum, requires = "resource", default_value = "record")]
+        operation: SchemaOperation,
     },
     /// 使用するworkspaceファイルの絶対パスを表示します
     Path,
@@ -68,6 +71,18 @@ pub enum Resource {
     Reviews,
     Knowledge,
     Templates,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, ValueEnum)]
+pub enum SchemaOperation {
+    #[default]
+    Record,
+    Create,
+    Update,
+    /// get/create/update/deleteのレスポンス
+    Response,
+    /// listの配列レスポンス
+    ListResponse,
 }
 
 impl Resource {

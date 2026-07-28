@@ -1,13 +1,14 @@
 use std::collections::HashSet;
 
 use serde::{Serialize, de::DeserializeOwned};
-use serde_json::{Map, Value, json};
+use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
     args::Resource,
     error::CliError,
     model::{ProjectLinkedSession, WorkspaceState},
+    record_contract::{default_record, merge_patch, validate, validate_update_patch},
 };
 
 pub fn list(state: &WorkspaceState, resource: Resource) -> Result<Value, CliError> {
@@ -31,7 +32,7 @@ pub fn create(
     patch: Value,
 ) -> Result<Value, CliError> {
     let id = format!("{}-{}", resource.id_prefix(), Uuid::new_v4());
-    let mut value = default_value(resource, id);
+    let mut value = default_record(resource, id);
     merge_patch(&mut value, patch)?;
     match resource {
         Resource::Sessions => create_typed(&mut state.sessions, resource, value),
@@ -49,6 +50,7 @@ pub fn update(
     id: &str,
     patch: Value,
 ) -> Result<Value, CliError> {
+    validate_update_patch(&patch)?;
     match resource {
         Resource::Sessions => update_typed(&mut state.sessions, resource, id, patch),
         Resource::People => update_typed(&mut state.people, resource, id, patch),
@@ -139,7 +141,7 @@ fn create_typed<T>(items: &mut Vec<T>, resource: Resource, value: Value) -> Resu
 where
     T: DeserializeOwned + Serialize,
 {
-    validate_semantics(resource, &value)?;
+    validate(resource, &value)?;
     let record = serde_json::from_value::<T>(value).map_err(invalid)?;
     let serialized = to_value(&record)?;
     let id = serialized["id"].as_str().unwrap_or_default();
@@ -162,7 +164,7 @@ where
     let index = find_index(items, id)?.ok_or_else(|| not_found(resource, id))?;
     let mut value = to_value(&items[index])?;
     merge_patch(&mut value, patch)?;
-    validate_semantics(resource, &value)?;
+    validate(resource, &value)?;
     let record = serde_json::from_value::<T>(value).map_err(invalid)?;
     let serialized = to_value(&record)?;
     items[index] = record;
@@ -193,104 +195,37 @@ fn not_found(resource: Resource, id: &str) -> CliError {
     }
 }
 
-fn merge_patch(target: &mut Value, patch: Value) -> Result<(), CliError> {
-    let patch = patch
-        .as_object()
-        .ok_or_else(|| CliError::Input("input JSON must be an object".to_owned()))?;
-    let target = target
-        .as_object_mut()
-        .ok_or_else(|| CliError::Internal("record is not an object".to_owned()))?;
-    for (key, value) in patch {
-        if key == "id" && target.get("id") != Some(value) {
-            return Err(CliError::Input("id cannot be changed".to_owned()));
-        }
-        target.insert(key.clone(), value.clone());
-    }
-    Ok(())
-}
-
-fn validate_semantics(resource: Resource, value: &Value) -> Result<(), CliError> {
-    if value["id"].as_str().is_none_or(str::is_empty) {
-        return Err(CliError::Input("id must not be empty".to_owned()));
-    }
-    if resource == Resource::Projects
-        && value["progress"]
-            .as_u64()
-            .is_some_and(|progress| progress > 100)
-    {
-        return Err(CliError::Input(
-            "project progress must be between 0 and 100".to_owned(),
-        ));
-    }
-    if resource == Resource::Knowledge {
-        validate_choice(
-            value.get("confidence"),
-            &["確認済み", "概算", "未確認"],
-            "confidence",
-        )?;
-        validate_choice(
-            value.get("sensitivity"),
-            &["一般", "個人", "機密"],
-            "sensitivity",
-        )?;
-        if let Some(avatar) = value.get("avatarDataUrl").and_then(Value::as_str)
-            && (avatar.len() > 800_000
-                || ![
-                    "data:image/jpeg;base64,",
-                    "data:image/png;base64,",
-                    "data:image/webp;base64,",
-                ]
-                .iter()
-                .any(|prefix| avatar.starts_with(prefix)))
-        {
-            return Err(CliError::Input(
-                "avatarDataUrl must be a JPEG, PNG, or WebP data URL up to 800KB".to_owned(),
-            ));
-        }
-    }
-    Ok(())
-}
-
-fn validate_choice(value: Option<&Value>, choices: &[&str], field: &str) -> Result<(), CliError> {
-    if let Some(value) = value
-        && value.as_str().is_none_or(|value| !choices.contains(&value))
-    {
-        return Err(CliError::Input(format!("{field} has an invalid value")));
-    }
-    Ok(())
-}
-
-fn default_value(resource: Resource, id: String) -> Value {
-    let base = Map::from_iter([("id".to_owned(), Value::String(id))]);
-    let defaults = match resource {
-        Resource::Sessions => {
-            json!({"dateLabel":"未設定","durationMinutes":30,"location":"オンライン","memo":"","partner":"相手未設定","peopleIds":[],"platform":"オンライン","projectIds":[],"recording":"","recordingTone":"neutral","startAt":"","status":"予定","statusTone":"blue","title":"新しいセッション","type":"面談","typeTone":"green"})
-        }
-        Resource::People => {
-            json!({"checks":[],"history":[],"lastContactLabel":"未接触","mail":"","memo":[],"name":"新しい人物","profile":[],"role":"役職未設定","shortRole":"その他","updatedAt":""})
-        }
-        Resource::Projects => {
-            json!({"actions":[],"category":"プロジェクト","connections":[],"icon":"chart","issues":0,"linkedSessions":[],"overview":"","points":[],"progress":0,"sessions":0,"statusLabel":"進行中","subtitle":"","title":"新しいプロジェクト","tone":"green","updatedAt":""})
-        }
-        Resource::Reviews => {
-            json!({"actions":[],"date":"","improvements":[],"insights":[],"memo":[],"meta":"","summary":[],"title":"新しい振り返り","transcript":[],"type":"その他"})
-        }
-        Resource::Knowledge => {
-            json!({"content":[],"source":"manual","sourceLabel":"本人入力","confidence":"未確認","sensitivity":"個人","tag":"下書き","title":"新しいナレッジ","updatedAt":""})
-        }
-        Resource::Templates => {
-            json!({"body":[],"description":"","icon":"doc","tag":"その他","title":"新しいテンプレート","tone":"blue","updatedAt":""})
-        }
-    };
-    let mut object = defaults.as_object().cloned().unwrap_or(base.clone());
-    object.extend(base);
-    Value::Object(object)
-}
-
 fn internal(error: serde_json::Error) -> CliError {
     CliError::Internal(error.to_string())
 }
 
 fn invalid(error: serde_json::Error) -> CliError {
-    CliError::Input(error.to_string())
+    let message = error.to_string();
+    let concise = message
+        .strip_prefix("unknown field `")
+        .and_then(|rest| rest.split_once('`'))
+        .map(|(field, _)| format!("unknown field '{field}'"))
+        .unwrap_or(message);
+    CliError::Input(concise)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::invalid;
+
+    #[test]
+    fn unknown_field_error_does_not_expose_unrelated_fields() {
+        let source = r#"{"known":true,"unexpected":true}"#;
+        let error =
+            serde_json::from_str::<KnownOnly>(source).expect_err("unknown fields must be rejected");
+
+        assert_eq!(invalid(error).to_string(), "unknown field 'unexpected'");
+    }
+
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct KnownOnly {
+        #[allow(dead_code)]
+        known: bool,
+    }
 }
