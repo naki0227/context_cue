@@ -1,3 +1,4 @@
+import { SettingsAgentCard } from '@/features/dashboard/components/settings/settings-agent-card';
 import { SettingsBehaviorCard } from '@/features/dashboard/components/settings/settings-behavior-card';
 import { SettingsDataCard } from '@/features/dashboard/components/settings/settings-data-card';
 import { SettingsDesignCard } from '@/features/dashboard/components/settings/settings-design-card';
@@ -60,6 +61,7 @@ export function SettingsPage(props: SettingsPageProps) {
             overlayPreferences={props.overlayPreferences}
             setOverlayPreference={props.setOverlayPreference}
           />
+          <SettingsAgentCard />
           <SettingsRuntimeCard
             appState={props.appState}
             canStart={props.canStart}

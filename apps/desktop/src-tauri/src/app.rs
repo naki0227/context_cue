@@ -7,6 +7,7 @@ use std::{
 use context_cue_contracts::{
     AdaptiveInferenceState, AppState, ConsentInput, ContextCue, RollingSummary, TranscriptChunk,
 };
+use context_cue_workspace::WorkspaceLock;
 use serde_json::Value;
 
 use crate::{
@@ -39,11 +40,14 @@ pub struct SharedState {
 impl Default for SharedState {
     fn default() -> Self {
         let path = persisted_state_file();
+        let workspace_lock = WorkspaceLock::acquire(&path)
+            .inspect_err(|error| eprintln!("workspace lock failed: {error}"))
+            .ok();
         let persisted = load_workspace().unwrap_or_else(|error| {
             eprintln!("workspace initialization failed: {error}");
             Default::default()
         });
-        Self::from_parts(path, persisted)
+        Self::from_parts(path, persisted, workspace_lock)
     }
 }
 
@@ -259,6 +263,7 @@ impl SharedState {
     fn from_parts(
         workspace_path: PathBuf,
         persisted: crate::infrastructure::persistence::model::PersistedWorkspace,
+        workspace_lock: Option<WorkspaceLock>,
     ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(InnerState {
@@ -268,14 +273,20 @@ impl SharedState {
                 seed_documents: Vec::new(),
                 consent_audit: persisted.consent_audit,
                 workspace_path,
+                workspace_lock,
             })),
         }
     }
 
     #[cfg(test)]
     fn for_test(path: &Path) -> Result<Self, AppError> {
+        let workspace_lock = WorkspaceLock::acquire(path)?;
         let persisted = load_workspace_at(path, LaunchMode::Resume)?;
-        Ok(Self::from_parts(path.to_path_buf(), persisted))
+        Ok(Self::from_parts(
+            path.to_path_buf(),
+            persisted,
+            Some(workspace_lock),
+        ))
     }
 }
 
@@ -286,6 +297,7 @@ struct InnerState {
     seed_documents: Vec<OwnedProfileDocument>,
     consent_audit: Vec<ConsentAuditRecord>,
     workspace_path: PathBuf,
+    workspace_lock: Option<WorkspaceLock>,
 }
 
 impl InnerState {
@@ -315,6 +327,9 @@ fn persist_workspace(
     dashboard_state: &Value,
     consent_audit: &[ConsentAuditRecord],
 ) -> Result<(), AppError> {
+    if state.workspace_lock.is_none() {
+        return Err(context_cue_workspace::PersistenceError::WorkspaceInUse.into());
+    }
     save_workspace_at(
         &state.workspace_path,
         documents,
@@ -400,7 +415,12 @@ mod tests {
         let snapshot = state.delete_all_data()?;
 
         assert!(snapshot.imported_documents.is_empty());
-        assert_eq!(fs::read_dir(temp_dir.path())?.count(), 0);
+        let remaining = fs::read_dir(temp_dir.path())?
+            .filter_map(Result::ok)
+            .map(|entry| entry.file_name())
+            .collect::<Vec<_>>();
+        assert_eq!(remaining.len(), 1);
+        assert!(remaining[0].to_string_lossy().ends_with(".lock"));
         assert!(state.workspace_snapshot()?.as_object().is_some());
         Ok(())
     }

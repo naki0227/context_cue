@@ -19,10 +19,10 @@
   "files": {
     "includes": [
       "**",
+      "!apps/desktop/src/features/documentation/generated",
       "!target",
       "!dist",
       "!coverage"
     ]
   }
 }
-

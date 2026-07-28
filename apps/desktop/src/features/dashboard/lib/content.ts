@@ -7,6 +7,7 @@ export const sidebarItems = [
   { id: 'templates', label: 'Templates' },
   { id: 'review', label: 'Review' },
   { id: 'settings', label: 'Overlay Settings' },
+  { id: 'documentation', label: 'Documentation' },
 ] as const;
 
 export type PageId = (typeof sidebarItems)[number]['id'];
@@ -41,5 +42,7 @@ export function getPageTitle(page: PageId) {
       return 'Review';
     case 'settings':
       return 'Overlay Settings';
+    case 'documentation':
+      return 'Documentation';
   }
 }

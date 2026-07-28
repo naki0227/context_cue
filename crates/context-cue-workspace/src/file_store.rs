@@ -5,39 +5,51 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use serde::{Serialize, de::DeserializeOwned};
 use uuid::Uuid;
 
-use super::{
-    PersistenceError,
-    model::PersistedWorkspace,
-    validation::{validate_dashboard_state, validate_schema_version, validate_size},
+use crate::{
+    PersistedWorkspace, PersistenceError,
+    validation::{
+        MAX_WORKSPACE_BYTES, validate_dashboard_state, validate_schema_version, validate_size,
+    },
 };
 
 const MAX_BACKUPS: usize = 5;
 
-pub fn read_workspace(path: &Path) -> Result<PersistedWorkspace, PersistenceError> {
+pub fn read_workspace<Document, Audit>(
+    path: &Path,
+) -> Result<PersistedWorkspace<Document, Audit>, PersistenceError>
+where
+    Document: DeserializeOwned,
+    Audit: DeserializeOwned,
+{
     let mut file = File::open(path).map_err(PersistenceError::Read)?;
     let length = file.metadata().map_err(PersistenceError::Read)?.len();
     let length = usize::try_from(length).map_err(|_| PersistenceError::WorkspaceTooLarge {
         actual: usize::MAX,
-        maximum: super::validation::MAX_WORKSPACE_BYTES,
+        maximum: MAX_WORKSPACE_BYTES,
     })?;
     validate_size(length)?;
 
     let mut content = String::with_capacity(length);
     file.read_to_string(&mut content)
         .map_err(PersistenceError::Read)?;
-    let workspace = serde_json::from_str::<PersistedWorkspace>(&content)
+    let workspace = serde_json::from_str::<PersistedWorkspace<Document, Audit>>(&content)
         .map_err(PersistenceError::Deserialize)?;
     validate_schema_version(workspace.schema_version)?;
     validate_dashboard_state(&workspace.dashboard_state)?;
     Ok(workspace)
 }
 
-pub fn write_workspace(
+pub fn write_workspace<Document, Audit>(
     path: &Path,
-    workspace: &PersistedWorkspace,
-) -> Result<(), PersistenceError> {
+    workspace: &PersistedWorkspace<Document, Audit>,
+) -> Result<(), PersistenceError>
+where
+    Document: Serialize,
+    Audit: Serialize,
+{
     validate_schema_version(workspace.schema_version)?;
     validate_dashboard_state(&workspace.dashboard_state)?;
     let serialized = serde_json::to_vec_pretty(workspace).map_err(PersistenceError::Serialize)?;
@@ -46,12 +58,10 @@ pub fn write_workspace(
     let parent = path.parent().ok_or(PersistenceError::MissingParent)?;
     fs::create_dir_all(parent).map_err(PersistenceError::Write)?;
     let temp_path = parent.join(format!(".workspace-{}.tmp", Uuid::new_v4()));
-
     let result = write_temp_file(&temp_path, &serialized)
         .and_then(|()| replace_file(&temp_path, path))
         .and_then(|()| secure_permissions(path))
         .and_then(|()| sync_directory(parent));
-
     if result.is_err() {
         let _ = fs::remove_file(&temp_path);
     }
@@ -62,7 +72,6 @@ pub fn archive_workspace(path: &Path) -> Result<Option<PathBuf>, PersistenceErro
     if !path.exists() {
         return Ok(None);
     }
-
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|_| PersistenceError::Clock)?
@@ -74,7 +83,13 @@ pub fn archive_workspace(path: &Path) -> Result<Option<PathBuf>, PersistenceErro
     Ok(Some(backup_path))
 }
 
-pub fn recover_latest_backup(path: &Path) -> Result<Option<PersistedWorkspace>, PersistenceError> {
+pub fn recover_latest_backup<Document, Audit>(
+    path: &Path,
+) -> Result<Option<PersistedWorkspace<Document, Audit>>, PersistenceError>
+where
+    Document: DeserializeOwned + Serialize,
+    Audit: DeserializeOwned + Serialize,
+{
     for backup in backup_paths(path)? {
         if let Ok(workspace) = read_workspace(&backup) {
             write_workspace(path, &workspace)?;
@@ -89,7 +104,6 @@ pub fn delete_workspace_files(path: &Path) -> Result<(), PersistenceError> {
     if !parent.exists() {
         return Ok(());
     }
-
     for entry in fs::read_dir(parent).map_err(PersistenceError::Read)? {
         let entry = entry.map_err(PersistenceError::Read)?;
         let file_name = entry.file_name();
@@ -112,7 +126,6 @@ fn write_temp_file(path: &Path, content: &[u8]) -> Result<(), PersistenceError> 
         use std::os::unix::fs::OpenOptionsExt;
         options.mode(0o600);
     }
-
     let mut file = options.open(path).map_err(PersistenceError::Write)?;
     file.write_all(content).map_err(PersistenceError::Write)?;
     file.sync_all().map_err(PersistenceError::Write)
@@ -141,7 +154,6 @@ fn replace_file(temp_path: &Path, path: &Path) -> Result<(), PersistenceError> {
 #[cfg(unix)]
 fn secure_permissions(path: &Path) -> Result<(), PersistenceError> {
     use std::os::unix::fs::PermissionsExt;
-
     fs::set_permissions(path, fs::Permissions::from_mode(0o600)).map_err(PersistenceError::Write)
 }
 
@@ -184,4 +196,44 @@ fn backup_paths(path: &Path) -> Result<Vec<PathBuf>, PersistenceError> {
         .collect::<Vec<_>>();
     backups.sort_by(|left, right| right.file_name().cmp(&left.file_name()));
     Ok(backups)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{error::Error, fs};
+
+    use serde_json::Value;
+
+    use super::{archive_workspace, read_workspace, recover_latest_backup, write_workspace};
+    use crate::PersistedWorkspace;
+
+    type TestWorkspace = PersistedWorkspace<Value, Value>;
+
+    #[test]
+    fn workspace_round_trip_is_private_and_versioned() -> Result<(), Box<dyn Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let path = temp_dir.path().join("workspace-state-v2.json");
+        write_workspace(&path, &TestWorkspace::default())?;
+        let loaded: TestWorkspace = read_workspace(&path)?;
+        assert_eq!(loaded.schema_version, 3);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(fs::metadata(path)?.permissions().mode() & 0o777, 0o600);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn corrupted_workspace_recovers_from_backup() -> Result<(), Box<dyn Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let path = temp_dir.path().join("workspace-state-v2.json");
+        write_workspace(&path, &TestWorkspace::default())?;
+        archive_workspace(&path)?;
+        fs::write(&path, b"{broken")?;
+        let recovered: Option<TestWorkspace> = recover_latest_backup(&path)?;
+        assert!(recovered.is_some());
+        assert!(read_workspace::<Value, Value>(&path).is_ok());
+        Ok(())
+    }
 }

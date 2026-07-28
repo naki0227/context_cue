@@ -26,6 +26,7 @@
 
 ## P1: 公開前必須
 
+- [未着手] ReleaseへOS別CLIバイナリを添付し、インストールsmoke testを追加する
 - [未着手] `globals.css`を共通要素と画面単位へ分割し、300行方針へ近づける
 - [完了] User基本情報とMy Knowledge onboardingを実装する
 - [進行中] AI整理前previewと差分承認を実装する
@@ -52,6 +53,9 @@
 
 ## 完了
 
+- [完了] AI Agent向けCLIでSessions / People / Projects / Reviews / Knowledge / TemplatesのCRUDを実装した
+- [完了] GUIとCLIのローカル保存処理を共通crateへ集約し、同時書込みの排他制御を追加した
+- [完了] `docs/SPEC.md`を正本としてアプリ内検索・CLI全文・JSON Schemaから参照できるようにした
 - [完了] 全ダッシュボードの上余白を広げ、People / Projects / Templates / Reviewのタブを見出し行から分離した
 - [完了] 本人用ワークスペースへ編集・削除可能な標準テンプレート6件を一度だけ導入するマイグレーションを追加した
 - [完了] My Knowledgeの未定義補助ボタンを共通角丸デザインへ統一し、個人名を入力例とテストから削除した

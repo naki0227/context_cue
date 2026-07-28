@@ -15,6 +15,7 @@ tauri-build = { version = "2", features = [] }
 async-trait = "0.1.91"
 context-cue-contracts = { path = "../../../crates/context-cue-contracts" }
 context-cue-core = { path = "../../../crates/context-cue-core" }
+context-cue-workspace = { path = "../../../crates/context-cue-workspace" }
 cpal = "0.18.1"
 dirs = "6"
 futures-util = "0.3.33"

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "lint": "biome check src test vite.config.ts vitest.config.ts vitest.user.config.ts",
+    "lint": "biome check src test ../../scripts vite.config.ts vitest.config.ts vitest.user.config.ts --files-ignore-unknown=true",
     "test": "vitest run && vitest run --config vitest.user.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "tauri": "tauri",

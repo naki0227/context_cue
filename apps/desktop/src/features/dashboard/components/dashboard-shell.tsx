@@ -9,6 +9,7 @@ import { ReviewPage } from '@/features/dashboard/pages/review-page';
 import { SessionsPage } from '@/features/dashboard/pages/sessions-page';
 import { SettingsPage } from '@/features/dashboard/pages/settings-page';
 import { TemplatesPage } from '@/features/dashboard/pages/templates-page';
+import { DocumentationPage } from '@/features/documentation/pages/documentation-page';
 
 type DashboardShellProps = {
   controller: DashboardController;
@@ -69,6 +70,8 @@ function renderPage(controller: DashboardController, activePage: PageId) {
           topOverlayVisible={controller.topOverlayVisible}
         />
       );
+    case 'documentation':
+      return <DocumentationPage />;
   }
 }
 

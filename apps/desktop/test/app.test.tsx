@@ -257,6 +257,26 @@ describe('App', () => {
     confirm.mockRestore();
   });
 
+  it('shows the bundled product specification', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole('button', { name: /Documentation/i }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: '製品仕様・ガイド' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Version 1.0.0-draft/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: '仕様書の目次' }),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('仕様書を検索'), 'CLI仕様');
+    expect(screen.getByRole('button', { name: /CLI仕様/ })).toBeInTheDocument();
+  });
+
   it('renders top overlay window content on top overlay view', async () => {
     window.history.replaceState({}, '', '/?view=overlay-top');
     render(<App />);

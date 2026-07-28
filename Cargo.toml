@@ -3,6 +3,8 @@ members = [
   "apps/desktop/src-tauri",
   "crates/context-cue-core",
   "crates/context-cue-contracts",
+  "crates/context-cue-cli",
+  "crates/context-cue-workspace",
 ]
 resolver = "2"
 
@@ -11,4 +13,3 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 authors = ["Nagase Ibuki"]
-

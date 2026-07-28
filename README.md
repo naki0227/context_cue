@@ -14,11 +14,12 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 - React + TypeScript のダッシュボード UI
 - 上部 / 右側の会話支援オーバーレイ
 - Rust 製の状態管理とコマンド層
-- モック文字起こしパイプライン
+- マイク入力、VAD、whisper.cppによるローカル文字起こし
 - 質問判定つき Adaptive Inference
-- サンプルプロフィール読み込みとキーワード検索
+- Ollamaと`gemma4:e2b`による構造化ローカル生成
+- ローカル資料の明示的な読み込みとキーワード検索
 - 個人ナレッジと Share Safe Mode のローカル永続化
-- Overlay Settings のブラウザ側永続化とダッシュボード実データのRust側永続化
+- Overlay Settingsとダッシュボード実データのRust側永続化
 
 ## 起動方法
 
@@ -59,8 +60,8 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 How to Talk はローカル実行を前提にしています。
 
 - 個人ナレッジはローカルに保存されます
-- Overlay Settings とダッシュボードの下書きは端末内に保持されます
-- セッション中のモック transcript は永続化しません
+- Overlay Settings とダッシュボードのデータは端末内に保持されます
+- 生音声は保存せず、文字起こし・要約・AI出力は既定で保存しません
 - 外部クラウドへ自動送信する構成は標準では有効にしていません
 
 詳細は [SECURITY.md](./SECURITY.md) を参照してください。
@@ -74,9 +75,31 @@ How to Talk はローカル実行を前提にしています。
 
 ## ドキュメント
 
+- [製品仕様書](./docs/SPEC.md)
 - [要件定義書](./docs/requirements.md)
 - [アーキテクチャ設計](./docs/architecture.md)
 - [実装計画](./docs/implementation-plan.md)
 - [配布手順](./docs/release.md)
 - [本番リリース準備監査](./docs/production-readiness-audit.md)
 - [My Knowledge入力ガイド](./docs/my-knowledge-guide.md)
+
+製品仕様書はアプリの`Documentation`からオフラインで閲覧できます。CLIでは
+`corepack pnpm spec`で全文、`corepack pnpm spec -- --list`で章一覧、
+`corepack pnpm spec -- --section "保存とプライバシー"`で指定章を表示できます。
+仕様を更新した場合は`corepack pnpm spec:generate`を実行してください。
+
+## AI Agent向けCLI
+
+ローカルworkspaceをAI Agentから参照・追加・編集・削除できます。
+
+```bash
+corepack pnpm cli:install
+how-to-talk list sessions
+how-to-talk create knowledge --file ./knowledge.json
+how-to-talk spec
+how-to-talk schema knowledge
+```
+
+個人情報をシェル履歴へ残さないため、入力には`--file`または`--data -`を推奨します。
+デスクトップアプリ起動中は排他制御により変更操作を拒否します。詳細な契約、終了コード、
+対象フィールドは[製品仕様書のCLI仕様](./docs/SPEC.md#13-cli仕様)を参照してください。

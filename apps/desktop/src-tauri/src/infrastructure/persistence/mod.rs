@@ -1,9 +1,11 @@
-mod file_store;
 pub mod model;
-mod validation;
 
-use std::{fmt, io, path::Path};
+use std::path::Path;
 
+use context_cue_workspace::{
+    archive_workspace, delete_workspace_files, read_workspace, recover_latest_backup,
+    write_workspace,
+};
 use serde_json::Value;
 
 use crate::{
@@ -12,50 +14,16 @@ use crate::{
     usecase::session_usecase::default_app_state,
 };
 
-pub use model::ConsentAuditRecord;
-use model::{CURRENT_SCHEMA_VERSION, PersistedWorkspace};
+use context_cue_workspace::CURRENT_SCHEMA_VERSION;
+pub use context_cue_workspace::PersistenceError;
+use model::PersistedWorkspace;
 
-#[derive(Debug)]
-pub enum PersistenceError {
-    Clock,
-    Deserialize(serde_json::Error),
-    InvalidSchema(&'static str),
-    MissingParent,
-    Read(io::Error),
-    Serialize(serde_json::Error),
-    UnsupportedSchemaVersion(u32),
-    WorkspaceTooLarge { actual: usize, maximum: usize },
-    Write(io::Error),
-}
-
-impl fmt::Display for PersistenceError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Clock => write!(formatter, "system clock is unavailable"),
-            Self::Deserialize(_) => write!(formatter, "workspace data is corrupted"),
-            Self::InvalidSchema(message) => write!(formatter, "invalid workspace: {message}"),
-            Self::MissingParent => write!(formatter, "workspace directory is invalid"),
-            Self::Read(_) => write!(formatter, "workspace could not be read"),
-            Self::Serialize(_) => write!(formatter, "workspace could not be encoded"),
-            Self::UnsupportedSchemaVersion(version) => {
-                write!(formatter, "workspace version {version} is not supported")
-            }
-            Self::WorkspaceTooLarge { actual, maximum } => {
-                write!(formatter, "workspace size {actual} exceeds limit {maximum}")
-            }
-            Self::Write(_) => write!(formatter, "workspace could not be saved"),
-        }
-    }
-}
-
-impl std::error::Error for PersistenceError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Deserialize(error) | Self::Serialize(error) => Some(error),
-            Self::Read(error) | Self::Write(error) => Some(error),
-            _ => None,
-        }
-    }
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConsentAuditRecord {
+    pub session_id: String,
+    pub confirmed_at_unix_ms: u64,
+    pub policy_version: String,
 }
 
 pub fn load_workspace() -> Result<PersistedWorkspace, PersistenceError> {
@@ -85,7 +53,7 @@ pub fn save_workspace_at(
         dashboard_state: dashboard_state.clone(),
         consent_audit: consent_audit.to_vec(),
     };
-    file_store::write_workspace(path, &workspace)
+    write_workspace(path, &workspace)
 }
 
 pub fn export_workspace_at(
@@ -98,7 +66,7 @@ pub fn export_workspace_at(
 }
 
 pub fn delete_workspace_at(path: &Path) -> Result<(), PersistenceError> {
-    file_store::delete_workspace_files(path)
+    delete_workspace_files(path)
 }
 
 pub fn restore_app_state(documents: &[OwnedProfileDocument]) -> context_cue_contracts::AppState {
@@ -115,26 +83,23 @@ fn load_or_recover(path: &Path) -> Result<PersistedWorkspace, PersistenceError> 
         return Ok(PersistedWorkspace::default());
     }
 
-    match file_store::read_workspace(path) {
+    match read_workspace(path) {
         Ok(workspace) => Ok(workspace),
-        Err(primary_error) => file_store::recover_latest_backup(path)?.ok_or(primary_error),
+        Err(primary_error) => recover_latest_backup(path)?.ok_or(primary_error),
     }
 }
 
 fn start_new_workspace(path: &Path) -> Result<PersistedWorkspace, PersistenceError> {
-    file_store::archive_workspace(path)?;
+    archive_workspace(path)?;
     Ok(PersistedWorkspace::default())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ConsentAuditRecord,
-        file_store::{
-            archive_workspace, delete_workspace_files, read_workspace, recover_latest_backup,
-            write_workspace,
-        },
-        model::PersistedWorkspace,
+    use super::{ConsentAuditRecord, model::PersistedWorkspace};
+    use context_cue_workspace::{
+        archive_workspace, delete_workspace_files, read_workspace, recover_latest_backup,
+        write_workspace,
     };
     use std::{error::Error, fs};
 
@@ -144,7 +109,7 @@ mod tests {
         let path = temp_dir.path().join("workspace-state-v2.json");
         write_workspace(&path, &PersistedWorkspace::default())?;
 
-        let loaded = read_workspace(&path)?;
+        let loaded: PersistedWorkspace = read_workspace(&path)?;
         assert_eq!(loaded.schema_version, 3);
         #[cfg(unix)]
         {
@@ -163,9 +128,11 @@ mod tests {
         archive_workspace(&path)?;
         fs::write(&path, b"{broken")?;
 
-        let recovered = recover_latest_backup(&path)?.ok_or("backup missing")?;
+        let recovered: PersistedWorkspace =
+            recover_latest_backup(&path)?.ok_or("backup missing")?;
         assert_eq!(recovered.schema_version, 3);
-        assert!(read_workspace(&path).is_ok());
+        let restored: Result<PersistedWorkspace, _> = read_workspace(&path);
+        assert!(restored.is_ok());
         Ok(())
     }
 

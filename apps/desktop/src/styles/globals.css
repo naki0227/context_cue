@@ -298,6 +298,23 @@ button:disabled {
   opacity: 0.9;
 }
 
+.nav-icon-documentation::before {
+  inset: 2px 4px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+
+.nav-icon-documentation::after {
+  left: 8px;
+  right: 8px;
+  top: 7px;
+  height: 2px;
+  background: currentColor;
+  box-shadow:
+    0 5px 0 currentColor,
+    0 10px 0 currentColor;
+}
+
 .user-avatar-v2 {
   background: linear-gradient(135deg, #f4f7ff, #aebce7);
 }

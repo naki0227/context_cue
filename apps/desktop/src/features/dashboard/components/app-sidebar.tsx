@@ -37,6 +37,8 @@ export function AppSidebar({ activePage, onChangePage }: AppSidebarProps) {
         return 'review';
       case 'settings':
         return 'settings';
+      case 'documentation':
+        return 'documentation';
     }
   }
 

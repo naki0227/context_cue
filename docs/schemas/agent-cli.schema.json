@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/naki0227/context_cue/blob/main/docs/schemas/agent-cli.schema.json",
+  "title": "How to Talk Agent CLI resources",
+  "type": "object",
+  "$defs": {
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dateLabel", "durationMinutes", "id", "location", "memo", "partner", "peopleIds", "platform", "projectIds", "recording", "recordingTone", "startAt", "status", "statusTone", "title", "type", "typeTone"],
+      "properties": {
+        "dateLabel": {"type": "string"},
+        "durationMinutes": {"type": "integer", "minimum": 0},
+        "id": {"type": "string", "minLength": 1},
+        "location": {"type": "string"},
+        "memo": {"type": "string"},
+        "partner": {"type": "string"},
+        "peopleIds": {"type": "array", "items": {"type": "string"}},
+        "platform": {"type": "string"},
+        "projectIds": {"type": "array", "items": {"type": "string"}},
+        "recording": {"type": "string"},
+        "recordingTone": {"type": "string"},
+        "reviewId": {"type": "string"},
+        "startAt": {"type": "string"},
+        "status": {"type": "string"},
+        "statusTone": {"type": "string"},
+        "title": {"type": "string"},
+        "type": {"type": "string"},
+        "typeTone": {"type": "string"}
+      }
+    },
+    "personHistory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "duration", "id", "title", "type"],
+      "properties": {
+        "date": {"type": "string"},
+        "duration": {"type": "string"},
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "type": {"type": "string"}
+      }
+    },
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks", "history", "id", "lastContactLabel", "mail", "memo", "name", "profile", "role", "shortRole", "updatedAt"],
+      "properties": {
+        "checks": {"type": "array", "items": {"type": "string"}},
+        "history": {"type": "array", "items": {"$ref": "#/$defs/personHistory"}},
+        "id": {"type": "string", "minLength": 1},
+        "lastContactLabel": {"type": "string"},
+        "mail": {"type": "string"},
+        "memo": {"type": "array", "items": {"type": "string"}},
+        "name": {"type": "string"},
+        "profile": {"type": "array", "items": {"type": "string"}},
+        "role": {"type": "string"},
+        "shortRole": {"type": "string"},
+        "updatedAt": {"type": "string"}
+      }
+    },
+    "projectLinkedSession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "id", "title", "type"],
+      "properties": {
+        "date": {"type": "string"},
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "type": {"type": "string"}
+      }
+    },
+    "projectAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dueDate", "id", "priority", "title"],
+      "properties": {
+        "dueDate": {"type": "string"},
+        "id": {"type": "string"},
+        "priority": {"type": "string"},
+        "title": {"type": "string"}
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actions", "category", "connections", "icon", "id", "issues", "linkedSessions", "overview", "points", "progress", "sessions", "statusLabel", "subtitle", "title", "tone", "updatedAt"],
+      "properties": {
+        "actions": {"type": "array", "items": {"$ref": "#/$defs/projectAction"}},
+        "category": {"type": "string"},
+        "connections": {"type": "array", "items": {"type": "string"}},
+        "icon": {"type": "string"},
+        "id": {"type": "string", "minLength": 1},
+        "issues": {"type": "integer", "minimum": 0},
+        "linkedSessions": {"type": "array", "items": {"$ref": "#/$defs/projectLinkedSession"}},
+        "overview": {"type": "string"},
+        "points": {"type": "array", "items": {"type": "string"}},
+        "progress": {"type": "integer", "minimum": 0, "maximum": 100},
+        "sessions": {"type": "integer", "minimum": 0},
+        "statusLabel": {"type": "string"},
+        "subtitle": {"type": "string"},
+        "title": {"type": "string"},
+        "tone": {"type": "string"},
+        "updatedAt": {"type": "string"}
+      }
+    },
+    "reviewAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "id", "owner", "title"],
+      "properties": {
+        "date": {"type": "string"},
+        "id": {"type": "string"},
+        "owner": {"type": "string"},
+        "title": {"type": "string"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actions", "date", "id", "improvements", "insights", "memo", "meta", "summary", "title", "transcript", "type"],
+      "properties": {
+        "actions": {"type": "array", "items": {"$ref": "#/$defs/reviewAction"}},
+        "date": {"type": "string"},
+        "id": {"type": "string", "minLength": 1},
+        "improvements": {"type": "array", "items": {"type": "string"}},
+        "insights": {"type": "array", "items": {"type": "string"}},
+        "memo": {"type": "array", "items": {"type": "string"}},
+        "meta": {"type": "string"},
+        "summary": {"type": "array", "items": {"type": "string"}},
+        "title": {"type": "string"},
+        "transcript": {"type": "array", "items": {"type": "string"}},
+        "type": {"type": "string"}
+      }
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content", "id", "source", "tag", "title", "updatedAt"],
+      "properties": {
+        "avatarDataUrl": {"type": "string"},
+        "confidence": {"type": "string", "enum": ["確認済み", "概算", "未確認"]},
+        "content": {"type": "array", "items": {"type": "string"}},
+        "id": {"type": "string", "minLength": 1},
+        "sensitivity": {"type": "string", "enum": ["一般", "個人", "機密"]},
+        "source": {"type": "string"},
+        "sourceDocumentId": {"type": "string"},
+        "sourceLabel": {"type": "string"},
+        "tag": {"type": "string"},
+        "title": {"type": "string"},
+        "updatedAt": {"type": "string"}
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "description", "icon", "id", "tag", "title", "tone", "updatedAt"],
+      "properties": {
+        "body": {"type": "array", "items": {"type": "string"}},
+        "description": {"type": "string"},
+        "icon": {"type": "string"},
+        "id": {"type": "string", "minLength": 1},
+        "tag": {"type": "string"},
+        "title": {"type": "string"},
+        "tone": {"type": "string"},
+        "updatedAt": {"type": "string"}
+      }
+    }
+  }
+}
