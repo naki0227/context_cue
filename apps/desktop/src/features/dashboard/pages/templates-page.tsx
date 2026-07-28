@@ -79,18 +79,6 @@ export function TemplatesPage() {
       <div className="sessions-hero">
         <h1>Templates</h1>
         <div className="toolbar-actions sessions-toolbar-actions">
-          <div className="tab-row people-tab-row">
-            {tabs.map((tab) => (
-              <button
-                className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                type="button"
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
           <div className="sessions-search-row">
             <label className="search-input-shell">
               <span className="search-icon" />
@@ -110,6 +98,21 @@ export function TemplatesPage() {
               ＋ 新しいテンプレート
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="toolbar-row sessions-tabs-row">
+        <div className="tab-row people-tab-row">
+          {tabs.map((tab) => (
+            <button
+              className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              type="button"
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 

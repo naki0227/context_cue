@@ -90,18 +90,6 @@ export function PeoplePage() {
       <div className="sessions-hero">
         <h1>People</h1>
         <div className="toolbar-actions sessions-toolbar-actions">
-          <div className="tab-row people-tab-row">
-            {tabs.map((tab) => (
-              <button
-                className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                type="button"
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
           <div className="search-shell people-search-shell">
             <span className="search-shell-icon" />
             <input
@@ -119,6 +107,21 @@ export function PeoplePage() {
           >
             ＋ 新しい人物を追加
           </button>
+        </div>
+      </div>
+
+      <div className="toolbar-row sessions-tabs-row">
+        <div className="tab-row people-tab-row">
+          {tabs.map((tab) => (
+            <button
+              className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              type="button"
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 

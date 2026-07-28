@@ -108,18 +108,6 @@ export function ProjectsPage() {
       <div className="sessions-hero">
         <h1>Projects / Companies</h1>
         <div className="toolbar-actions sessions-toolbar-actions">
-          <div className="tab-row people-tab-row">
-            {tabs.map((tab) => (
-              <button
-                className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                type="button"
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
           <div className="search-shell projects-search-shell">
             <span className="search-shell-icon" />
             <input
@@ -153,6 +141,21 @@ export function ProjectsPage() {
           >
             ＋ 新しい企業 / プロジェクト
           </button>
+        </div>
+      </div>
+
+      <div className="toolbar-row sessions-tabs-row">
+        <div className="tab-row people-tab-row">
+          {tabs.map((tab) => (
+            <button
+              className={`toolbar-tab sessions-tab ${activeTab === tab ? 'active' : ''}`}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              type="button"
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
