@@ -104,3 +104,12 @@ privacy、公開scaffold分離、依存監査、SPEC同期、lint、typecheck、
 ## 引き継ぎ事項
 
 次回最初に`gh secret list --repo naki0227/context_cue`でSecret名だけを確認する。Token値をログやファイルへ出さない。失敗済みタグの削除・差替えは、ユーザー確認なしに行わない。
+
+## 追記: 修正commitのCI
+
+- 修正commit: `9d0e5ff`
+- 通常CI Run: `30458604447`
+- JS job: 成功、35秒
+- Rust job: 成功、12分11秒
+- 開発元`main`へのpush完了
+- 残るブロッカーは`RELEASE_REPOSITORY_TOKEN`の開発元登録とタグ方針
