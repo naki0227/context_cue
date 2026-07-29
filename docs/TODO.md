@@ -22,7 +22,8 @@
 - [完了] mainとoverlayのTauri capabilityを分離し、CSPを設定する
 - [完了] 正式アプリアイコンを設定する
 - [未着手] macOS署名・公証、Windows署名を設定する
-- [未着手] 3 OSで初回Releaseとインストールsmoke testを実施する
+- [進行中] 初回Releaseのquality gateは成功。OS別build修正後にdraft Releaseとインストールsmoke testを再実施する
+- [未着手] 開発元Repository Secretsへ`RELEASE_REPOSITORY_TOKEN`を登録する
 - [未着手] 公開前にGit author metadataをnoreply化し、非個人Organizationへremoteを移管する
 - [完了] `enludus/How-to-talk`へ匿名scaffold全8ファイルを反映し、remote監査を通した
 - [完了] 公開側へ`relay-to-team`ラベルを作成し、テストIssueの中継を確認した
@@ -133,7 +134,7 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] 開発側のrelease workflow変更をcommit・pushし、テストtagで公開側draft Releaseを検証する
+- [次回] 開発元へ`RELEASE_REPOSITORY_TOKEN`を登録し、Release修正をpushしてOS別buildを再実行する
 - [次回] Tauri updater署名鍵を生成・Secret登録し、`latest.json`とアプリ内更新を有効化する
 - [次回] 署名identityと公開先Organizationを決め、初回draft Releaseを4 OS/targetで実行する
 - [次回] SBOM生成と主要CRUD Playwright E2EをRelease gateへ追加する

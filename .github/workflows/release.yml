@@ -134,23 +134,49 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libasound2-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install frontend dependencies
         run: corepack pnpm install --frozen-lockfile
+
+      - name: Configure Apple signing when available
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          APPLE_CERTIFICATE_SECRET: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD_SECRET: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY_SECRET: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID_SECRET: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD_SECRET: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID_SECRET: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -n "$APPLE_CERTIFICATE_SECRET" ]; then
+            printf '%s\n' \
+              "APPLE_CERTIFICATE=$APPLE_CERTIFICATE_SECRET" \
+              "APPLE_CERTIFICATE_PASSWORD=$APPLE_CERTIFICATE_PASSWORD_SECRET" \
+              "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY_SECRET" \
+              "APPLE_ID=$APPLE_ID_SECRET" \
+              "APPLE_PASSWORD=$APPLE_PASSWORD_SECRET" \
+              "APPLE_TEAM_ID=$APPLE_TEAM_ID_SECRET" >>"$GITHUB_ENV"
+          fi
+
+      - name: Configure Windows signing when available
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          WINDOWS_CERTIFICATE_SECRET: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD_SECRET: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -n "$WINDOWS_CERTIFICATE_SECRET" ]; then
+            printf '%s\n' \
+              "WINDOWS_CERTIFICATE=$WINDOWS_CERTIFICATE_SECRET" \
+              "WINDOWS_CERTIFICATE_PASSWORD=$WINDOWS_CERTIFICATE_PASSWORD_SECRET" >>"$GITHUB_ENV"
+          fi
 
       - name: Build and publish release assets
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         with:
           projectPath: apps/desktop
           tauriScript: corepack pnpm tauri
