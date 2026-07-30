@@ -22,7 +22,7 @@
 - [完了] mainとoverlayのTauri capabilityを分離し、CSPを設定する
 - [完了] 正式アプリアイコンを設定する
 - [未着手] macOS署名・公証、Windows署名を設定する
-- [進行中] `v0.1.1`はLinux PIC linkで失敗。修正済み`v0.1.2`でOS別build、draft Release、インストールsmoke testを再実施する
+- [進行中] `v0.1.2`は全build/CRUD smoke成功後にCLI upload先指定で失敗。修正済み`v0.1.3`でdraft Releaseを再実施する
 - [完了] 開発元Repository Secretsへ`RELEASE_REPOSITORY_TOKEN`を登録し、Secret名だけを確認した
 - [未着手] 公開前にGit author metadataをnoreply化し、非個人Organizationへremoteを移管する
 - [完了] `enludus/How-to-talk`へ匿名scaffold全8ファイルを反映し、remote監査を通した
@@ -134,7 +134,7 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] `v0.1.2`のRelease Actionsと公開側draft成果物を確認し、各OSでインストールsmoke testを行う
+- [次回] `v0.1.3`のRelease Actionsと公開側draft成果物を確認し、各OSでインストールsmoke testを行う
 - [次回] Tauri updater署名鍵を生成・Secret登録し、`latest.json`とアプリ内更新を有効化する
 - [次回] 署名identityと公開先Organizationを決め、初回draft Releaseを4 OS/targetで実行する
 - [次回] SBOM生成と主要CRUD Playwright E2EをRelease gateへ追加する

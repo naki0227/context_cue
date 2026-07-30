@@ -45,3 +45,16 @@ test('builds native Linux dependencies as position-independent code', () => {
     2,
   );
 });
+
+test('uploads CLI assets to the isolated release repository', () => {
+  const cliUpload = workflow.match(
+    /uses: softprops\/action-gh-release@v3\s+with:\s+([\s\S]*?)\s+files:/,
+  );
+  assert.ok(cliUpload);
+  assert.match(
+    cliUpload[1],
+    /token: \$\{\{ secrets\.RELEASE_REPOSITORY_TOKEN \}\}/,
+  );
+  assert.match(cliUpload[1], /repository: enludus\/How-to-talk/);
+  assert.doesNotMatch(cliUpload[1], /GITHUB_REPOSITORY/);
+});

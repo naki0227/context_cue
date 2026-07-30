@@ -7,12 +7,23 @@ Versioning while the project is pre-1.0.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-30
+
+### Fixed
+
+- Passed the isolated release repository and release token as explicit inputs
+  when uploading CLI archives and checksums
+
 ## [0.1.2] - 2026-07-30
 
 ### Fixed
 
 - Compiled native Linux C and C++ dependencies as position-independent code
   for Tauri packaging
+
+This draft attempt built all Tauri and CLI targets and passed every CLI CRUD
+smoke test, but CLI asset upload used the source repository context and was
+denied before promotion.
 
 ## [0.1.1] - 2026-07-29
 

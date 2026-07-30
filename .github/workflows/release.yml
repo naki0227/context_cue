@@ -302,10 +302,9 @@ jobs:
 
       - name: Upload CLI release assets
         uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
-          GITHUB_REPOSITORY: enludus/How-to-talk
         with:
+          token: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+          repository: enludus/How-to-talk
           tag_name: ${{ env.RELEASE_TAG }}
           name: "How to Talk ${{ env.RELEASE_TAG }}"
           draft: true
