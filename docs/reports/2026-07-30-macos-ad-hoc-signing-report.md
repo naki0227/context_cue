@@ -78,6 +78,8 @@ Apple証明書がない場合に`APPLE_SIGNING_IDENTITY=-`を設定し、Release
 - `plutil -p .../Info.plist`: version `0.1.4`とbundle identifierを確認
 - 通常CI run `30534364929`: JS・Rustとも成功
 - Release run `30534800704`: quality gate、Tauri 4環境、CLI 4環境がすべて成功
+- 2026年07月30日 20時10分27秒、M5 Macで
+  `How to Talk_0.1.4_aarch64.dmg`からアプリが起動できることを実機確認
 
 ## CIで確認される内容
 
@@ -87,7 +89,7 @@ macOS arm64/x64を含むRelease packaging。
 
 ## 未解決の課題
 
-- `v0.1.4`のmacOS arm64実機再検証が必要
+- macOS arm64のマイク権限、保存分離、Export、全削除の実機検証が必要
 - アドホック署名は開発者identityを証明せず、notarizationでもない
 - macOS x64、Windows、Linuxの実機smoke testは未完了
 - ローカルDMG生成は旧`v0.1.3`の同名volumeがマウント中で競合したため、

@@ -29,7 +29,7 @@
 - [完了] 公開側へ`relay-to-team`ラベルを作成し、テストIssueの中継を確認した
 - [完了] 未署名成果物をベータ版・Pre-releaseとして明記し、OS全体を無効化しない起動手順をRelease本文へ追加した
 - [完了] Draft生成とベータ公開を分離し、元リポジトリActionsから明示確認付きで公開するworkflowを追加した
-- [進行中] `v0.1.3` macOS arm64実機で破損扱いを確認し、アドホック署名を追加した`v0.1.4`を再検証する
+- [完了] `v0.1.3`の破損扱いをアドホック署名で修正し、`v0.1.4` DMGがM5 Macで起動できることを実機確認した
 - [完了] `v0.1.4` Release Actionsでquality gate、Tauri 4環境、CLI 4環境がすべて成功した
 
 ## P1: 公開前必須
@@ -133,7 +133,7 @@
 - [要確認] bundle identifier変更前の開発用workspaceは自動移行されないため、必要なデータを事前exportする
 - [要確認] 画像メタデータとRelease成果物・debug symbolを初回draft Release前に再監査する
 - [完了] `v0.1.3` macOS arm64成果物が破損扱いで起動不能になることを実機確認した
-- [要確認] `v0.1.4` macOS arm64で破損扱いが解消し、個別許可後に起動できることを確認する
+- [完了] `v0.1.4` macOS arm64で破損扱いが解消し、個別許可後に起動できることを確認した
 - [完了] `v0.1.3` Draftへベータ案内を反映するRelease Actionsが成功した
 - [要確認] `cargo audit`の許可済み警告17件、特にLinux向け`glib 0.18.5`のunsound警告をTauri更新に合わせて再評価する
 - [要確認] `workspace-seed.ts` はサンプルデータ定義ファイルとして 300 行超を許容するか、分割するか
