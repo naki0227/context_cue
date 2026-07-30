@@ -30,6 +30,7 @@
 - [完了] 未署名成果物をベータ版・Pre-releaseとして明記し、OS全体を無効化しない起動手順をRelease本文へ追加した
 - [完了] Draft生成とベータ公開を分離し、元リポジトリActionsから明示確認付きで公開するworkflowを追加した
 - [進行中] `v0.1.3` macOS arm64実機で破損扱いを確認し、アドホック署名を追加した`v0.1.4`を再検証する
+- [完了] `v0.1.4` Release Actionsでquality gate、Tauri 4環境、CLI 4環境がすべて成功した
 
 ## P1: 公開前必須
 

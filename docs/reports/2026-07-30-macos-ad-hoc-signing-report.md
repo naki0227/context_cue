@@ -76,6 +76,8 @@ Apple証明書がない場合に`APPLE_SIGNING_IDENTITY=-`を設定し、Release
 - `codesign --verify --deep --strict`: 成功
 - `codesign -dvvv`: `Signature=adhoc`、`Mach-O thin (arm64)`を確認
 - `plutil -p .../Info.plist`: version `0.1.4`とbundle identifierを確認
+- 通常CI run `30534364929`: JS・Rustとも成功
+- Release run `30534800704`: quality gate、Tauri 4環境、CLI 4環境がすべて成功
 
 ## CIで確認される内容
 
@@ -93,8 +95,8 @@ macOS arm64/x64を含むRelease packaging。
 
 ## 次にやること
 
-全CI相当検証後にcommit・pushし、`v0.1.4`tagで新しいDraftを作成する。
-M5 Macで`How to Talk_0.1.4_aarch64.dmg`を再検証する。
+`v0.1.4`tagのDraftは作成済み。M5 Macで
+`How to Talk_0.1.4_aarch64.dmg`を再検証する。
 
 ## 次回最初に見るべきファイル
 
