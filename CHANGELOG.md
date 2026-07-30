@@ -7,6 +7,16 @@ Versioning while the project is pre-1.0.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-07-30
+
+### Fixed
+
+- Added ad-hoc signing for macOS builds without an Apple certificate so
+  downloaded Apple Silicon bundles are not treated as damaged
+
+The `v0.1.3` macOS arm64 artifact failed the first installation smoke test
+with a damaged-app warning and was not promoted.
+
 ## [0.1.3] - 2026-07-30
 
 ### Fixed

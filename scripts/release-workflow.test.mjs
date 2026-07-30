@@ -30,6 +30,14 @@ test('only exports signing variables when certificates are available', () => {
   assert.doesNotMatch(actionEnvironment[1], /APPLE_|WINDOWS_/);
 });
 
+test('uses ad-hoc signing for macOS when no Apple certificate exists', () => {
+  assert.match(
+    workflow,
+    /else\s+echo "APPLE_SIGNING_IDENTITY=-" >>"\$GITHUB_ENV"\s+fi/,
+  );
+  assert.match(workflow, /macOS版はアドホック署名のみ/);
+});
+
 test('keeps CPAL Windows bindings on the Tauri-compatible version', () => {
   assert.match(
     desktopCargo,

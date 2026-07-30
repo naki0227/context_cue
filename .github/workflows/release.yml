@@ -163,6 +163,8 @@ jobs:
               "APPLE_ID=$APPLE_ID_SECRET" \
               "APPLE_PASSWORD=$APPLE_PASSWORD_SECRET" \
               "APPLE_TEAM_ID=$APPLE_TEAM_ID_SECRET" >>"$GITHUB_ENV"
+          else
+            echo "APPLE_SIGNING_IDENTITY=-" >>"$GITHUB_ENV"
           fi
 
       - name: Configure Windows signing when available
@@ -196,9 +198,10 @@ jobs:
             このReleaseは、動作確認とフィードバック収集を目的としたベータ版です。
             重要な業務や、失うと困るデータを扱う用途には使用しないでください。
 
-            現在のmacOS版はDeveloper ID署名・Appleの公証がなく、Windows版にも
-            コード署名がありません。そのため、OSから開発元を確認できない旨の
-            警告が表示されます。会社や学校の管理対象端末では起動できない場合があります。
+            現在のmacOS版はアドホック署名のみで、Developer ID署名・Appleの公証が
+            ありません。Windows版にもコード署名がありません。そのため、OSから
+            開発元を確認できない旨の警告が表示されます。会社や学校の管理対象端末では
+            起動できない場合があります。
 
             ## ダウンロード前の確認
 
