@@ -76,14 +76,13 @@ Node/Rust test、frontend/Rust build、Tauri/CLI packaging、CLI CRUD smoke、
 
 ## 未解決の課題
 
-- `v0.1.3`でCLI upload先修正を実地確認する必要がある
 - macOS公証とWindowsコード署名は未設定
 - 公開draft成果物のmetadata監査と実インストールsmokeは未実施
 
 ## 次にやること
 
-通常CI成功後に`v0.1.3`タグをpushし、全Release jobs、公開側draftの成果物、
-checksum、metadataを確認する。
+`enludus`で公開側draftの成果物名、checksum、metadataを確認し、各OSで
+インストールsmoke testを行う。
 
 ## 次回最初に見るべきファイル
 
@@ -96,3 +95,23 @@ checksum、metadataを確認する。
 
 `v0.1.0`から`v0.1.2`のタグは失敗履歴として移動しない。公開側draftを維持し、
 署名未設定の成果物をproduction releaseとして公開しない。
+
+## 実行結果
+
+2026年07月30日、通常CI run `30525108567`とRelease run `30525579050`が成功した。
+Releaseではquality gate、Tauri 4環境、CLI 4環境のbuild、隔離CRUD smoke、
+archive/checksum作成、公開側draftへのuploadがすべて成功した。
+
+確認できたTauri workflow artifactsは次の9種類。
+
+- `windows-x64-nsis`
+- `windows-x64-msi`
+- `linux-amd64-appimage`
+- `linux-x86_64-rpm`
+- `linux-amd64-deb`
+- `darwin-x64-app`
+- `darwin-x64-dmg`
+- `darwin-aarch64-app`
+- `darwin-aarch64-dmg`
+
+Releaseはdraftのまま維持されており、production公開は行っていない。
