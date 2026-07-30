@@ -10,6 +10,10 @@ const desktopCargo = readFileSync(
   new URL('../apps/desktop/src-tauri/Cargo.toml', import.meta.url),
   'utf8',
 );
+const publishWorkflow = readFileSync(
+  new URL('../.github/workflows/publish-beta-release.yml', import.meta.url),
+  'utf8',
+);
 
 test('installs ALSA headers in quality and Tauri Linux jobs', () => {
   assert.equal(workflow.match(/libasound2-dev/g)?.length, 2);
@@ -69,4 +73,23 @@ test('publishes unsigned builds as a beta with scoped trust guidance', () => {
   assert.match(workflow, /SmartScreenの「WindowsによってPCが保護されました」/);
   assert.match(workflow, /保護設定を無効化せず/);
   assert.doesNotMatch(workflow, /xattr|spctl --master-disable/);
+});
+
+test('publishes a beta only through an explicit guarded workflow', () => {
+  assert.match(publishWorkflow, /workflow_dispatch:/);
+  assert.doesNotMatch(publishWorkflow, /^\s+(push|schedule):/m);
+  assert.match(publishWorkflow, /SMOKE_TESTED.*!= "true"/s);
+  assert.match(publishWorkflow, /CONFIRMATION.*!= "publish \$RELEASE_TAG"/s);
+  assert.match(publishWorkflow, /\.draft == true/);
+  assert.match(publishWorkflow, /\.prerelease == true/);
+  assert.match(publishWorkflow, /endswith\("\.dmg"\)/);
+  assert.match(publishWorkflow, /endswith\("\.msi"\)/);
+  assert.match(publishWorkflow, /endswith\("\.AppImage"\)/);
+  assert.match(publishWorkflow, /endswith\("\.sha256"\).*length >= 4/s);
+  assert.match(publishWorkflow, /-F draft=false/);
+  assert.match(publishWorkflow, /-F prerelease=true/);
+  assert.match(
+    publishWorkflow,
+    /GH_TOKEN: \$\{\{ secrets\.RELEASE_REPOSITORY_TOKEN \}\}/,
+  );
 });

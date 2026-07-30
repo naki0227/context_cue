@@ -42,7 +42,8 @@
 - [ ] draft Releaseのasset名、サイズ、checksumを照合した
 - [ ] インストール手順と署名状態を最終確認した
 - [ ] rollback対象の直前バージョンと手順を確認した
-- [ ] draftを公開し、公開後にダウンロードを再確認した
+- [ ] `Publish Beta Release`で対象tag、実機確認、`publish vX.Y.Z`を明示確認した
+- [ ] Pre-releaseとして公開し、公開後にダウンロードを再確認した
 
 ## Rollback
 

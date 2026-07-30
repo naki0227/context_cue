@@ -98,6 +98,22 @@ workflow成功だけでは公開しません。[リリースチェックリス�
 に従い、署名、実機インストール、Privacy Notice、rollbackを確認してからdraftを
 公開します。
 
+## ベータ版の公開
+
+Draftの作成・更新と公開は別workflowに分離する。実機確認後、元リポジトリの
+`Publish Beta Release` workflowを手動実行する。
+
+入力項目:
+
+- `tag`: 公開するDraftの`vX.Y.Z`
+- `smoke_tested`: 必須実機確認が完了した場合だけ有効化する
+- `confirmation`: `publish vX.Y.Z`を完全一致で入力する
+
+公開workflowは登録済み`RELEASE_REPOSITORY_TOKEN`を使用するため、公開側アカウントを
+開発端末へログインさせる必要はない。公開前にDraft、Pre-release、ベータ注意文、
+macOS・Windows・Linux成果物、CLI用SHA-256が4件以上あることを自動確認する。
+条件を満たさない場合はDraftを維持して失敗する。
+
 ## 必要な GitHub Secrets
 
 ### すぐ使えるもの

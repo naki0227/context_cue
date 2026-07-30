@@ -28,6 +28,7 @@
 - [完了] `enludus/How-to-talk`へ匿名scaffold全8ファイルを反映し、remote監査を通した
 - [完了] 公開側へ`relay-to-team`ラベルを作成し、テストIssueの中継を確認した
 - [完了] 未署名成果物をベータ版・Pre-releaseとして明記し、OS全体を無効化しない起動手順をRelease本文へ追加した
+- [完了] Draft生成とベータ公開を分離し、元リポジトリActionsから明示確認付きで公開するworkflowを追加した
 
 ## P1: 公開前必須
 
@@ -130,7 +131,7 @@
 - [要確認] bundle identifier変更前の開発用workspaceは自動移行されないため、必要なデータを事前exportする
 - [要確認] 画像メタデータとRelease成果物・debug symbolを初回draft Release前に再監査する
 - [要確認] `v0.1.3`のmacOS/Windows成果物でRelease記載の起動手順を実機確認する
-- [要確認] `enludus`認証で`v0.1.3` draftへベータ案内を反映し、Pre-release指定を確認する
+- [完了] `v0.1.3` Draftへベータ案内を反映するRelease Actionsが成功した
 - [要確認] `cargo audit`の許可済み警告17件、特にLinux向け`glib 0.18.5`のunsound警告をTauri更新に合わせて再評価する
 - [要確認] `workspace-seed.ts` はサンプルデータ定義ファイルとして 300 行超を許容するか、分割するか
 - [要確認] People の `history` / `lastContactLabel` を将来的に完全導出へ寄せるか、手入力と併用するか
@@ -138,7 +139,7 @@
 ## 次回最初に着手するタスク
 
 - [次回] `enludus`で`v0.1.3` draft Releaseの成果物名とmetadataを確認し、各OSでインストールsmoke testを行う
-- [次回] `enludus`のGitHub CLI認証または承認済みブラウザ操作で`v0.1.3` draft本文を更新する
+- [次回] 実機smoke test後、`Publish Beta Release` workflowで`v0.1.3`を公開する
 - [次回] Tauri updater署名鍵を生成・Secret登録し、`latest.json`とアプリ内更新を有効化する
 - [次回] 法人等の非個人identityを利用できる段階でmacOS/Windows署名を設定する
 - [次回] SBOM生成と主要CRUD Playwright E2EをRelease gateへ追加する

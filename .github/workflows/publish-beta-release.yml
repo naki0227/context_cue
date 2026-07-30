@@ -1,0 +1,95 @@
+name: Publish Beta Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Draft release tag (for example, v0.1.3)"
+        required: true
+        type: string
+      smoke_tested:
+        description: "I completed the required installation smoke tests"
+        required: true
+        default: false
+        type: boolean
+      confirmation:
+        description: "Enter: publish <tag>"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  TARGET_REPOSITORY: enludus/How-to-talk
+  RELEASE_TAG: ${{ inputs.tag }}
+  SMOKE_TESTED: ${{ inputs.smoke_tested }}
+  CONFIRMATION: ${{ inputs.confirmation }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate explicit approval
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Release tag format is invalid."
+            exit 1
+          fi
+          if [ "$SMOKE_TESTED" != "true" ]; then
+            echo "::error::Installation smoke tests must be confirmed."
+            exit 1
+          fi
+          if [ "$CONFIRMATION" != "publish $RELEASE_TAG" ]; then
+            echo "::error::Confirmation must exactly match: publish $RELEASE_TAG"
+            exit 1
+          fi
+
+      - name: Validate draft release
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+        run: |
+          set -euo pipefail
+          release_json="$(gh api "repos/$TARGET_REPOSITORY/releases/tags/$RELEASE_TAG")"
+
+          jq -e '.draft == true' <<<"$release_json" >/dev/null
+          jq -e '.prerelease == true' <<<"$release_json" >/dev/null
+          jq -e '.body | contains("動作確認とフィードバック収集を目的としたベータ版")' \
+            <<<"$release_json" >/dev/null
+          jq -e '[.assets[].name | select(endswith(".dmg"))] | length > 0' \
+            <<<"$release_json" >/dev/null
+          jq -e '[.assets[].name | select(endswith(".msi") or endswith(".exe"))] | length > 0' \
+            <<<"$release_json" >/dev/null
+          jq -e '[.assets[].name | select(endswith(".AppImage") or endswith(".deb") or endswith(".rpm"))] | length > 0' \
+            <<<"$release_json" >/dev/null
+          jq -e '[.assets[].name | select(endswith(".sha256"))] | length >= 4' \
+            <<<"$release_json" >/dev/null
+
+          echo "release_id=$(jq -r '.id' <<<"$release_json")" >>"$GITHUB_OUTPUT"
+
+      - name: Publish as prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+          RELEASE_ID: ${{ steps.release.outputs.release_id }}
+        run: |
+          set -euo pipefail
+          gh api \
+            --method PATCH \
+            "repos/$TARGET_REPOSITORY/releases/$RELEASE_ID" \
+            -F draft=false \
+            -F prerelease=true >/dev/null
+
+      - name: Verify published release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+        run: |
+          set -euo pipefail
+          release_json="$(gh api "repos/$TARGET_REPOSITORY/releases/tags/$RELEASE_TAG")"
+          jq -e '.draft == false and .prerelease == true' <<<"$release_json" >/dev/null
+          echo "Published $(jq -r '.html_url' <<<"$release_json")" >>"$GITHUB_STEP_SUMMARY"
