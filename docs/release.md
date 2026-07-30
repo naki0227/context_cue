@@ -155,8 +155,9 @@ macOS は direct download 配布でも、実運用では署名と notarization �
 ## 初回公開の必須方針
 
 - Linuxのunsigned成果物は署名状態をRelease notesへ明記する
-- Windowsは内部試験を除き、コード署名後に公開する
-- macOSはDeveloper ID署名とnotarization後に公開する
+- 未署名のWindows/macOS成果物はベータ版かつGitHubのPre-releaseとして公開する
+- 未署名ベータでは、署名・公証がないこととOS警告が出ることをRelease notesへ明記する
+- Windows/macOSを製品版として扱うのはコード署名・Developer ID署名・notarization後とする
 - 3 OSの実機smoke testが終わるまでReleaseをdraftに保つ
 - checksumとSBOMが揃うまで製品版として公開しない
 
@@ -168,8 +169,14 @@ README や Release 本文には、以下のように案内するのが自然で�
 - 一般ユーザーは Releases から自分の OS 向けファイルをダウンロード
 - macOS では Gatekeeper の警告が出る可能性がある
 
-公開文面からGatekeeper回避手順を案内しない。警告が出る成果物は署名・公証状態を
-確認し、広範な配布を止める。
+未署名ベータの公開文面では、Appleの「プライバシーとセキュリティ」から
+対象アプリだけを「このまま開く」手順と、Windows SmartScreenの「詳細情報」から
+対象ファイルだけを「実行」する手順を案内する。ダウンロード元とファイル名の再確認、
+利用可能なSHA-256の照合を先に求める。
+
+`xattr`によるquarantine属性の削除やGatekeeper・SmartScreen全体の無効化は案内しない。
+「壊れている」と表示されるmacOS成果物や、管理ポリシーで許可操作が表示されない端末では
+回避を求めず、利用中止とIssue報告を案内する。
 
 ## Rollback
 

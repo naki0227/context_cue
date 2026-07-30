@@ -58,3 +58,15 @@ test('uploads CLI assets to the isolated release repository', () => {
   assert.match(cliUpload[1], /repository: enludus\/How-to-talk/);
   assert.doesNotMatch(cliUpload[1], /GITHUB_REPOSITORY/);
 });
+
+test('publishes unsigned builds as a beta with scoped trust guidance', () => {
+  assert.match(workflow, /prerelease: true/);
+  assert.match(
+    workflow,
+    /このReleaseは、動作確認とフィードバック収集を目的としたベータ版です/,
+  );
+  assert.match(workflow, /「プライバシーとセキュリティ」を開きます/);
+  assert.match(workflow, /SmartScreenの「WindowsによってPCが保護されました」/);
+  assert.match(workflow, /保護設定を無効化せず/);
+  assert.doesNotMatch(workflow, /xattr|spctl --master-disable/);
+});
