@@ -106,7 +106,12 @@ jobs:
         run: |
           CARGO_SOURCE_HOME="${CARGO_HOME:-$HOME/.cargo}"
           echo "RUSTFLAGS=--remap-path-prefix=$GITHUB_WORKSPACE=. --remap-path-prefix=$CARGO_SOURCE_HOME=.cargo" >>"$GITHUB_ENV"
-          if [ "$RUNNER_OS" != "Windows" ]; then
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            echo "CFLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CXXFLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_C_FLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_CXX_FLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+          elif [ "$RUNNER_OS" != "Windows" ]; then
             echo "CFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
             echo "CXXFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
             echo "CMAKE_C_FLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
@@ -230,7 +235,12 @@ jobs:
         run: |
           CARGO_SOURCE_HOME="${CARGO_HOME:-$HOME/.cargo}"
           echo "RUSTFLAGS=--remap-path-prefix=$GITHUB_WORKSPACE=. --remap-path-prefix=$CARGO_SOURCE_HOME=.cargo" >>"$GITHUB_ENV"
-          if [ "$RUNNER_OS" != "Windows" ]; then
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            echo "CFLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CXXFLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_C_FLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+            echo "CMAKE_CXX_FLAGS=-fPIC -ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
+          elif [ "$RUNNER_OS" != "Windows" ]; then
             echo "CFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
             echo "CXXFLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"
             echo "CMAKE_C_FLAGS=-ffile-prefix-map=$GITHUB_WORKSPACE=." >>"$GITHUB_ENV"

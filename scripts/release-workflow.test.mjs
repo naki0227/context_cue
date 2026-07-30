@@ -32,3 +32,16 @@ test('keeps CPAL Windows bindings on the Tauri-compatible version', () => {
     /\[target\.'cfg\(target_os = "windows"\)'\.dependencies\]\s+[\s\S]*windows-core = "=0\.61\.2"/,
   );
 });
+
+test('builds native Linux dependencies as position-independent code', () => {
+  assert.equal(
+    workflow.match(/CFLAGS=-fPIC -ffile-prefix-map=\$GITHUB_WORKSPACE=\./g)
+      ?.length,
+    2,
+  );
+  assert.equal(
+    workflow.match(/CXXFLAGS=-fPIC -ffile-prefix-map=\$GITHUB_WORKSPACE=\./g)
+      ?.length,
+    2,
+  );
+});
