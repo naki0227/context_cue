@@ -20,10 +20,19 @@ const pagesWorkflow = readFileSync(
   ),
   'utf8',
 );
+const rootPage = readFileSync(
+  new URL('../distribution/release-repository/index.html', import.meta.url),
+  'utf8',
+);
 
 test('public install button opens the device-aware install page', () => {
   assert.match(readme, /https:\/\/enludus\.github\.io\/How-to-talk\/install\//);
   assert.match(readme, /新規導入か更新かを判断/);
+});
+
+test('repository Pages root redirects to the install page', () => {
+  assert.match(rootPage, /content="0; url=\.\/install\/"/);
+  assert.match(rootPage, /href="\.\/install\/"/);
 });
 
 test('install page resolves only stable public installer assets', () => {
