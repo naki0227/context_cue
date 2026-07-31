@@ -132,3 +132,24 @@ workflowへ`v0.1.5`、smoke test済み、`publish v0.1.5`を入力して公開�
 - ルート`index.html`変更でもPages workflowが起動するpaths条件を追加した。
 - 公開同期run `30627204970`とPages run `30627224041`が成功した。
 - 公開ルートがredirect用HTMLを返し、`/install/`がHTTP 200であることを確認した。
+
+## Installer直接download互換修正
+
+### 作業日時
+
+2026年07月31日 20時47分29秒
+
+### 変更と確認
+
+- 安定名に加えて、`v0.1.4`以前のversion付きDMG、EXE、AppImage名を認識するようにした。
+- install page test、lint、privacy audit、release repository auditが成功した。
+- 公開同期run `30628150288`とPages run `30628161892`が成功した。
+- 公開ページへ修正済みJavaScriptが配信されたことを確認した。
+- 公開APIから見えるReleaseは0件だった。Draftは一般ユーザーへ配信されないため、
+  現時点のReleaseページfallbackは仕様どおりである。
+
+### 未解決と引き継ぎ
+
+`v0.1.5`の実機smoke test完了後にBeta ReleaseをPublishし、M5上でApple Silicon用
+DMGへの直接downloadと上書き更新を再確認する。公開前のDraftをinstallページから
+取得可能にするための認証情報やprivate APIは導入しない。
