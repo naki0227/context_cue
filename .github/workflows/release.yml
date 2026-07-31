@@ -98,6 +98,7 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
         run: |
           set -euo pipefail
+          gh auth setup-git
           gh repo clone enludus/How-to-talk public
           rsync -a --delete --exclude ".git" distribution/release-repository/ public/
           git -C public config user.name "How to Talk Release"

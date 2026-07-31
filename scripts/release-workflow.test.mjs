@@ -74,6 +74,7 @@ test('uploads CLI assets to the isolated release repository', () => {
 test('syncs only audited public files with a neutral identity', () => {
   assert.match(workflow, /node scripts\/privacy-audit\.mjs/);
   assert.match(workflow, /node scripts\/release-repository-audit\.mjs/);
+  assert.match(workflow, /gh auth setup-git/);
   assert.match(
     workflow,
     /rsync -a --delete --exclude "\.git" distribution\/release-repository\/ public\//,
