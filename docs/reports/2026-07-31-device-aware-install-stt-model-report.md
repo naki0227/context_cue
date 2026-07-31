@@ -96,3 +96,25 @@ M5での高精度モデル取得と文字起こしをsmoke testする。
 次回最初に`corepack pnpm release:check`を実行する。公開側へ開発リポジトリ全体を
 clone・mirrorせず、`distribution/release-repository/`以外を同期しない。
 モデルchecksum変更時は公式配布metadataと実ファイルを再照合する。
+
+## Release実行結果
+
+### 実行日時
+
+2026年07月31日 17時51分06秒
+
+### 結果
+
+- `v0.1.5`タグをrelease commit `22ba5e6`へ作成した。
+- 公開同期のGit credential設定をhotfix commit `f1b81aa`で追加した。
+- Release Actions run `30616654014`は全job成功した。
+- quality gate、監査済み公開ファイル同期、Tauri 4環境、stable installer 4件と
+  SHA-256、CLI 4環境の隔離CRUD smoke testとuploadが成功した。
+- 公開Pages run `30617059573`が成功し、installページのHTTP 200を確認した。
+- Releaseは意図どおりdraftかつPre-release候補であり、実機smoke test前には公開しない。
+
+### Release後の残作業
+
+M5でApple Silicon用stable installerを使った上書き更新、高精度モデルの自動選択・
+取得・再利用、リアルタイム文字起こしを確認する。成功後に`Publish Beta Release`
+workflowへ`v0.1.5`、smoke test済み、`publish v0.1.5`を入力して公開する。

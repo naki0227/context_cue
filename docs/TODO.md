@@ -32,10 +32,11 @@
 - [完了] `v0.1.3`の破損扱いをアドホック署名で修正し、`v0.1.4` DMGがM5 Macで起動できることを実機確認した
 - [完了] `v0.1.4` Release Actionsでquality gate、Tauri 4環境、CLI 4環境がすべて成功した
 - [完了] 端末性能に応じたWhisperモデル自動選択と公式checksum検証を実装した
+- [完了] `v0.1.5` Release Actionsで公開同期、Pages、Tauri 4環境、stable alias、CLI 4環境が成功した
 
 ## P1: 公開前必須
 
-- [進行中] Releaseへ4ターゲットのCLIとchecksumを添付し、CI内CRUD smokeは成功。公開draftを実機へ展開して最終smoke testを行う
+- [進行中] `v0.1.5` draftをM5へ上書き導入し、高精度モデル取得と文字起こしの最終smoke testを行う
 - [未着手] `globals.css`を共通要素と画面単位へ分割し、300行方針へ近づける
 - [完了] User基本情報とMy Knowledge onboardingを実装する
 - [進行中] AI整理前previewと差分承認を実装する
@@ -145,11 +146,10 @@
 
 ## 次回最初に着手するタスク
 
-- [次回] 公開リポジトリのSettings > PagesでSourceをGitHub Actionsに設定する
-- [次回] `v0.1.5`候補を作成し、安定名インストーラ4件とinstallページの実リンクをsmoke testする
+- [完了] 公開リポジトリのPagesをGitHub Actionsで配信し、installページのHTTP 200を確認した
+- [次回] `v0.1.5` draftのApple Silicon用stable installerで上書き更新をsmoke testする
 - [次回] M5実機で高精度モデルの自動選択、取得、リアルタイム文字起こし、再起動後の再利用を確認する
-- [次回] `enludus`で`v0.1.3` draft Releaseの成果物名とmetadataを確認し、各OSでインストールsmoke testを行う
-- [次回] 実機smoke test後、`Publish Beta Release` workflowで`v0.1.3`を公開する
+- [次回] 実機smoke test後、`Publish Beta Release` workflowで`v0.1.5`を公開する
 - [次回] Tauri updater署名鍵を生成・Secret登録し、`latest.json`とアプリ内更新を有効化する
 - [次回] 法人等の非個人identityを利用できる段階でmacOS/Windows署名を設定する
 - [次回] SBOM生成と主要CRUD Playwright E2EをRelease gateへ追加する
