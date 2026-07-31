@@ -118,3 +118,17 @@ clone・mirrorせず、`distribution/release-repository/`以外を同期しな�
 M5でApple Silicon用stable installerを使った上書き更新、高精度モデルの自動選択・
 取得・再利用、リアルタイム文字起こしを確認する。成功後に`Publish Beta Release`
 workflowへ`v0.1.5`、smoke test済み、`publish v0.1.5`を入力して公開する。
+
+## Pagesルート404修正
+
+### 作業日時
+
+2026年07月31日 20時30分33秒
+
+### 変更と確認
+
+- Pagesルート`/How-to-talk/`から`./install/`へ移動する`index.html`を追加した。
+- Release全体を再ビルドせず公開用ファイルだけを監査・同期するworkflowを追加した。
+- ルート`index.html`変更でもPages workflowが起動するpaths条件を追加した。
+- 公開同期run `30627204970`とPages run `30627224041`が成功した。
+- 公開ルートがredirect用HTMLを返し、`/install/`がHTTP 200であることを確認した。

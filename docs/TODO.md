@@ -147,6 +147,7 @@
 ## 次回最初に着手するタスク
 
 - [完了] 公開リポジトリのPagesをGitHub Actionsで配信し、installページのHTTP 200を確認した
+- [完了] PagesルートURLからinstallページへのredirectを追加し、404を解消した
 - [次回] `v0.1.5` draftのApple Silicon用stable installerで上書き更新をsmoke testする
 - [次回] M5実機で高精度モデルの自動選択、取得、リアルタイム文字起こし、再起動後の再利用を確認する
 - [次回] 実機smoke test後、`Publish Beta Release` workflowで`v0.1.5`を公開する
