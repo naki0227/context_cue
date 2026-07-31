@@ -52,6 +52,7 @@ test('install page resolves only stable public installer assets', () => {
 });
 
 test('release repository deploys the static page with minimal permissions', () => {
+  assert.match(pagesWorkflow, /- "index\.html"/);
   assert.match(pagesWorkflow, /pages: write/);
   assert.match(pagesWorkflow, /id-token: write/);
   assert.match(pagesWorkflow, /contents: read/);
