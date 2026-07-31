@@ -15,9 +15,13 @@ import {
 } from '@/lib/tauri/runtime-commands';
 
 const initialStatus: SttStatus = {
-  modelName: 'Whisper base q5_1（日本語対応）',
+  modelId: 'large-v3-turbo-q5-0',
+  modelName: 'Whisper large-v3-turbo q5_0（高精度・日本語対応）',
   modelInstalled: false,
   modelSizeBytes: 0,
+  modelDownloadBytes: 574_041_195,
+  systemMemoryBytes: 0,
+  selectionReason: '端末性能から推奨モデルを確認しています。',
   devices: [],
   selectedDeviceId: null,
   recording: false,

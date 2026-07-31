@@ -79,8 +79,38 @@ jobs:
           cargo test --workspace
           cargo build --workspace
 
-  publish-tauri:
+  sync-release-repository:
     needs: quality-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Validate public repository contents
+        run: |
+          node scripts/privacy-audit.mjs
+          node scripts/release-repository-audit.mjs
+
+      - name: Update isolated public repository
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh repo clone enludus/How-to-talk public
+          rsync -a --delete --exclude ".git" distribution/release-repository/ public/
+          git -C public config user.name "How to Talk Release"
+          git -C public config user.email "enludus@users.noreply.github.com"
+          git -C public add --all
+          if git -C public diff --cached --quiet; then
+            exit 0
+          fi
+          git -C public commit -m "chore: update release repository"
+          git -C public push origin main
+
+  publish-tauri:
+    needs: sync-release-repository
     strategy:
       fail-fast: false
       matrix:
@@ -241,7 +271,7 @@ jobs:
           args: ${{ matrix.args }}
 
   publish-cli:
-    needs: publish-tauri
+    needs: publish-installer-aliases
     strategy:
       fail-fast: false
       matrix:
@@ -352,3 +382,47 @@ jobs:
           files: |
             release/${{ matrix.archive }}
             release/${{ matrix.archive }}.sha256
+
+  publish-installer-aliases:
+    needs: publish-tauri
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download generated installers
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+        run: |
+          mkdir -p installers stable
+          gh release download "$RELEASE_TAG" \
+            --repo enludus/How-to-talk \
+            --dir installers \
+            --pattern "*.dmg" \
+            --pattern "*setup.exe" \
+            --pattern "*.AppImage"
+
+      - name: Create stable installer names and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          copy_one() {
+            local pattern="$1"
+            local destination="$2"
+            mapfile -t matches < <(find installers -maxdepth 1 -type f -name "$pattern")
+            if [ "${#matches[@]}" -ne 1 ]; then
+              echo "::error::Expected one installer matching $pattern, found ${#matches[@]}."
+              exit 1
+            fi
+            cp "${matches[0]}" "stable/$destination"
+            sha256sum "stable/$destination" >"stable/$destination.sha256"
+          }
+          copy_one "*aarch64.dmg" "How-to-Talk-macOS-Apple-Silicon.dmg"
+          copy_one "*x64.dmg" "How-to-Talk-macOS-Intel.dmg"
+          copy_one "*x64-setup.exe" "How-to-Talk-Windows-x64-Setup.exe"
+          copy_one "*amd64.AppImage" "How-to-Talk-Linux-x64.AppImage"
+
+      - name: Upload stable installer assets
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPOSITORY_TOKEN }}
+        run: |
+          gh release upload "$RELEASE_TAG" stable/* \
+            --repo enludus/How-to-talk \
+            --clobber

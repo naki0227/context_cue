@@ -71,6 +71,37 @@ test('uploads CLI assets to the isolated release repository', () => {
   assert.doesNotMatch(cliUpload[1], /GITHUB_REPOSITORY/);
 });
 
+test('syncs only audited public files with a neutral identity', () => {
+  assert.match(workflow, /node scripts\/privacy-audit\.mjs/);
+  assert.match(workflow, /node scripts\/release-repository-audit\.mjs/);
+  assert.match(
+    workflow,
+    /rsync -a --delete --exclude "\.git" distribution\/release-repository\/ public\//,
+  );
+  assert.match(workflow, /user\.name "How to Talk Release"/);
+  assert.match(workflow, /user\.email "enludus@users\.noreply\.github\.com"/);
+  assert.doesNotMatch(
+    workflow.match(
+      /sync-release-repository:[\s\S]*?\n {2}publish-tauri:/,
+    )?.[0] ?? '',
+    /git log|git remote -v|GITHUB_SHA/,
+  );
+});
+
+test('publishes stable installer aliases for the install page', () => {
+  for (const filename of [
+    'How-to-Talk-macOS-Apple-Silicon.dmg',
+    'How-to-Talk-macOS-Intel.dmg',
+    'How-to-Talk-Windows-x64-Setup.exe',
+    'How-to-Talk-Linux-x64.AppImage',
+  ]) {
+    assert.match(workflow, new RegExp(filename.replaceAll('.', '\\.')));
+    assert.match(publishWorkflow, new RegExp(filename.replaceAll('.', '\\.')));
+  }
+  assert.match(workflow, /sha256sum "stable\/\$destination"/);
+  assert.match(workflow, /gh release upload "\$RELEASE_TAG" stable\/\*/);
+});
+
 test('publishes unsigned builds as a beta with scoped trust guidance', () => {
   assert.match(workflow, /prerelease: true/);
   assert.match(

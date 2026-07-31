@@ -3,12 +3,12 @@
 How to Talkは、会議、面接、メンタリング、1on1などの会話中に、自分が準備した
 メモや資料を思い出しやすくするローカルファーストの会話支援アプリです。
 
-[![インストール／最新版に更新](https://img.shields.io/badge/How_to_Talk-インストール／最新版に更新-0b6e4f?style=for-the-badge)](https://github.com/enludus/How-to-talk/releases/latest)
+[![インストール／最新版に更新](https://img.shields.io/badge/How_to_Talk-インストール／最新版に更新-0b6e4f?style=for-the-badge)](https://enludus.github.io/How-to-talk/install/)
 
-初めて使う場合も、インストール済みのアプリを更新する場合も、上のボタンから
-最新Releaseを開いてください。同じアプリ識別子の正規インストーラを使うため、
-更新時もローカルのワークスペースを引き継ぎます。念のため、重要なデータは
-更新前にアプリからexportしてください。
+初めて使う場合も、インストール済みのアプリを更新する場合も、上のボタンを
+使用してください。端末に合うインストーラだけを案内します。同じアプリ識別子の
+インストーラが新規導入か更新かを判断し、更新時もローカルのワークスペースを
+引き継ぎます。念のため、重要なデータは更新前にアプリからexportしてください。
 
 ## できること
 
@@ -38,8 +38,9 @@ How to Talkは、参加者の同意を得た会話で利用してください。
 | Linux | AppImage / deb / rpm |
 | CLI | macOS / Windows / Linux向けarchive |
 
-Releaseに複数のファイルがある場合は、お使いのOSとCPUに合うものを選んでください。
-各CLI archiveにはSHA-256 checksumを添付します。
+通常は上のインストールボタンがOSに合う候補だけを表示します。macOSでCPU種別を
+確認する場合は、Appleメニューの「このMacについて」を開いてください。M1以降は
+Apple Siliconです。各CLI archiveにはSHA-256 checksumを添付します。
 
 ## インストールと更新
 

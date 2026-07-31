@@ -243,7 +243,10 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: '文字起こしを保存' }),
     ).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText(/約57 MB/i)).toBeInTheDocument();
+    expect(screen.getByText(/約574\.0 MB/i)).toBeInTheDocument();
+    expect(
+      screen.getByText('デスクトップアプリで端末性能を確認します。'),
+    ).toBeInTheDocument();
     expect(screen.getByText('停止中')).toBeInTheDocument();
     await user.click(
       screen.getByRole('button', {

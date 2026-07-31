@@ -48,10 +48,10 @@ pub fn persisted_state_file() -> PathBuf {
     path
 }
 
-pub fn stt_model_file() -> PathBuf {
+pub fn stt_model_file(filename: &str) -> PathBuf {
     let mut path = app_data_dir();
     path.push("models");
-    path.push("ggml-base-q5_1.bin");
+    path.push(filename);
     path
 }
 

@@ -2,8 +2,6 @@ use std::fmt;
 
 use serde::Serialize;
 
-pub const STT_MODEL_NAME: &str = "Whisper base q5_1（日本語対応）";
-
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AudioDevice {
@@ -15,9 +13,13 @@ pub struct AudioDevice {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SttStatus {
+    pub model_id: String,
     pub model_name: String,
     pub model_installed: bool,
     pub model_size_bytes: u64,
+    pub model_download_bytes: u64,
+    pub system_memory_bytes: u64,
+    pub selection_reason: String,
     pub devices: Vec<AudioDevice>,
     pub selected_device_id: Option<String>,
     pub recording: bool,

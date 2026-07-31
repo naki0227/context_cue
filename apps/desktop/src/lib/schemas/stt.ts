@@ -7,9 +7,13 @@ export const audioDeviceSchema = z.object({
 });
 
 export const sttStatusSchema = z.object({
+  modelId: z.string(),
   modelName: z.string(),
   modelInstalled: z.boolean(),
   modelSizeBytes: z.number().int().nonnegative(),
+  modelDownloadBytes: z.number().int().nonnegative(),
+  systemMemoryBytes: z.number().int().nonnegative(),
+  selectionReason: z.string(),
   devices: z.array(audioDeviceSchema),
   selectedDeviceId: z.string().nullable(),
   recording: z.boolean(),

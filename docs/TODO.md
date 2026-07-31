@@ -31,6 +31,7 @@
 - [完了] Draft生成とベータ公開を分離し、元リポジトリActionsから明示確認付きで公開するworkflowを追加した
 - [完了] `v0.1.3`の破損扱いをアドホック署名で修正し、`v0.1.4` DMGがM5 Macで起動できることを実機確認した
 - [完了] `v0.1.4` Release Actionsでquality gate、Tauri 4環境、CLI 4環境がすべて成功した
+- [完了] 端末性能に応じたWhisperモデル自動選択と公式checksum検証を実装した
 
 ## P1: 公開前必須
 
@@ -53,12 +54,15 @@
 - [完了] 公開配布scaffoldから開発元参照を拒否する専用監査と単体テストを追加した
 - [完了] 公開Issueへの承認ラベル付与から非公開トラッカー作成までの中継を実地確認した
 - [完了] `use-dashboard-controller.ts` を責務別hookへ分割して300行以内にする
+- [完了] READMEの単一導線、OS別安定名インストーラ、公開用端末判定ページを実装した
+- [完了] Release時に監査済み公開ファイルだけを固定名義で配布リポジトリへ同期するようにした
 
 ## P2: 公開後改善
 
 - [未着手] SQLite migrationと全文検索へ移行する
 - [未着手] speaker diarizationとシステム音声入力を追加する
-- [未着手] 実機性能に基づくモデル自動選択を追加する
+- [完了] Apple Silicon・CPU種別・総メモリに基づくモデル自動選択を追加した
+- [未着手] 短時間benchmarkと推論失敗時の軽量モデルfallbackを追加する
 - [未着手] アクセシビリティとキーボード操作を監査する
 - [未着手] 多言語化、timezone、日時形式を正規化する
 
@@ -141,6 +145,9 @@
 
 ## 次回最初に着手するタスク
 
+- [次回] 公開リポジトリのSettings > PagesでSourceをGitHub Actionsに設定する
+- [次回] `v0.1.5`候補を作成し、安定名インストーラ4件とinstallページの実リンクをsmoke testする
+- [次回] M5実機で高精度モデルの自動選択、取得、リアルタイム文字起こし、再起動後の再利用を確認する
 - [次回] `enludus`で`v0.1.3` draft Releaseの成果物名とmetadataを確認し、各OSでインストールsmoke testを行う
 - [次回] 実機smoke test後、`Publish Beta Release` workflowで`v0.1.3`を公開する
 - [次回] Tauri updater署名鍵を生成・Secret登録し、`latest.json`とアプリ内更新を有効化する

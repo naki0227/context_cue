@@ -39,14 +39,26 @@ export function SettingsSttCard({
           <dd>{stt.status.modelName}</dd>
         </div>
         <div>
-          <dt>保存サイズ</dt>
+          <dt>
+            {stt.status.modelInstalled ? '保存サイズ' : 'ダウンロードサイズ'}
+          </dt>
           <dd>
             {stt.status.modelSizeBytes > 0
               ? formatBytes(stt.status.modelSizeBytes)
-              : '約57 MB'}
+              : `約${formatBytes(stt.status.modelDownloadBytes)}`}
+          </dd>
+        </div>
+        <div>
+          <dt>検出メモリ</dt>
+          <dd>
+            {stt.status.systemMemoryBytes > 0
+              ? formatMemory(stt.status.systemMemoryBytes)
+              : '確認中'}
           </dd>
         </div>
       </dl>
+
+      <p className="settings-card-description">{stt.status.selectionReason}</p>
 
       <label className="settings-device-field">
         <span>入力デバイス</span>
@@ -93,7 +105,7 @@ export function SettingsSttCard({
             onClick={sttDownloadModel}
             type="button"
           >
-            {stt.isDownloading ? '取得中' : 'モデルを取得'}
+            {stt.isDownloading ? '取得中' : '推奨モデルを取得'}
           </button>
         ) : null}
         {stt.isDownloading ? (
@@ -112,4 +124,8 @@ export function SettingsSttCard({
 
 function formatBytes(bytes: number) {
   return `${(bytes / 1_000_000).toFixed(1)} MB`;
+}
+
+function formatMemory(bytes: number) {
+  return `約${Math.round(bytes / 1024 ** 3)} GB`;
 }

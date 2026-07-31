@@ -7,6 +7,23 @@ Versioning while the project is pre-1.0.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-07-31
+
+### Added
+
+- Device-aware local STT model selection with a high-accuracy
+  `large-v3-turbo-q5_0` option for supported hardware
+- A privacy-preserving install page that narrows downloads by operating system
+- Stable installer asset names and SHA-256 checksums for every desktop platform
+
+### Changed
+
+- Verify both lightweight and high-accuracy Whisper models with official
+  SHA-256 digests and exact file sizes
+- Sync only audited release-repository files with a neutral public identity
+  before building a tagged Release
+- Use one README action for both first-time installation and updates
+
 ## [0.1.4] - 2026-07-30
 
 ### Fixed

@@ -7,6 +7,7 @@ mod infrastructure;
 mod live_transcript;
 mod llm_runtime;
 mod repository;
+mod stt_model_catalog;
 mod stt_runtime;
 mod usecase;
 

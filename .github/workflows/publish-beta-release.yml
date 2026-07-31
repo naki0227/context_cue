@@ -68,6 +68,16 @@ jobs:
             <<<"$release_json" >/dev/null
           jq -e '[.assets[].name | select(endswith(".sha256"))] | length >= 4' \
             <<<"$release_json" >/dev/null
+          for installer in \
+            How-to-Talk-macOS-Apple-Silicon.dmg \
+            How-to-Talk-macOS-Intel.dmg \
+            How-to-Talk-Windows-x64-Setup.exe \
+            How-to-Talk-Linux-x64.AppImage
+          do
+            jq -e --arg installer "$installer" \
+              '[.assets[].name | select(. == $installer)] | length == 1' \
+              <<<"$release_json" >/dev/null
+          done
 
           echo "release_id=$(jq -r '.id' <<<"$release_json")" >>"$GITHUB_OUTPUT"
 

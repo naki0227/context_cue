@@ -6,7 +6,7 @@ use std::{
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use reqwest::Client;
-use sha1::{Digest, Sha1};
+use sha2::{Digest, Sha256};
 use tokio::{fs, io::AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
@@ -14,25 +14,23 @@ use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextPar
 use crate::{
     domain::stt::{SttError, SttModelProgress},
     repository::stt_repository::{SttProgressReporter, SttRepository},
+    stt_model_catalog::SttModelSpec,
 };
-
-const MODEL_URL: &str =
-    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin";
-const MODEL_SHA1: &str = "a3733eda680ef76256db5fc5dd9de8629e62c5e7";
-const MINIMUM_MODEL_BYTES: u64 = 40_000_000;
 
 pub struct WhisperEngine {
     client: Client,
     context: Arc<Mutex<Option<Arc<WhisperContext>>>>,
     model_path: PathBuf,
+    model: SttModelSpec,
 }
 
 impl WhisperEngine {
-    pub fn new(model_path: PathBuf) -> Self {
+    pub fn new(model_path: PathBuf, model: SttModelSpec) -> Self {
         Self {
             client: Client::new(),
             context: Arc::new(Mutex::new(None)),
             model_path,
+            model,
         }
     }
 
@@ -91,7 +89,7 @@ impl SttRepository for WhisperEngine {
     fn model_installed(&self) -> bool {
         self.model_path
             .metadata()
-            .is_ok_and(|metadata| metadata.len() >= MINIMUM_MODEL_BYTES)
+            .is_ok_and(|metadata| metadata.len() == self.model.download_bytes)
     }
 
     async fn download_model(
@@ -106,7 +104,7 @@ impl SttRepository for WhisperEngine {
         let temporary = parent.join(".whisper-model.download");
         let response = self
             .client
-            .get(MODEL_URL)
+            .get(self.model.url)
             .send()
             .await
             .map_err(|_| SttError::Transport)?;
@@ -118,7 +116,7 @@ impl SttRepository for WhisperEngine {
         let mut file = fs::File::create(&temporary)
             .await
             .map_err(|_| SttError::Persistence)?;
-        let mut hasher = Sha1::new();
+        let mut hasher = Sha256::new();
         let mut completed = 0_u64;
 
         loop {
@@ -143,12 +141,8 @@ impl SttRepository for WhisperEngine {
 
         file.sync_all().await.map_err(|_| SttError::Persistence)?;
         drop(file);
-        let digest = hasher
-            .finalize()
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
-        if completed < MINIMUM_MODEL_BYTES || digest != MODEL_SHA1 {
+        let digest = encode_hex(&hasher.finalize());
+        if completed != self.model.download_bytes || digest != self.model.sha256 {
             let _ = fs::remove_file(&temporary).await;
             return Err(SttError::InvalidModel);
         }
@@ -170,6 +164,10 @@ impl SttRepository for WhisperEngine {
         .await
         .map_err(|_| SttError::Transcription)?
     }
+}
+
+fn encode_hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 fn progress(completed: u64, total: u64, done: bool) -> SttModelProgress {
@@ -203,12 +201,24 @@ async fn set_private_permissions(_path: &Path) -> Result<(), SttError> {
 mod tests {
     use std::{error::Error, path::PathBuf};
 
-    use super::{WhisperEngine, progress};
+    use sha2::{Digest, Sha256};
+
+    use super::{WhisperEngine, encode_hex, progress};
 
     #[test]
     fn download_progress_is_bounded() {
         assert_eq!(progress(50, 200, false).percent, 25);
         assert_eq!(progress(300, 200, false).percent, 100);
+    }
+
+    #[test]
+    fn model_hasher_uses_sha256() {
+        let mut hasher = Sha256::new();
+        hasher.update(b"test");
+        assert_eq!(
+            encode_hex(&hasher.finalize()),
+            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+        );
     }
 
     #[test]

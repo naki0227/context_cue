@@ -6,15 +6,20 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     config::stt_model_file,
-    domain::stt::{STT_MODEL_NAME, SttError, SttStatus},
+    domain::stt::{SttError, SttStatus},
     infrastructure::{
         audio_capture::{SegmentHandler, list_input_devices, start_input_stream},
         whisper_engine::WhisperEngine,
     },
     repository::stt_repository::{SttProgressReporter, SttRepository},
+    stt_model_catalog::{
+        HardwareProfile, SttModelSpec, hardware_profile, recommended_model, selection_reason,
+    },
 };
 
 pub struct SttRuntime {
+    hardware: HardwareProfile,
+    model: SttModelSpec,
     repository: Arc<dyn SttRepository>,
     model_cancellation: Mutex<Option<CancellationToken>>,
     selected_device_id: Mutex<Option<String>>,
@@ -24,8 +29,12 @@ pub struct SttRuntime {
 
 impl Default for SttRuntime {
     fn default() -> Self {
+        let hardware = hardware_profile();
+        let model = recommended_model(hardware);
         Self {
-            repository: Arc::new(WhisperEngine::new(stt_model_file())),
+            hardware,
+            model,
+            repository: Arc::new(WhisperEngine::new(stt_model_file(model.filename), model)),
             model_cancellation: Mutex::new(None),
             selected_device_id: Mutex::new(None),
             stream: Mutex::new(None),
@@ -49,12 +58,16 @@ impl SttRuntime {
             .is_some();
         let model_installed = self.repository.model_installed();
         Ok(SttStatus {
-            model_name: STT_MODEL_NAME.to_owned(),
+            model_id: self.model.id.to_owned(),
+            model_name: self.model.display_name.to_owned(),
             model_installed,
-            model_size_bytes: stt_model_file()
+            model_size_bytes: stt_model_file(self.model.filename)
                 .metadata()
                 .map(|metadata| metadata.len())
                 .unwrap_or_default(),
+            model_download_bytes: self.model.download_bytes,
+            system_memory_bytes: self.hardware.total_memory_bytes,
+            selection_reason: selection_reason(self.hardware, self.model),
             devices,
             selected_device_id,
             recording,

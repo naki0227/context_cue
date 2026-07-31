@@ -48,7 +48,7 @@ How to Talk は、現在 **Context Cue** の表示名として使っている名
 ## 一般ユーザー向け配布
 
 非エンジニア向けには、GitHubからcloneして起動する形ではなく、
-[公開配布ページ](https://github.com/enludus/How-to-talk)からインストーラや
+[インストール／更新ページ](https://enludus.github.io/How-to-talk/install/)からインストーラや
 配布ファイルをダウンロードして使う想定です。
 
 - macOS: `.dmg`

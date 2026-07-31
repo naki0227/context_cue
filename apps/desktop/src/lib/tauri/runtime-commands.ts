@@ -37,9 +37,13 @@ export async function cancelModelPull(): Promise<void> {
 export async function checkSttStatus(): Promise<SttStatus> {
   if (!isDesktopRuntime()) {
     return sttStatusSchema.parse({
-      modelName: 'Whisper base q5_1（日本語対応）',
+      modelId: 'large-v3-turbo-q5-0',
+      modelName: 'Whisper large-v3-turbo q5_0（高精度・日本語対応）',
       modelInstalled: false,
       modelSizeBytes: 0,
+      modelDownloadBytes: 574_041_195,
+      systemMemoryBytes: 0,
+      selectionReason: 'デスクトップアプリで端末性能を確認します。',
       devices: [],
       selectedDeviceId: null,
       recording: false,
