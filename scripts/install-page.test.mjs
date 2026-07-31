@@ -51,6 +51,14 @@ test('install page resolves only stable public installer assets', () => {
   assert.doesNotMatch(page, /analytics|localStorage|document\.cookie/i);
 });
 
+test('install page supports versioned assets from releases before v0.1.5', () => {
+  assert.match(page, /macArm: \/_aarch64\\\.dmg\$\/i/);
+  assert.match(page, /macIntel: \/_x64\\\.dmg\$\/i/);
+  assert.match(page, /windows: \/_x64-setup\\\.exe\$\/i/);
+  assert.match(page, /linux: \/_amd64\\\.AppImage\$\/i/);
+  assert.match(page, /available\.get\(filename\) \?\? legacyAsset/);
+});
+
 test('release repository deploys the static page with minimal permissions', () => {
   assert.match(pagesWorkflow, /- "index\.html"/);
   assert.match(pagesWorkflow, /pages: write/);
